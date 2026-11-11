@@ -1,0 +1,103 @@
+# InterviewOS server stack (Linux host with Docker). NOT used on the Windows development PC.
+#   cp .env.example .env   # fill in real secrets; never commit .env
+#   docker compose --env-file .env up -d --build
+#   docker compose run --rm migrate   # apply migrations (also runs automatically before api starts)
+#
+# Security: PostgreSQL and Redis have NO published ports — only the internal network can reach them.
+# The API is published on 127.0.0.1 only; Nginx on the host terminates TLS and proxies to it.
+name: interviewos
+
+x-backend-env: &backend-env
+  NODE_ENV: production
+  DATABASE_URL: postgresql://${APP_DB_USER}:${APP_DB_PASSWORD}@postgres:5432/${APP_DB_NAME}?schema=public&connection_limit=10
+  FRONTEND_ORIGINS: ${FRONTEND_ORIGINS}
+  TRUST_PROXY: "true"
+  AUTH_MODE: firebase
+  FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID}
+  FIREBASE_CLIENT_EMAIL: ${FIREBASE_CLIENT_EMAIL}
+  FIREBASE_PRIVATE_KEY: ${FIREBASE_PRIVATE_KEY}
+  REDIS_ENABLED: "true"
+  REDIS_HOST: redis
+  REDIS_PORT: "6379"
+  REDIS_PASSWORD: ${REDIS_PASSWORD}
+  JOBS_IN_PROCESS: "false"
+  SWAGGER_ENABLED: ${SWAGGER_ENABLED:-false}
+  LOG_LEVEL: info
+  CAREERS_INTEGRATION_KEY: ${CAREERS_INTEGRATION_KEY:-}
+  INTERVIEW_COMPLETION_WINDOW_HOURS: "48"
+  INTERVIEW_REMINDER_AFTER_HOURS: "24"
+
+services:
+  postgres:
+    image: postgres:17-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${PG_SUPERUSER:-postgres}
+      POSTGRES_PASSWORD: ${PG_SUPERUSER_PASSWORD:?set PG_SUPERUSER_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
+      APP_DB_USER: ${APP_DB_USER:?set APP_DB_USER}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?set APP_DB_PASSWORD}
+      APP_DB_NAME: ${APP_DB_NAME:-interviewos}
+      TZ: UTC
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ../database/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [internal]
+
+  redis:
+    image: redis:7-bookworm
+    restart: unless-stopped
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:?set REDIS_PASSWORD}", "--appendonly", "yes"]
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$${REDIS_PASSWORD}\" --no-auth-warning ping | grep PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    networks: [internal]
+
+  migrate:
+    build: { context: ../../interviewos-backend, dockerfile: ../interviewos-infrastructure/docker/backend.Dockerfile }
+    image: interviewos-backend:latest
+    command: ["npx", "prisma", "migrate", "deploy"]
+    environment: *backend-env
+    depends_on:
+      postgres: { condition: service_healthy }
+    restart: "no"
+    networks: [internal]
+
+  api:
+    image: interviewos-backend:latest
+    restart: unless-stopped
+    environment: *backend-env
+    ports:
+      - "127.0.0.1:4000:4000"
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+    networks: [internal]
+
+  worker:
+    image: interviewos-backend:latest
+    restart: unless-stopped
+    command: ["node", "dist/worker.js"]
+    environment: *backend-env
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+    networks: [internal]
+
+volumes:
+  pgdata:
+  redisdata:
+
+networks:
+  internal:

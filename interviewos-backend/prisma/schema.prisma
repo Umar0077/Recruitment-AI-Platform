@@ -1,0 +1,671 @@
+// InterviewOS — PostgreSQL schema (Prisma).
+// Conventions: UUID primary keys, UTC timestamps (timestamptz), snake_case table/column names,
+// explicit status enums, foreign keys with deliberate onDelete rules, and indexes chosen from
+// actual API query patterns (see docs/database.md). JSONB only for genuinely flexible metadata.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ───────────────────────────── Enums ─────────────────────────────
+
+enum AccountStatus {
+  ACTIVE
+  INVITED
+  DISABLED
+}
+
+enum RoleCode {
+  SUPER_ADMIN
+  HR_MANAGER
+  RECRUITER
+  REVIEWER
+  CANDIDATE
+}
+
+enum CandidateTrack {
+  EXPERIENCED_FE_CLOSER
+  CSR_FRESHER
+}
+
+/// The 18 official HR recruitment statuses (HR document p. 4–5). Labels live in code constants.
+enum RecruitmentStatus {
+  APPLICATION_RECEIVED
+  AI_INTERVIEW_PENDING
+  AI_INTERVIEW_IN_PROGRESS
+  AI_INTERVIEW_COMPLETED
+  RECRUITER_REVIEW_PENDING
+  SHORTLISTED
+  HR_INTERVIEW_SCHEDULED
+  HR_INTERVIEW_COMPLETED
+  FINAL_ASSESSMENT_PENDING
+  FINAL_ASSESSMENT_COMPLETED
+  SELECTED
+  OFFER_RELEASED
+  OFFER_ACCEPTED
+  DOCUMENTATION_ONBOARDING
+  PRODUCTION_ONBOARDING
+  JOINED
+  NOT_SELECTED
+  CANDIDATE_WITHDRAWN
+}
+
+enum ApplicationSource {
+  CAREERS_WEBSITE
+  MANUAL
+  IMPORT
+}
+
+/// Interview lifecycle — deliberately separate from RecruitmentStatus.
+enum InterviewStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  SUBMITTED
+  INTERRUPTED
+  EXPIRED
+  CANCELLED
+}
+
+enum QuestionSetVersionStatus {
+  DRAFT
+  PUBLISHED
+  RETIRED
+}
+
+enum AnswerSource {
+  SPEECH_TO_TEXT
+  TYPED_FALLBACK
+}
+
+enum TranscriptKind {
+  PROVISIONAL
+  CONFIRMED
+}
+
+enum ProgressEventType {
+  INVITED
+  STARTED
+  RESUMED
+  ANSWER_CONFIRMED
+  INTERRUPTED
+  SUBMITTED
+  EXPIRED
+  CANCELLED
+}
+
+enum RecruitmentEventType {
+  APPLICATION_RECEIVED
+  STATUS_CHANGED
+  INTERVIEW_INVITED
+  INTERVIEW_STARTED
+  INTERVIEW_SUBMITTED
+  HR_REMARK_ADDED
+  HR_REVIEW_UPDATED
+}
+
+enum HrReviewStatus {
+  PENDING_REVIEW
+  IN_REVIEW
+  REVIEWED
+  FURTHER_REVIEW_REQUIRED
+}
+
+enum AssessmentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REVIEW_REQUIRED
+}
+
+enum ObservationKind {
+  CRITERION
+  QUESTION
+  STRENGTH
+  REVIEW_AREA
+}
+
+enum NotificationType {
+  INTERVIEW_COMPLETED
+  REVIEW_REQUIRED
+  CANDIDATE_SHORTLISTED
+  SESSION_EXPIRING
+  HR_REMARK_ADDED
+}
+
+enum MediaKind {
+  INTERVIEW_AUDIO
+  INTERVIEW_VIDEO
+  ATTACHMENT
+  REPORT
+}
+
+enum MediaStatus {
+  PENDING_UPLOAD
+  AVAILABLE
+  DELETED
+}
+
+// ───────────────────────────── Identity & access ─────────────────────────────
+
+/// Application user. firebaseUid is the authoritative external identity (email is not).
+model User {
+  id            String        @id @default(uuid()) @db.Uuid
+  firebaseUid   String        @unique @map("firebase_uid")
+  email         String?
+  emailVerified Boolean       @default(false) @map("email_verified")
+  displayName   String?       @map("display_name")
+  status        AccountStatus @default(ACTIVE)
+  lastLoginAt   DateTime?     @map("last_login_at") @db.Timestamptz(3)
+  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  identities       AuthIdentity[]
+  roles            UserRole[]          @relation("UserRoles")
+  rolesAssigned    UserRole[]          @relation("RoleAssigner")
+  candidate        Candidate?
+  assignedApps     Application[]       @relation("AssignedRecruiter")
+  remarks          HrRemark[]
+  reviews          HrReview[]
+  notifications    Notification[]
+  auditLogs        AuditLog[]
+  recruitmentEvents RecruitmentEvent[]
+  publishedVersions QuestionSetVersion[] @relation("PublishedBy")
+
+  @@index([email])
+  @@map("users")
+}
+
+/// Sign-in providers linked to a user (google.com; older rows may hold other providers), as reported by Firebase.
+model AuthIdentity {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  provider    String
+  providerUid String?  @map("provider_uid")
+  email       String?
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, provider])
+  @@map("auth_identities")
+}
+
+model Role {
+  id          String           @id @default(uuid()) @db.Uuid
+  code        RoleCode         @unique
+  name        String
+  description String?
+  permissions RolePermission[]
+  users       UserRole[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String           @id @default(uuid()) @db.Uuid
+  code        String           @unique
+  description String?
+  roles       RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String     @map("role_id") @db.Uuid
+  permissionId String     @map("permission_id") @db.Uuid
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model UserRole {
+  userId       String   @map("user_id") @db.Uuid
+  roleId       String   @map("role_id") @db.Uuid
+  assignedById String?  @map("assigned_by_id") @db.Uuid
+  assignedAt   DateTime @default(now()) @map("assigned_at") @db.Timestamptz(3)
+  user         User     @relation("UserRoles", fields: [userId], references: [id], onDelete: Cascade)
+  role         Role     @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  assignedBy   User?    @relation("RoleAssigner", fields: [assignedById], references: [id], onDelete: SetNull)
+
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+// ───────────────────────────── Recruitment ─────────────────────────────
+
+model JobRole {
+  id                    String         @id @default(uuid()) @db.Uuid
+  code                  String         @unique
+  externalJobId         String?        @unique @map("external_job_id")
+  title                 String
+  description           String?
+  track                 CandidateTrack
+  isActive              Boolean        @default(true) @map("is_active")
+  defaultQuestionSetId  String?        @map("default_question_set_id") @db.Uuid
+  defaultQuestionSet    QuestionSet?   @relation(fields: [defaultQuestionSetId], references: [id], onDelete: SetNull)
+  createdAt             DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime       @updatedAt @map("updated_at") @db.Timestamptz(3)
+  applications          Application[]
+  interviews            InterviewSession[]
+
+  @@map("job_roles")
+}
+
+/// A person. Job-specific details live on Application so one candidate can apply to many roles.
+model Candidate {
+  id                  String         @id @default(uuid()) @db.Uuid
+  externalCandidateId String?        @unique @map("external_candidate_id")
+  userId              String?        @unique @map("user_id") @db.Uuid
+  fullName            String         @map("full_name")
+  email               String?
+  phone               String?
+  category            CandidateTrack
+  location            String?
+  isSample            Boolean        @default(false) @map("is_sample")
+  createdAt           DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt           DateTime       @updatedAt @map("updated_at") @db.Timestamptz(3)
+  user                User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  applications        Application[]
+  interviews          InterviewSession[]
+  media               MediaAsset[]
+
+  @@index([email])
+  @@index([fullName])
+  @@map("candidates")
+}
+
+model Application {
+  id                     String            @id @default(uuid()) @db.Uuid
+  candidateId            String            @map("candidate_id") @db.Uuid
+  jobRoleId              String            @map("job_role_id") @db.Uuid
+  source                 ApplicationSource @default(MANUAL)
+  externalApplicationRef String?           @map("external_application_ref")
+  submittedAt            DateTime          @map("submitted_at") @db.Timestamptz(3)
+  status                 RecruitmentStatus @default(APPLICATION_RECEIVED)
+  statusChangedAt        DateTime          @default(now()) @map("status_changed_at") @db.Timestamptz(3)
+  /// Track-specific form answers (experience, CPA, salary, education, English self-rating...).
+  details                Json              @default("{}") @db.JsonB
+  availability           Json              @default("{}") @db.JsonB
+  assignedRecruiterId    String?           @map("assigned_recruiter_id") @db.Uuid
+  createdAt              DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt              DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
+  candidate              Candidate         @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  jobRole                JobRole           @relation(fields: [jobRoleId], references: [id], onDelete: Restrict)
+  assignedRecruiter      User?             @relation("AssignedRecruiter", fields: [assignedRecruiterId], references: [id], onDelete: SetNull)
+  events                 RecruitmentEvent[]
+  remarks                HrRemark[]
+  reviews                HrReview[]
+  interviews             InterviewSession[]
+
+  @@unique([source, externalApplicationRef])
+  @@index([candidateId])
+  @@index([jobRoleId])
+  @@index([status, statusChangedAt])
+  @@index([assignedRecruiterId])
+  @@map("applications")
+}
+
+/// Append-only recruitment timeline (status history, interview milestones, remarks).
+model RecruitmentEvent {
+  id            String               @id @default(uuid()) @db.Uuid
+  applicationId String               @map("application_id") @db.Uuid
+  type          RecruitmentEventType
+  fromStatus    RecruitmentStatus?   @map("from_status")
+  toStatus      RecruitmentStatus?   @map("to_status")
+  actorUserId   String?              @map("actor_user_id") @db.Uuid
+  note          String?
+  createdAt     DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  application   Application          @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  actor         User?                @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([applicationId, createdAt])
+  @@map("recruitment_events")
+}
+
+model HrRemark {
+  id            String      @id @default(uuid()) @db.Uuid
+  applicationId String      @map("application_id") @db.Uuid
+  authorId      String      @map("author_id") @db.Uuid
+  body          String
+  createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  author        User        @relation(fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([applicationId, createdAt])
+  @@map("hr_remarks")
+}
+
+/// Human review of an interview. Kept separate from AI observations.
+model HrReview {
+  id                 String            @id @default(uuid()) @db.Uuid
+  applicationId      String            @map("application_id") @db.Uuid
+  interviewSessionId String?           @unique @map("interview_session_id") @db.Uuid
+  reviewerId         String?           @map("reviewer_id") @db.Uuid
+  status             HrReviewStatus    @default(PENDING_REVIEW)
+  remarks            String?
+  reviewedAt         DateTime?         @map("reviewed_at") @db.Timestamptz(3)
+  createdAt          DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
+  application        Application       @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  interviewSession   InterviewSession? @relation(fields: [interviewSessionId], references: [id], onDelete: SetNull)
+  reviewer           User?             @relation(fields: [reviewerId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@index([applicationId])
+  @@map("hr_reviews")
+}
+
+// ───────────────────────────── Question sets (versioned) ─────────────────────────────
+
+/// Stable identity of a question set, e.g. HR-FE. Content lives in immutable published versions.
+model QuestionSet {
+  id              String               @id @default(uuid()) @db.Uuid
+  code            String               @unique
+  title           String
+  track           CandidateTrack
+  activeVersionId String?              @unique @map("active_version_id") @db.Uuid
+  activeVersion   QuestionSetVersion?  @relation("ActiveVersion", fields: [activeVersionId], references: [id], onDelete: SetNull)
+  versions        QuestionSetVersion[] @relation("SetVersions")
+  jobRoles        JobRole[]
+  createdAt       DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@map("question_sets")
+}
+
+model QuestionSetVersion {
+  id            String                   @id @default(uuid()) @db.Uuid
+  questionSetId String                   @map("question_set_id") @db.Uuid
+  version       Int
+  versionCode   String                   @unique @map("version_code")
+  status        QuestionSetVersionStatus @default(DRAFT)
+  source        String?
+  publishedAt   DateTime?                @map("published_at") @db.Timestamptz(3)
+  publishedById String?                  @map("published_by_id") @db.Uuid
+  createdAt     DateTime                 @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime                 @updatedAt @map("updated_at") @db.Timestamptz(3)
+  questionSet   QuestionSet              @relation("SetVersions", fields: [questionSetId], references: [id], onDelete: Restrict)
+  activeFor     QuestionSet?             @relation("ActiveVersion")
+  publishedBy   User?                    @relation("PublishedBy", fields: [publishedById], references: [id], onDelete: SetNull)
+  questions     Question[]
+  interviews    InterviewSession[]
+
+  @@unique([questionSetId, version])
+  @@map("question_set_versions")
+}
+
+model Question {
+  id               String                   @id @default(uuid()) @db.Uuid
+  versionId        String                   @map("version_id") @db.Uuid
+  code             String
+  position         Int
+  category         String
+  text             String
+  responseSeconds  Int                      @map("response_seconds")
+  isActive         Boolean                  @default(true) @map("is_active")
+  version          QuestionSetVersion       @relation(fields: [versionId], references: [id], onDelete: Restrict)
+  sessionQuestions InterviewSessionQuestion[]
+
+  @@unique([versionId, code])
+  @@unique([versionId, position])
+  @@map("questions")
+}
+
+// ───────────────────────────── Interviews ─────────────────────────────
+
+model InterviewSession {
+  id                    String             @id @default(uuid()) @db.Uuid
+  candidateId           String             @map("candidate_id") @db.Uuid
+  applicationId         String             @map("application_id") @db.Uuid
+  jobRoleId             String             @map("job_role_id") @db.Uuid
+  questionSetVersionId  String             @map("question_set_version_id") @db.Uuid
+  status                InterviewStatus    @default(PENDING)
+  invitedAt             DateTime           @default(now()) @map("invited_at") @db.Timestamptz(3)
+  startedAt             DateTime?          @map("started_at") @db.Timestamptz(3)
+  completedAt           DateTime?          @map("completed_at") @db.Timestamptz(3)
+  submittedAt           DateTime?          @map("submitted_at") @db.Timestamptz(3)
+  expiresAt             DateTime           @map("expires_at") @db.Timestamptz(3)
+  lastActivityAt        DateTime?          @map("last_activity_at") @db.Timestamptz(3)
+  currentQuestionId     String?            @map("current_question_id") @db.Uuid
+  reminderDueAt         DateTime?          @map("reminder_due_at") @db.Timestamptz(3)
+  reminderSentAt        DateTime?          @map("reminder_sent_at") @db.Timestamptz(3)
+  isSample              Boolean            @default(false) @map("is_sample")
+  createdAt             DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
+  candidate             Candidate          @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  application           Application        @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  jobRole               JobRole            @relation(fields: [jobRoleId], references: [id], onDelete: Restrict)
+  questionSetVersion    QuestionSetVersion @relation(fields: [questionSetVersionId], references: [id], onDelete: Restrict)
+  questions             InterviewSessionQuestion[]
+  answers               InterviewAnswer[]
+  progressEvents        InterviewProgressEvent[]
+  review                HrReview?
+  assessments           AssessmentReport[]
+  media                 MediaAsset[]
+
+  @@index([candidateId])
+  @@index([applicationId])
+  @@index([status, expiresAt])
+  @@index([completedAt])
+  @@index([reminderDueAt])
+  @@map("interview_sessions")
+}
+
+/// The exact questions (text + category snapshot) a session was given, in order.
+model InterviewSessionQuestion {
+  id               String           @id @default(uuid()) @db.Uuid
+  sessionId        String           @map("session_id") @db.Uuid
+  questionId       String           @map("question_id") @db.Uuid
+  position         Int
+  code             String
+  textSnapshot     String           @map("text_snapshot")
+  categorySnapshot String           @map("category_snapshot")
+  responseSeconds  Int              @map("response_seconds")
+  session          InterviewSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  question         Question         @relation(fields: [questionId], references: [id], onDelete: Restrict)
+  answer           InterviewAnswer?
+
+  @@unique([sessionId, questionId])
+  @@unique([sessionId, position])
+  @@map("interview_session_questions")
+}
+
+/// One final (confirmed) answer per session question — enforced by the unique sessionQuestionId.
+model InterviewAnswer {
+  id                   String                   @id @default(uuid()) @db.Uuid
+  sessionId            String                   @map("session_id") @db.Uuid
+  sessionQuestionId    String                   @unique @map("session_question_id") @db.Uuid
+  questionCode         String                   @map("question_code")
+  questionSetVersionId String                   @map("question_set_version_id") @db.Uuid
+  questionTextSnapshot String                   @map("question_text_snapshot")
+  categorySnapshot     String                   @map("category_snapshot")
+  transcript           String
+  source               AnswerSource
+  responseDurationSec  Int                      @map("response_duration_sec")
+  confirmed            Boolean                  @default(true)
+  confirmedAt          DateTime                 @map("confirmed_at") @db.Timestamptz(3)
+  createdAt            DateTime                 @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt            DateTime                 @updatedAt @map("updated_at") @db.Timestamptz(3)
+  session              InterviewSession         @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sessionQuestion      InterviewSessionQuestion @relation(fields: [sessionQuestionId], references: [id], onDelete: Cascade)
+  transcripts          InterviewTranscript[]
+
+  @@index([sessionId])
+  @@map("interview_answers")
+}
+
+/// Transcription records: provisional engine output kept apart from the confirmed text.
+model InterviewTranscript {
+  id         String          @id @default(uuid()) @db.Uuid
+  answerId   String          @map("answer_id") @db.Uuid
+  kind       TranscriptKind
+  text       String
+  engine     String?
+  language   String?
+  metadata   Json?           @db.JsonB
+  createdAt  DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  answer     InterviewAnswer @relation(fields: [answerId], references: [id], onDelete: Cascade)
+
+  @@index([answerId])
+  @@map("interview_transcripts")
+}
+
+model InterviewProgressEvent {
+  id           String            @id @default(uuid()) @db.Uuid
+  sessionId    String            @map("session_id") @db.Uuid
+  type         ProgressEventType
+  questionCode String?           @map("question_code")
+  metadata     Json?             @db.JsonB
+  createdAt    DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  session      InterviewSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+  @@map("interview_progress_events")
+}
+
+// ───────────────────────────── Assessment (prepared, not generated) ─────────────────────────────
+
+model AssessmentReport {
+  id            String                  @id @default(uuid()) @db.Uuid
+  sessionId     String                  @map("session_id") @db.Uuid
+  version       Int                     @default(1)
+  status        AssessmentStatus        @default(PENDING)
+  /// True for clearly-labelled sample data (development seed only).
+  isSample      Boolean                 @default(false) @map("is_sample")
+  provider      String?
+  model         String?
+  summary       String?
+  failureReason String?                 @map("failure_reason")
+  generatedAt   DateTime?               @map("generated_at") @db.Timestamptz(3)
+  createdAt     DateTime                @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime                @updatedAt @map("updated_at") @db.Timestamptz(3)
+  session       InterviewSession        @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  criteria      AssessmentCriterion[]
+  observations  AssessmentObservation[]
+
+  @@unique([sessionId, version])
+  @@index([status])
+  @@map("assessment_reports")
+}
+
+/// Criteria mirror the official HR question categories. Score stays NULL until real evaluation exists.
+model AssessmentCriterion {
+  id          String                  @id @default(uuid()) @db.Uuid
+  reportId    String                  @map("report_id") @db.Uuid
+  code        String
+  label       String
+  position    Int
+  score       Decimal?                @db.Decimal(4, 2)
+  explanation String?
+  report      AssessmentReport        @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  observations AssessmentObservation[]
+
+  @@unique([reportId, code])
+  @@map("assessment_criteria")
+}
+
+model AssessmentObservation {
+  id           String               @id @default(uuid()) @db.Uuid
+  reportId     String               @map("report_id") @db.Uuid
+  criterionId  String?              @map("criterion_id") @db.Uuid
+  questionCode String?              @map("question_code")
+  kind         ObservationKind
+  text         String
+  createdAt    DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  report       AssessmentReport     @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  criterion    AssessmentCriterion? @relation(fields: [criterionId], references: [id], onDelete: Cascade)
+
+  @@index([reportId])
+  @@map("assessment_observations")
+}
+
+// ───────────────────────────── Operations ─────────────────────────────
+
+model Notification {
+  id          String           @id @default(uuid()) @db.Uuid
+  recipientId String           @map("recipient_id") @db.Uuid
+  type        NotificationType
+  title       String
+  message     String
+  entityType  String?          @map("entity_type")
+  entityId    String?          @map("entity_id")
+  /// Prevents duplicate delivery (e.g. one reminder per session).
+  dedupeKey   String?          @unique @map("dedupe_key")
+  readAt      DateTime?        @map("read_at") @db.Timestamptz(3)
+  createdAt   DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  recipient   User             @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@index([recipientId, readAt, createdAt])
+  @@map("notifications")
+}
+
+/// Who did what to which entity. Never stores tokens, passwords, or full transcripts.
+model AuditLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  actorUserId String?  @map("actor_user_id") @db.Uuid
+  action      String
+  entityType  String   @map("entity_type")
+  entityId    String   @map("entity_id")
+  summary     Json?    @db.JsonB
+  requestId   String?  @map("request_id")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  actor       User?    @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([entityType, entityId, createdAt])
+  @@index([actorUserId, createdAt])
+  @@map("audit_logs")
+}
+
+/// Maps external system identifiers (e.g. Careers Website IDs) to InterviewOS records.
+model IntegrationReference {
+  id         String   @id @default(uuid()) @db.Uuid
+  system     String
+  entityType String   @map("entity_type")
+  externalId String   @map("external_id")
+  entityId   String   @map("entity_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@unique([system, entityType, externalId])
+  @@index([entityType, entityId])
+  @@map("integration_references")
+}
+
+/// Metadata for objects in private object storage (S3/MinIO). Bytes are never stored in PostgreSQL.
+model MediaAsset {
+  id            String            @id @default(uuid()) @db.Uuid
+  sessionId     String?           @map("session_id") @db.Uuid
+  candidateId   String?           @map("candidate_id") @db.Uuid
+  kind          MediaKind
+  bucket        String
+  objectKey     String            @unique @map("object_key")
+  contentType   String            @map("content_type")
+  sizeBytes     BigInt?           @map("size_bytes")
+  status        MediaStatus       @default(PENDING_UPLOAD)
+  retentionUntil DateTime?        @map("retention_until") @db.Timestamptz(3)
+  createdAt     DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
+  session       InterviewSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  candidate     Candidate?        @relation(fields: [candidateId], references: [id], onDelete: SetNull)
+
+  @@index([sessionId])
+  @@map("media_assets")
+}
+
+/// Operational settings (e.g. reminder policy) — configurable without a deploy.
+model SystemSetting {
+  key         String   @id
+  value       Json     @db.JsonB
+  updatedById String?  @map("updated_by_id") @db.Uuid
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@map("system_settings")
+}

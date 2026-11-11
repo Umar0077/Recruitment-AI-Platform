@@ -1,0 +1,22 @@
+{
+  "name": "interviewos-local-postgres",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Runs a real, standalone PostgreSQL 17 server for local development without Docker.",
+  "type": "module",
+  "scripts": {
+    "start": "node pg.mjs start",
+    "serve": "node pg.mjs serve",
+    "stop": "node pg.mjs stop",
+    "status": "node pg.mjs status",
+    "ensure": "node pg.mjs ensure",
+    "service:install": "node pg.mjs service:install",
+    "service:remove": "node pg.mjs service:remove",
+    "backup:cold": "node pg.mjs backup:cold"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "embedded-postgres": "17.11.0-beta.19",
+    "pg": "^8.23.1"
+  }
+}

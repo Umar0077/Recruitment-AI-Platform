@@ -1,0 +1,133 @@
+/*
+ * InterviewOS design tokens — single source for both themes.
+ * Colors are space-separated RGB so Tailwind can apply alpha (e.g. bg-ink-950/70).
+ * next-themes sets class="dark" | class="light" on <html>. Dark is the default.
+ */
+:root,
+.dark {
+  --ink-950: 6 11 29;     /* #060B1D page background */
+  --ink-900: 11 19 48;    /* #0B1330 */
+  --ink-800: 16 29 70;    /* #101D46 */
+  --ink-700: 23 40 93;    /* #17285D */
+
+  --brand: 37 99 235;        /* #2563EB */
+  --brand-hover: 29 78 216;  /* #1D4ED8 */
+  --electric: 59 130 246;    /* #3B82F6 */
+  --cyan: 56 189 248;        /* #38BDF8 */
+  --indigo: 129 140 248;     /* #818CF8 */
+
+  --fg: 248 250 252;
+  --fg-secondary: 203 213 225;
+  --fg-muted: 148 163 184;
+  --fg-disabled: 100 116 139;
+
+  --success: 16 185 129;
+  --warning: 245 158 11;
+  --danger: 239 68 68;
+  --info: 56 189 248;
+
+  /* Neutral wash used for subtle fills, hovers, and dividers (white on dark, slate on light). */
+  --overlay: 255 255 255;
+  --scrim: 6 11 29;
+  --scrim-alpha: 0.7;
+
+  --surface-glass: rgba(255, 255, 255, 0.045);
+  --surface-glass-elevated: rgba(255, 255, 255, 0.075);
+  --surface-panel: rgba(12, 21, 52, 0.72);
+  --border-subtle: rgba(148, 163, 184, 0.14);
+  --border-glow: rgba(96, 165, 250, 0.35);
+
+  --surface-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.025));
+  --surface-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.04) inset, 0 20px 50px -24px rgba(2, 6, 23, 0.9);
+  --surface-solid-bg: linear-gradient(180deg, rgb(16 26 62 / 0.96), rgb(11 19 48 / 0.96));
+  --surface-glow-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.06) inset, 0 0 0 1px rgba(59, 130, 246, 0.08), 0 24px 60px -24px rgba(37, 99, 235, 0.45);
+  --card-bg: linear-gradient(180deg, #132150, #0f1a42);
+  --shadow-float: 0 30px 80px -30px rgba(2, 6, 23, 0.9), 0 0 0 1px rgba(148, 163, 184, 0.08);
+  --shadow-glass: 0 1px 0 0 rgba(255, 255, 255, 0.04) inset, 0 20px 50px -20px rgba(2, 6, 23, 0.8);
+  --edge-light: rgba(147, 197, 253, 0.55);
+  --grid-line: rgba(148, 163, 184, 0.06);
+  --text-gradient: linear-gradient(100deg, #93c5fd 0%, #3b82f6 40%, #38bdf8 75%, #a5b4fc 100%);
+  --backdrop-glow-1: rgba(37, 99, 235, 0.14);
+  --backdrop-glow-2: rgba(129, 140, 248, 0.08);
+  --toast-bg: rgba(15, 26, 64, 0.96);
+
+  /* Motion tokens */
+  --dur-micro: 150ms;
+  --dur-button: 200ms;
+  --dur-dropdown: 220ms;
+  --dur-modal: 280ms;
+  --dur-card: 380ms;
+  --dur-page: 320ms;
+  --dur-reveal: 640ms;
+  --ease-premium: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --glow-k: 1;
+  --canvas: 6 11 29;
+  --section-alt: transparent;
+  --accent-soft: rgba(37, 99, 235, 0.1);
+  --accent-soft-border: rgba(96, 165, 250, 0.3);
+
+  color-scheme: dark;
+}
+
+.light {
+  --ink-950: 255 255 255;  /* #FFFFFF main background */
+  --ink-900: 255 255 255;  /* #FFFFFF primary surface */
+  --ink-800: 241 245 249;  /* #F1F5F9 secondary surface */
+  --ink-700: 203 213 225;  /* #CBD5E1 stronger border */
+
+  --brand: 37 99 235;
+  --brand-hover: 29 78 216;
+  --electric: 37 99 235;
+  --cyan: 37 99 235;       /* accents use royal blue in light mode */
+  --indigo: 79 70 229;     /* indigo-600 */
+  --glow-k: 0.32;          /* decorative glows are dialled down on white */
+  --canvas: 248 250 252;   /* #F8FAFC app canvas behind white cards */
+  --section-alt: #f8fafc;
+  --accent-soft: #eff6ff;
+  --accent-soft-border: #dbeafe;
+
+  --fg: 15 23 42;          /* #0F172A */
+  --fg-secondary: 71 85 105; /* #475569 */
+  --fg-muted: 100 116 139; /* #64748B */
+  --fg-disabled: 120 134 156;
+
+  --success: 5 150 105;
+  --warning: 217 119 6;
+  --danger: 220 38 38;
+  --info: 2 132 199;
+
+  --overlay: 15 23 42;
+  --scrim: 15 23 42;
+  --scrim-alpha: 0.35;
+
+  --surface-glass: #ffffff;
+  --surface-glass-elevated: #ffffff;
+  --surface-panel: rgba(255, 255, 255, 0.85);
+  --border-subtle: #e2e8f0;
+  --border-glow: #bfdbfe;
+
+  --surface-bg: #ffffff;
+  --surface-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 6px 20px -12px rgba(15, 23, 42, 0.08);
+  --surface-solid-bg: #ffffff;
+  --surface-glow-shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 14px 36px -18px rgba(15, 23, 42, 0.18);
+  --card-bg: #ffffff;
+  --shadow-float: 0 24px 60px -24px rgba(15, 23, 42, 0.22), 0 0 0 1px rgba(15, 23, 42, 0.05);
+  --shadow-glass: 0 1px 2px rgba(15, 23, 42, 0.05), 0 12px 32px -16px rgba(15, 23, 42, 0.14);
+  --edge-light: transparent;
+  --grid-line: rgba(15, 23, 42, 0.035);
+  --text-gradient: linear-gradient(100deg, #1d4ed8 0%, #2563eb 55%, #3b82f6 100%);
+  --backdrop-glow-1: rgba(37, 99, 235, 0.035);
+  --backdrop-glow-2: rgba(148, 163, 184, 0.06);
+  --toast-bg: rgba(255, 255, 255, 0.98);
+
+  color-scheme: light;
+}
+
+/* Smooth colour cross-fade, applied only for the moment the theme changes. */
+html.theme-transition,
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
+  transition: background-color 280ms ease, border-color 280ms ease, color 280ms ease, fill 280ms ease, stroke 280ms ease, box-shadow 280ms ease !important;
+}

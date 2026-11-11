@@ -1,0 +1,196 @@
+@import "../styles/tokens.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-ink-950 font-sans text-fg antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  h1, h2, h3, h4 {
+    @apply font-display tracking-tight;
+  }
+  ::selection {
+    background: rgba(59, 130, 246, 0.35);
+    color: #fff;
+  }
+  :focus-visible {
+    outline: 2px solid rgb(var(--cyan));
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.25) transparent;
+  }
+  input[type="range"] {
+    accent-color: rgb(var(--electric));
+  }
+}
+
+@layer components {
+  /* Glass surfaces */
+  .surface {
+    background: var(--surface-bg);
+    border: 1px solid var(--border-subtle);
+    box-shadow: var(--surface-shadow);
+  }
+  .surface-solid {
+    background: var(--surface-solid-bg);
+    border: 1px solid var(--border-subtle);
+    box-shadow: var(--surface-shadow);
+  }
+  .surface-glow {
+    border-color: var(--border-glow);
+    box-shadow: var(--surface-glow-shadow);
+  }
+  .section-alt {
+    background: var(--section-alt);
+  }
+  .card-surface {
+    background: var(--card-bg);
+  }
+  /* Thin top-edge highlight */
+  .edge-light {
+    position: relative;
+  }
+  .edge-light::before {
+    content: "";
+    position: absolute;
+    inset: 0 12% auto 12%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--edge-light), transparent);
+    pointer-events: none;
+  }
+
+  .text-gradient {
+    background: var(--text-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .eyebrow {
+    @apply text-[11px] font-semibold uppercase tracking-[0.22em] text-brand-cyan;
+  }
+
+  /* Decorative backgrounds */
+  .bg-grid {
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 56px 56px;
+  }
+  .bg-grid-fade {
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, #000 30%, transparent 75%);
+  }
+  .bg-noise {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.5 0'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.5'/></svg>");
+    opacity: 0.035;
+    mix-blend-mode: overlay;
+  }
+  .app-backdrop {
+    background:
+      radial-gradient(1200px 600px at 85% -10%, var(--backdrop-glow-1), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, var(--backdrop-glow-2), transparent 60%),
+      rgb(var(--canvas));
+  }
+
+  /* Skeleton */
+  .skeleton {
+    @apply animate-shimmer rounded-md bg-overlay/[0.06];
+  }
+
+  /* Table */
+  .data-table th {
+    @apply h-11 whitespace-nowrap px-3 text-left text-xs font-medium text-fg-muted first:pl-4 last:pr-4;
+  }
+  .data-table td {
+    @apply whitespace-nowrap px-3 py-3 text-sm text-fg-secondary first:pl-4 last:pr-4;
+  }
+  .data-table tbody tr {
+    @apply border-t border-subtle transition-colors duration-micro hover:bg-overlay/[0.025];
+  }
+}
+
+/* ---------------------------------------------------------------- */
+/* AI Intelligence Core animation                                    */
+/* ---------------------------------------------------------------- */
+@keyframes core-float {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -10px, 0); }
+}
+@keyframes core-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes core-spin-rev {
+  to { transform: rotate(-360deg); }
+}
+@keyframes core-pulse {
+  0%, 100% { opacity: calc(0.65 * var(--core-energy, 1)); transform: scale(0.96); }
+  50% { opacity: var(--core-energy, 1); transform: scale(1.04); }
+}
+@keyframes core-flow {
+  to { stroke-dashoffset: -240; }
+}
+@keyframes core-bar {
+  0%, 100% { transform: scaleY(0.35); }
+  50% { transform: scaleY(1); }
+}
+@keyframes wave-bar {
+  0%, 100% { transform: scaleY(0.25); }
+  50% { transform: scaleY(1); }
+}
+@keyframes orbit-dot {
+  to { offset-distance: 100%; }
+}
+@keyframes ring-breathe {
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.015); }
+}
+@keyframes success-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+.core-float { animation: core-float 9s ease-in-out infinite; }
+.core-spin-slow { animation: core-spin 80s linear infinite; }
+.core-spin-med { animation: core-spin 46s linear infinite; }
+.core-spin-rev { animation: core-spin-rev 60s linear infinite; }
+.core-pulse { animation: core-pulse 5.5s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+.core-flow { stroke-dasharray: 6 34; animation: core-flow 9s linear infinite; }
+.core-breathe { animation: ring-breathe 7s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+.core-bar { transform-box: fill-box; transform-origin: center; animation: core-bar 1.6s ease-in-out infinite; }
+.wave-bar { transform-origin: center; animation: wave-bar 1.2s ease-in-out infinite; }
+.success-draw { stroke-dasharray: 60; stroke-dashoffset: 60; animation: success-draw 700ms 200ms cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ---------------------------------------------------------------- */
+/* Print: assessment report and analytics                            */
+/* ---------------------------------------------------------------- */
+@media print {
+  body { background: #fff !important; color: #0f172a !important; }
+  .no-print { display: none !important; }
+  .print-area, .print-area * { color: #0f172a !important; background: transparent !important; box-shadow: none !important; border-color: #cbd5e1 !important; }
+  .print-area { padding: 0 !important; }
+}
+
+/* Settings → Appearance */
+.reduce-motion *, .reduce-motion *::before, .reduce-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+.compact-tables .data-table td { padding-top: 0.45rem; padding-bottom: 0.45rem; }

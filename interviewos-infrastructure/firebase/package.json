@@ -1,0 +1,11 @@
+{
+  "name": "interviewos-firebase-emulator",
+  "private": true,
+  "description": "Local Firebase Auth Emulator for InterviewOS development and automated tests (no real Google accounts).",
+  "scripts": {
+    "emulator": "firebase emulators:start --only auth --project demo-interviewos"
+  },
+  "devDependencies": {
+    "firebase-tools": "15.35.0"
+  }
+}
