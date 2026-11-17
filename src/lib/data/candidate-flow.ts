@@ -17,6 +17,7 @@ import type { InterviewStatus } from "@/lib/api/types";
 import type { ApiError } from "@/lib/api/client";
 import { trackOf } from "@/lib/api/labels";
 import { useMyInterview } from "./queries";
+import { useUserProfile } from "@/lib/auth/user-profile";
 
 export interface PreChecks {
   consent: boolean;
@@ -93,6 +94,7 @@ function stageFor(status: InterviewStatus | undefined, c: PreChecks): CandidateF
 }
 
 function useApiFlow(): CandidateFlowView {
+  const account = useUserProfile("candidate");
   const my = useMyInterview();
   const iv = my.current?.interview;
   const app = my.current?.application;
@@ -116,7 +118,7 @@ function useApiFlow(): CandidateFlowView {
       error: (my.error as ApiError | null) ?? null,
       noInterview: !my.isPending && !my.error && !iv,
       candidateName: name,
-      firstName: name.split(" ")[0] ?? "",
+      firstName: account.firstName,
       track: my.candidate ? trackOf(my.candidate.category) : "fresher",
       roleTitle: app?.jobRole.title ?? "",
       interviewId: iv?.id,
@@ -138,7 +140,7 @@ function useApiFlow(): CandidateFlowView {
       durationLabel: INTERVIEW_CONFIG.durationLabel,
       update,
     };
-  }, [my.candidate, my.isPending, my.error, iv, app, checks, update]);
+  }, [my.candidate, my.isPending, my.error, iv, app, checks, update, account.firstName]);
 }
 
 function useDemoFlow(): CandidateFlowView {

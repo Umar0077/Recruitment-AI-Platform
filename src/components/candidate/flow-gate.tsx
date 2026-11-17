@@ -1,7 +1,7 @@
 "use client";
 /** Common loading / error / unavailable handling for candidate pages, shared by demo and API mode. */
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Skeleton } from "@/components/ui/primitives";
 import { ApiErrorPanel } from "@/components/api/query-state";
 import { useQueryClient } from "@tanstack/react-query";
@@ -23,10 +23,13 @@ export function FlowSkeleton() {
  */
 export function useFlowGate(f: CandidateFlowView): React.ReactNode | null {
   const router = useRouter();
+  const path = usePathname();
   const qc = useQueryClient();
   const target =
     f.mode !== "api" || f.loading || f.error ? null
-      : f.noInterview ? "/candidate/interview/unavailable?reason=not-linked"
+      : f.noInterview ? "/candidate/onboarding"
+      : f.interviewStatus === "SUBMITTED" && path !== "/candidate/interview/complete" && path !== "/candidate/status" ? "/candidate/interview/complete"
+      : ["PENDING", "IN_PROGRESS", "INTERRUPTED"].includes(f.interviewStatus ?? "") && !!f.expiresAt && Date.parse(f.expiresAt) <= Date.now() ? "/candidate/interview/unavailable?reason=expired"
       : f.interviewStatus === "EXPIRED" ? "/candidate/interview/unavailable?reason=expired"
       : f.interviewStatus === "CANCELLED" ? "/candidate/interview/unavailable?reason=session"
       : null;

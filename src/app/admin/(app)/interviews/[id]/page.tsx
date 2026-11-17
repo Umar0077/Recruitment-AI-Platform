@@ -11,6 +11,7 @@ import { Select } from "@/components/ui/overlays";
 import { EmptyState, InterviewStatusBadge } from "@/components/ui/states";
 import { ReviewPanel } from "@/components/admin/review-panel";
 import { AudioWaveform } from "@/components/interview/parts";
+import { TranscriptVersions } from "@/components/interview/transcript-versions";
 import { useCandidate, useInterview, roleTitle } from "@/lib/demo/selectors";
 import { QUESTION_SET_META, QUESTION_SETS } from "@/lib/demo/questions";
 import { cn, formatDateTime, formatDuration, formatMinutes } from "@/lib/utils";
@@ -151,7 +152,7 @@ function DemoInterviewDetailPage() {
                     </div>
                     <p className="mt-2 text-sm font-medium leading-relaxed text-fg">{a?.questionText ?? base.text}</p>
                     {a ? (
-                      <p className="mt-3 border-l-2 border-brand/40 pl-3 text-sm leading-relaxed text-fg-secondary">{a.transcript}</p>
+                      <TranscriptVersions answer={a} />
                     ) : (
                       <p className="mt-3 text-sm italic text-fg-muted">Not answered yet.</p>
                     )}

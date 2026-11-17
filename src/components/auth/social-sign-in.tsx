@@ -1,6 +1,6 @@
 "use client";
 /**
- * Continue with Google (API mode) — the only sign-in provider. Firebase handles the OAuth flow;
+ * Google and email/password (API mode). Firebase handles both sign-in methods;
  * after sign-in, the backend profile decides where the user may go. Signing in never grants
  * staff access or another candidate's interview by itself.
  */
@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import { safeNext, useAuth, type SocialProvider } from "@/lib/auth/auth-provider";
 import { firebaseMissingKeys, usingAuthEmulator } from "@/lib/firebase/client";
 import { cn } from "@/lib/utils";
+import { EmailSignIn } from "./email-sign-in";
+import { authErrorCode, authErrorMessage } from "@/lib/firebase/errors";
 
 
 function GoogleIcon() {
@@ -47,7 +49,7 @@ function Inner({ area, defaultNext }: { area: "candidate" | "admin"; defaultNext
   const params = useSearchParams();
   const next = safeNext(params.get("next"), defaultNext);
   const denied = params.get("denied");
-  const [busy, setBusy] = useState<SocialProvider | null>(null);
+  const [busy, setBusy] = useState<SocialProvider | "password" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const navigated = useRef(false);
 
@@ -56,9 +58,11 @@ function Inner({ area, defaultNext }: { area: "candidate" | "admin"; defaultNext
 
   // Route the signed-in user once their backend profile is known (and any link prompt is answered).
   useEffect(() => {
+    if (status === "verificationRequired") { router.replace(`/candidate/verify-email?area=${area}`); return; }
+    if (status === "profileRequired") { router.replace(`/${area}/complete-profile`); return; }
     if (navigated.current || status !== "signedIn" || !profile || wrongArea) return;
     navigated.current = true;
-    if (area === "candidate" && !profile.candidateId) router.replace("/candidate/interview/unavailable?reason=not-linked");
+    if (area === "candidate" && !profile.candidateId) router.replace("/candidate/onboarding");
     else router.replace(next);
   }, [status, profile, wrongArea, area, next, router]);
 
@@ -66,24 +70,16 @@ function Inner({ area, defaultNext }: { area: "candidate" | "admin"; defaultNext
     setError(null);
     setBusy(p);
     const r = await auth.signInWith(p);
-    if (!r.ok && !r.redirecting) {
+    if (r.ok || !r.redirecting) {
       setBusy(null);
-      if (!r.cancelled) setError(r.message);
+      if (!r.ok && !r.cancelled) setError(r.message);
     }
-    // On success the busy state stays until navigation, avoiding a flash of the buttons.
   };
 
   const resolving = status === "loading" || (status === "signedIn" && !wrongArea);
   const disabled = status === "unconfigured" || !!busy || resolving;
 
-  if (status === "unconfigured") {
-    return (
-      <Notice tone="warn">
-        <span className="font-semibold">Sign-in isn&apos;t configured yet.</span> This build is in API mode but the Firebase settings are missing
-        {process.env.NODE_ENV !== "production" && <> ({firebaseMissingKeys.map((k) => `NEXT_PUBLIC_FIREBASE_${k.replace(/[A-Z]/g, (c) => `_${c}`).toUpperCase()}`).join(", ")})</>}.
-      </Notice>
-    );
-  }
+  if (status === "verificationRequired" || status === "profileRequired") return <p role="status" className="text-sm text-fg-muted">Continuing to your account setup…</p>;
 
   if (wrongArea) {
     return (
@@ -99,7 +95,8 @@ function Inner({ area, defaultNext }: { area: "candidate" | "admin"; defaultNext
             </>
           )}
         </Notice>
-        <Button variant="secondary" size="lg" className="w-full" onClick={() => void auth.signOut()}>
+        {error && <Notice tone="warn">{error}</Notice>}
+        <Button variant="secondary" size="lg" className="w-full" onClick={() => void auth.signOut().catch(e => setError(authErrorMessage(authErrorCode(e))))}>
           <LogOut />Sign out and use another account
         </Button>
       </div>
@@ -109,9 +106,17 @@ function Inner({ area, defaultNext }: { area: "candidate" | "admin"; defaultNext
   const shownError = error ?? auth.notice?.message ?? null;
   return (
     <div className="space-y-3">
+      {params.get("verified") === "1" && status === "signedOut" && <Notice>Email verified successfully. Please sign in.</Notice>}
+      {status === "unconfigured" && <Notice tone="warn">
+        Sign-in isn&apos;t available yet. Please contact the recruitment team.
+        {process.env.NODE_ENV !== "production" && <span className="block">Missing Firebase settings: {firebaseMissingKeys.join(", ")}.</span>}
+      </Notice>}
       {denied === "1" && !shownError && <Notice tone="warn">Your account doesn&apos;t have access to the recruitment workspace.</Notice>}
       {denied === "staff" && !shownError && <Notice tone="warn">Staff accounts can&apos;t open candidate interviews.</Notice>}
       {shownError && <Notice tone="warn">{shownError}</Notice>}
+
+      <EmailSignIn area={area} disabled={disabled} onPending={pending => { setBusy(pending ? "password" : null); if (pending) setError(null); }} />
+      <div className="flex items-center gap-3 py-2" aria-hidden><span className="h-px flex-1 bg-overlay/10" /><span className="text-[11px] font-medium uppercase tracking-widest text-fg-muted">or</span><span className="h-px flex-1 bg-overlay/10" /></div>
 
       <Button variant="secondary" size="lg" className="w-full" loading={busy === "google.com"} disabled={disabled && busy !== "google.com"} onClick={() => void start("google.com")}>
         {busy !== "google.com" && <GoogleIcon />}
@@ -129,7 +134,7 @@ function Inner({ area, defaultNext }: { area: "candidate" | "admin"; defaultNext
           </Notice>
         ) : (
           <Notice>
-            Sign in with the Google account that uses the email address your invitation was sent to.
+            Sign in with your verified account to select a role or continue your existing interview.
           </Notice>
         )}
       </div>

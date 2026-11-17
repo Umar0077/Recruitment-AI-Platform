@@ -1,7 +1,6 @@
 "use client";
 import { useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
-import dynamic from "next/dynamic";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
@@ -37,12 +36,12 @@ import { SectionHeading } from "@/components/ui/states";
 import { Accordion, AccordionItem } from "@/components/ui/overlays";
 import { AppLogo } from "@/components/ui/brand";
 import { AudioWaveform, CameraPreview, InterviewProgress, ResponseTimer } from "@/components/interview/parts";
-import { CoreFallback } from "@/components/visuals/core-fallback";
+import { LandingOrb } from "./landing-orb";
 import { BRAND, INTERVIEW_CONFIG } from "@/lib/brand";
 import { QUESTION_SETS } from "@/lib/demo/questions";
 import { cn } from "@/lib/utils";
+import { usePrefersReducedMotion } from "@/hooks/use-demo";
 
-const AICore = dynamic(() => import("@/components/visuals/ai-core").then((m) => m.AICore), { ssr: false, loading: () => <CoreFallback /> });
 
 /* ---------------- Trust strip ---------------- */
 const TRUST = [
@@ -80,14 +79,15 @@ const STEPS = [
 
 export function HowItWorks() {
   const ref = useRef<HTMLDivElement>(null);
+  const reduce = usePrefersReducedMotion();
   useLayoutEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (reduce) return;
     gsap.registerPlugin(ScrollTrigger);
     const ctx = gsap.context(() => {
       gsap.fromTo("[data-line]", { scaleX: 0, scaleY: 0 }, { scaleX: 1, scaleY: 1, ease: "none", scrollTrigger: { trigger: ref.current, start: "top 75%", end: "bottom 60%", scrub: 0.6 } });
     }, ref);
     return () => ctx.revert();
-  }, []);
+  }, [reduce]);
 
   return (
     <section id="how-it-works" className="section-alt relative scroll-mt-24 py-24 sm:py-32">
@@ -95,7 +95,7 @@ export function HowItWorks() {
         <Reveal>
           <SectionHeading eyebrow="How it works" title={<>Your Interview Journey, <span className="text-gradient">Made Simple.</span></>} description="Four clear steps from invitation to confirmation. You will always know where you are and what comes next." />
         </Reveal>
-        <div ref={ref} className="relative mt-16">
+        <div ref={ref} className="relative mt-12">
           {/* Connecting line */}
           <div className="absolute left-[27px] top-0 h-full w-px bg-overlay/[0.06] lg:left-0 lg:top-[27px] lg:h-px lg:w-full" aria-hidden>
             <div data-line className="h-full w-full origin-top bg-gradient-to-b from-brand-electric via-brand-cyan to-indigo-400 lg:origin-left lg:bg-gradient-to-r" />
@@ -103,12 +103,12 @@ export function HowItWorks() {
           <ol className="relative grid gap-8 lg:grid-cols-4 lg:gap-6">
             {STEPS.map((s, i) => (
               <Reveal key={s.n} delay={i * 0.08} className="relative">
-                <li className="flex gap-5 lg:flex-col lg:gap-6">
-                  <div className="relative z-10 grid size-14 shrink-0 place-items-center rounded-2xl border border-glow/60 bg-ink-900 text-brand-cyan shadow-glow-sm">
+                <li className="journey-step flex h-full gap-4 lg:flex-col lg:gap-6">
+                  <div className="step-icon relative z-10 grid size-14 shrink-0 place-items-center rounded-2xl border border-subtle bg-ink-900 text-brand-cyan shadow-glass">
                     <s.icon className="size-6" aria-hidden />
                   </div>
-                  <div className="surface group flex-1 rounded-2xl p-6 transition-[border-color,transform] duration-300 ease-premium hover:-translate-y-0.5 hover:border-glow/60">
-                    <div className="flex items-center justify-between">
+                  <div data-pointer-surface data-depth-card className="surface interactive-card group min-w-0 flex-1 rounded-2xl p-5 xl:p-6">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
                       <span className="font-display text-sm font-bold text-brand-electric">Step {s.n}</span>
                       <span className="rounded-full border border-subtle px-2 py-0.5 text-[11px] text-fg-muted">{s.detail}</span>
                     </div>
@@ -159,8 +159,9 @@ export function Preparation() {
                     type="button"
                     onClick={() => toggle(i)}
                     aria-pressed={on}
+                    data-pointer-surface
                     className={cn(
-                      "flex w-full items-center gap-3 rounded-xl border px-3.5 py-3 text-left text-sm transition-[background-color,border-color,color] duration-200",
+                      "surface interactive-card flex w-full items-center gap-3 rounded-xl border px-3.5 py-3 text-left text-sm",
                       on ? "border-brand/50 bg-brand/[0.12] text-fg" : "border-subtle bg-overlay/[0.02] text-fg-secondary hover:border-slate-400/30 hover:bg-overlay/[0.04]",
                     )}
                   >
@@ -221,9 +222,24 @@ export function Preparation() {
 }
 
 /* ---------------- Interview preview ---------------- */
+// Fixed decimal strings avoid cross-engine Math.sin rounding differences during hydration.
+const PREVIEW_WAVE = ["0.20", "0.85", "0.34", "0.92", "0.48", "0.73", "0.58", "0.41", "0.96", "0.29", "0.82", "0.62", "0.37", "0.91", "0.53", "0.76", "0.25", "0.66", "0.88", "0.68", "0.45", "0.79", "0.32", "0.56"];
 export function InterviewPreview() {
+  const ref = useRef<HTMLElement>(null);
+  const reduce = usePrefersReducedMotion();
+  useLayoutEffect(() => {
+    if (reduce) return;
+    gsap.registerPlugin(ScrollTrigger);
+    const context = gsap.context(() => {
+      const sequence = gsap.timeline({ scrollTrigger: { trigger: ref.current, start: "top 75%", end: "bottom 85%", scrub: 0.4 } });
+      sequence.fromTo("[data-story-question]", { y: 10 }, { y: 0, duration: 1, ease: "none" })
+        .fromTo("[data-story-transcript]", { x: 8, opacity: 0.7 }, { x: 0, opacity: 1, duration: 0.8 }, 0.3)
+        .fromTo("[data-story-wave] span", { scaleY: 0.2 }, { scaleY: (i: number) => Number(PREVIEW_WAVE[i]), duration: 0.6, stagger: 0.015 }, 0.4);
+    }, ref);
+    return () => context.revert();
+  }, [reduce]);
   return (
-    <section id="interview-process" className="relative scroll-mt-24 py-24 sm:py-32">
+    <section ref={ref} id="interview-process" className="relative scroll-mt-24 py-24 sm:py-32">
       <div className="container">
         <Reveal>
           <SectionHeading eyebrow="Interview process" title={<>Know What to <span className="text-gradient">Expect.</span></>} description="One question at a time, a visible timer, and clear signals for when it's your turn to speak. Here is what the interview screen looks like." />
@@ -234,7 +250,7 @@ export function InterviewPreview() {
             {/* Window header */}
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-subtle px-5 py-3.5">
               <div className="flex items-center gap-3">
-                <span className="rounded-full border border-indigo-400/30 bg-indigo-400/10 px-2.5 py-1 text-[11px] font-medium text-indigo-700 dark:text-indigo-200">Interview Interface Preview</span>
+                <span className="rounded-full border border-indigo-400/30 bg-indigo-400/10 px-2.5 py-1 text-[11px] font-medium text-indigo-700 dark:text-indigo-200">Fictional interview demo</span>
                 <span className="hidden text-xs text-fg-muted sm:inline">Customer Sales Representative</span>
               </div>
               <InterviewProgress total={4} current={0} completed={0} />
@@ -242,12 +258,12 @@ export function InterviewPreview() {
             <div className="grid gap-5 p-5 md:grid-cols-[1.25fr_1fr] md:p-7">
               <div className="flex flex-col">
                 <div className="relative mx-auto w-full max-w-[260px]">
-                  <AICore state="speaking" particles={false} label="AI interviewer visual, speaking" />
+                  <LandingOrb />
                 </div>
                 <div className="mt-2 flex items-center justify-center gap-2 text-xs font-medium text-brand-cyan">
-                  <span className="size-1.5 rounded-full bg-brand-cyan" aria-hidden /> AI Speaking
+                  <span className="size-1.5 rounded-full bg-brand-cyan" aria-hidden /> Illustrated question
                 </div>
-                <div className="mt-5 rounded-2xl border border-subtle bg-overlay/[0.03] p-5">
+                <div data-story-question className="mt-5 rounded-2xl border border-subtle bg-overlay/[0.03] p-5">
                   <div className="flex items-center justify-between text-xs text-fg-muted">
                     <span>Question 01 of 04 · {QUESTION_SETS.fresher[0]!.category}</span>
                   </div>
@@ -263,6 +279,12 @@ export function InterviewPreview() {
                     <p className="text-xs text-fg-muted">Starts when the AI finishes asking</p>
                     <AudioWaveform active={false} bars={22} className="mt-1 h-6 justify-start" />
                   </div>
+                </div>
+                <div data-story-transcript className="rounded-xl border border-subtle bg-accent-soft p-4">
+                  <p className="eyebrow">Example response · fictional</p>
+                  <div data-story-wave className="my-3 flex h-7 items-center gap-1" aria-hidden>{PREVIEW_WAVE.map((height, i) => <span key={i} className="h-full w-1 rounded-full bg-brand/50" style={{ transform: `scaleY(${height})` }} />)}</div>
+                  <p className="text-sm leading-relaxed text-fg-secondary">“I listen first, clarify the customer’s needs, and explain the next step.”</p>
+                  <p data-story-complete className="mt-3 flex items-center gap-2 text-xs text-fg-secondary"><CheckCircle2 className="size-4 text-success" />Answer confirmed → recruiter review</p>
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <span className="flex items-center gap-2 rounded-xl border border-subtle px-3 py-2.5 text-fg-secondary"><Mic className="size-3.5 text-success" aria-hidden />Microphone ready</span>
@@ -291,7 +313,7 @@ export function Privacy() {
     <section id="privacy" className="relative scroll-mt-24 py-24 sm:py-32">
       <div className="container">
         <div className="surface relative overflow-hidden rounded-3xl p-7 sm:p-12">
-          <div className="pointer-events-none absolute -right-24 -top-24 size-72 rounded-full bg-brand/20 blur-3xl" aria-hidden />
+          <div className="pointer-events-none absolute -right-24 -top-24 size-72 rounded-full bg-brand/[0.04] dark:bg-brand/20 blur-3xl" aria-hidden />
           <div className="grid gap-10 lg:grid-cols-[1fr_1.4fr]">
             <Reveal>
               <SectionHeading align="left" eyebrow="Privacy & consent" title={<>Your Interview. <span className="text-gradient">Your Information.</span></>} />
@@ -313,7 +335,7 @@ export function Privacy() {
             <div className="grid gap-4 sm:grid-cols-2">
               {PRIVACY.map((p, i) => (
                 <Reveal key={p.title} delay={i * 0.06}>
-                  <div className="h-full rounded-2xl border border-subtle bg-ink-950/40 p-5">
+                  <div data-pointer-surface data-depth-card className="surface interactive-card h-full rounded-2xl p-5">
                     <p.icon className="size-5 text-brand-cyan" aria-hidden />
                     <h3 className="mt-4 font-display text-base font-semibold text-fg">{p.title}</h3>
                     <p className="mt-1.5 text-sm leading-relaxed text-fg-muted">{p.body}</p>
@@ -369,20 +391,20 @@ export function FAQ() {
 /* ---------------- Final CTA ---------------- */
 export function FinalCTA() {
   return (
-    <section className="relative py-24 sm:py-32">
+    <section id="final-cta" className="relative py-24 sm:py-32">
       <div className="container">
         <Reveal>
           <div className="surface-solid edge-light relative isolate overflow-hidden rounded-hero px-6 py-16 text-center sm:px-12 sm:py-24">
             <div className="absolute inset-0 -z-10 bg-[radial-gradient(600px_320px_at_50%_100%,rgba(37,99,235,calc(0.45*var(--glow-k))),transparent_70%)]" aria-hidden />
             <div className="bg-grid bg-grid-fade absolute inset-0 -z-10 opacity-60" aria-hidden />
-            <div className="mx-auto mb-8 w-28 sm:w-36" aria-hidden>
-              <AICore state="idle" particles={false} label="AI core" />
+            <div className="mx-auto mb-3 w-52 sm:w-64" aria-hidden>
+              <LandingOrb />
             </div>
             <h2 className="mx-auto max-w-2xl text-[34px] font-bold leading-[1.1] text-fg sm:text-5xl">Ready to Take the Next Step?</h2>
             <p className="mx-auto mt-4 max-w-md text-base text-fg-muted sm:text-lg">Your opportunity begins with showing us what you can do.</p>
             <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
-              <Button size="xl" asChild className="group">
-                <Link href="/candidate/login">Begin Interview<ArrowRight className="transition-transform group-hover:translate-x-0.5" /></Link>
+              <Button size="xl" asChild data-magnetic data-pointer-surface className="group landing-cta">
+                <Link href="/candidate/login">Start Your Interview<ArrowRight className="transition-transform group-hover:translate-x-0.5" /></Link>
               </Button>
               <Button size="xl" variant="secondary" asChild>
                 <a href="#preparation">Review Instructions</a>
@@ -396,7 +418,7 @@ export function FinalCTA() {
 }
 
 /* ---------------- Footer ---------------- */
-export function Footer() {
+export function Footer({ year }: { year: number }) {
   return (
     <footer className="border-t border-subtle">
       <div className="container flex flex-col gap-8 py-12 md:flex-row md:items-start md:justify-between">
@@ -415,7 +437,7 @@ export function Footer() {
       </div>
       <div className="border-t border-subtle">
         <div className="container flex flex-col gap-2 py-5 text-xs text-fg-disabled sm:flex-row sm:items-center sm:justify-between">
-          <span>© {new Date().getFullYear()} {BRAND.copyrightHolder}. All rights reserved.</span>
+          <span>© {year} {BRAND.copyrightHolder}. All rights reserved.</span>
           <span className="flex items-center gap-1.5"><MonitorSmartphone className="size-3.5" aria-hidden />Interactive UI preview — no production data</span>
         </div>
       </div>

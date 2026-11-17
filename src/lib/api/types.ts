@@ -40,6 +40,7 @@ export const TRACK_TO_API: Record<Track, CandidateTrack> = { experienced: "EXPER
 export const TRACK_FROM_API: Record<CandidateTrack, Track> = { EXPERIENCED_FE_CLOSER: "experienced", CSR_FRESHER: "fresher" };
 
 export interface Me {
+  mustChangePassword?: boolean;
   id: string;
   email: string | null;
   displayName: string | null;
@@ -83,7 +84,7 @@ export interface InterviewDetail extends InterviewProgress {
   completedAt: string | null;
   isSample: boolean;
   questions: (SessionQuestion & {
-    answer: { transcript: string; source: AnswerSource; responseDurationSec: number; confirmedAt: string; questionTextSnapshot: string } | null;
+    answer: { transcript: string; source: AnswerSource; responseDurationSec: number; confirmedAt: string; questionTextSnapshot: string; originalTranscript?: string | null; interimTranscript?: string | null; cleanedTranscript?: string | null; hasUnfinalized?: boolean | null; cleanupVersion?: string | null; language?: string | null; assessmentTranscript?: "candidate_confirmed" } | null;
   })[];
   /** Present for staff only. */
   review?: { id: string; status: string; remarks: string | null; reviewedAt: string | null } | null;
@@ -94,6 +95,11 @@ export interface SaveAnswerInput {
   source: AnswerSource;
   responseDurationSec: number;
   provisionalTranscript?: string;
+  originalTranscript?: string;
+  interimTranscript?: string;
+  cleanedTranscript?: string;
+  hasUnfinalized?: boolean;
+  cleanupVersion?: string;
   engine?: string;
   language?: string;
 }
@@ -249,6 +255,13 @@ export interface AssessmentSummary {
   createdAt: string;
 }
 export interface AssessmentDetail extends AssessmentSummary {
+  phase?: string;
+  model?: string | null;
+  failureReason?: string | null;
+  nlp?: { questionId: string; lexicalSimilarity: number; semanticSimilarity: number | null; wordCount: number; completeness: string; conceptCoverage: { concept: string; status: string; evidence: string | null }[]; limitations: string[] }[] | null;
+  rubricSnapshot?: { questionId: string; version: number; content: { expectedConcepts: { name: string }[] } }[] | null;
+  findings?: { questions: { questionId: string; relevance: string; observedConcepts: string[]; strengths: { observation: string; evidence: string | null }[]; reviewPoints: { observation: string; evidence: string | null }[]; limitations: string[] }[]; summary: { observedStrengths: string[]; areasForHRReview: string[]; limitations: string[]; requiresHumanReview: boolean } } | null;
+  corrections?: { id: string; questionCode: string | null; relevance: string | null; note: string; reviewed: boolean; createdAt: string }[];
   summary: string | null;
   notice: string | null;
   criteria: { id: string; code: string; label: string; position: number; score: string | null; explanation: string | null }[];

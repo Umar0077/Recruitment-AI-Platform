@@ -9,7 +9,7 @@ import { DemoBadge } from "@/components/ui/states";
 import { PageTransition } from "@/components/motion";
 import { BRAND } from "@/lib/brand";
 import { isApiMode } from "@/lib/config/environment";
-import { SocialSignIn } from "@/components/auth/social-sign-in";
+import { AdminSignIn } from "@/components/auth/admin-sign-in";
 
 export default function AdminLoginPage() {
   return (
@@ -40,10 +40,10 @@ export default function AdminLoginPage() {
           <p className="mt-5 text-[11px] font-semibold uppercase tracking-[0.22em] text-fg-muted">{BRAND.name} · Recruiter access</p>
         </div>
         <div className="surface-solid edge-light rounded-3xl p-7 shadow-float sm:p-9">
-          <h1 className="text-center text-[26px] font-bold leading-tight sm:text-[28px]">Recruitment Control Center.</h1>
+          <h1 className="text-center text-[26px] font-bold leading-tight sm:text-[28px]">Administrator Access</h1>
           <p className="mx-auto mt-2 max-w-sm text-center text-sm leading-relaxed text-fg-muted">Manage interviews, assessments, and hiring workflows in one intelligent workspace.</p>
           <div className="mt-8">
-            {isApiMode ? <SocialSignIn area="admin" defaultNext="/admin" /> : <DemoLoginForm role="admin" redirectTo="/admin" submitLabel="Sign In" />}
+            {isApiMode ? <AdminSignIn /> : <DemoLoginForm role="admin" redirectTo="/admin" submitLabel="Sign In" />}
           </div>
         </div>
         {!isApiMode && <>

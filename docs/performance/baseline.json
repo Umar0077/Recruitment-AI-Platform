@@ -1,0 +1,178 @@
+{
+  "label": "baseline",
+  "startedAt": "2026-11-17T14:33:35.688Z",
+  "conditions": {
+    "node": "v23.10.0",
+    "next": "15.5.29",
+    "react": "19.3.1",
+    "platform": "win32",
+    "arch": "x64",
+    "cpu": "12th Gen Intel(R) Core(TM) i5-12450H",
+    "logicalCpus": 12,
+    "memoryGb": 16,
+    "workspaceOnOneDrive": true,
+    "mode": "demo",
+    "bundler": "Turbopack",
+    "port": 3102,
+    "coldDefinition": "First request for each route in a new dev-server process; existing .next and filesystem caches retained",
+    "browser": false
+  },
+  "startupMs": 21237,
+  "readyReported": "✓ Ready in 13.3s",
+  "routes": [
+    {
+      "route": "/candidate/login",
+      "samples": [
+        {
+          "sample": "first",
+          "status": 200,
+          "headersMs": 22205,
+          "completeHtmlMs": 22296,
+          "htmlBytes": 84179
+        },
+        {
+          "sample": "warm-1",
+          "status": 200,
+          "headersMs": 456,
+          "completeHtmlMs": 501,
+          "htmlBytes": 84179
+        },
+        {
+          "sample": "warm-2",
+          "status": 200,
+          "headersMs": 347,
+          "completeHtmlMs": 370,
+          "htmlBytes": 84177
+        },
+        {
+          "sample": "warm-3",
+          "status": 200,
+          "headersMs": 233,
+          "completeHtmlMs": 269,
+          "htmlBytes": 84178
+        }
+      ]
+    },
+    {
+      "route": "/candidate/interview",
+      "samples": [
+        {
+          "sample": "first",
+          "status": 200,
+          "headersMs": 1322,
+          "completeHtmlMs": 1351,
+          "htmlBytes": 58206
+        },
+        {
+          "sample": "warm-1",
+          "status": 200,
+          "headersMs": 314,
+          "completeHtmlMs": 346,
+          "htmlBytes": 58206
+        },
+        {
+          "sample": "warm-2",
+          "status": 200,
+          "headersMs": 279,
+          "completeHtmlMs": 298,
+          "htmlBytes": 58205
+        },
+        {
+          "sample": "warm-3",
+          "status": 200,
+          "headersMs": 302,
+          "completeHtmlMs": 329,
+          "htmlBytes": 58206
+        }
+      ]
+    },
+    {
+      "route": "/admin",
+      "samples": [
+        {
+          "sample": "first",
+          "status": 200,
+          "headersMs": 3711,
+          "completeHtmlMs": 3736,
+          "htmlBytes": 74284
+        },
+        {
+          "sample": "warm-1",
+          "status": 200,
+          "headersMs": 255,
+          "completeHtmlMs": 273,
+          "htmlBytes": 74285
+        },
+        {
+          "sample": "warm-2",
+          "status": 200,
+          "headersMs": 328,
+          "completeHtmlMs": 357,
+          "htmlBytes": 74285
+        },
+        {
+          "sample": "warm-3",
+          "status": 200,
+          "headersMs": 292,
+          "completeHtmlMs": 318,
+          "htmlBytes": 74285
+        }
+      ]
+    },
+    {
+      "route": "/",
+      "samples": [
+        {
+          "sample": "first",
+          "status": 200,
+          "headersMs": 2188,
+          "completeHtmlMs": 2214,
+          "htmlBytes": 202967
+        },
+        {
+          "sample": "warm-1",
+          "status": 200,
+          "headersMs": 516,
+          "completeHtmlMs": 572,
+          "htmlBytes": 202965
+        },
+        {
+          "sample": "warm-2",
+          "status": 200,
+          "headersMs": 705,
+          "completeHtmlMs": 788,
+          "htmlBytes": 202966
+        },
+        {
+          "sample": "warm-3",
+          "status": 200,
+          "headersMs": 867,
+          "completeHtmlMs": 894,
+          "htmlBytes": 202966
+        }
+      ]
+    }
+  ],
+  "compileLog": [
+    "✓ Compiled /candidate/login in 20.4s",
+    "GET /candidate/login 200 in 22251ms",
+    "GET /candidate/login 200 in 495ms",
+    "GET /candidate/login 200 in 367ms",
+    "GET /candidate/login 200 in 265ms",
+    "✓ Compiled /candidate/interview in 1011ms",
+    "GET /candidate/interview 200 in 1348ms",
+    "GET /candidate/interview 200 in 343ms",
+    "GET /candidate/interview 200 in 295ms",
+    "GET /candidate/interview 200 in 328ms",
+    "✓ Compiled /admin in 3.3s",
+    "GET /admin 200 in 3732ms",
+    "GET /admin 200 in 270ms",
+    "GET /admin 200 in 355ms",
+    "GET /admin 200 in 316ms",
+    "✓ Compiled / in 1750ms",
+    "GET / 200 in 2212ms",
+    "GET / 200 in 570ms",
+    "GET / 200 in 786ms",
+    "GET / 200 in 892ms"
+  ]
+}

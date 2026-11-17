@@ -6,13 +6,15 @@ import { Queue, Worker } from "bullmq";
 import { validateEnv, type EnvironmentVariables } from "./config/env.validation";
 import { DatabaseModule } from "./database/prisma.service";
 import { MAINTENANCE_INTERVAL_MS, MaintenanceModule, MaintenanceService } from "./jobs/maintenance.service";
+import { AssessmentWorkerModule } from "./modules/assessment/assessment.module";
+import { AssessmentService } from "./modules/assessment/assessment.service";
 
 /**
  * Background worker (Linux servers, with Redis). Runs the same idempotent maintenance as the in-process
  * scheduler, but as a single repeatable BullMQ job so several API replicas never duplicate work.
  * Set JOBS_IN_PROCESS=false on the API when this worker runs.
  */
-@Module({ imports: [ConfigModule.forRoot({ isGlobal: true, validate: validateEnv }), DatabaseModule, MaintenanceModule] })
+@Module({ imports: [ConfigModule.forRoot({ isGlobal: true, validate: validateEnv }), DatabaseModule, MaintenanceModule, AssessmentWorkerModule] })
 class WorkerModule {}
 
 async function main() {
@@ -27,6 +29,11 @@ async function main() {
   }
   const connection = { host: config.get("REDIS_HOST", { infer: true }), port: config.get("REDIS_PORT", { infer: true }), password: config.get("REDIS_PASSWORD", { infer: true }) || undefined };
   const maintenance = ctx.get(MaintenanceService);
+  const assessments = ctx.get(AssessmentService);
+  const assessmentQueue = new Queue("interviewos-assessments", { connection });
+  await assessmentQueue.upsertJobScheduler("assessments", { every: 15000 }, { name: "drain", opts: { removeOnComplete: 100, removeOnFail: 500 } });
+  const assessmentWorker = new Worker("interviewos-assessments", () => assessments.runOnce(), { connection, concurrency: 1 });
+  assessmentWorker.on("failed", () => logger.error("Assessment drain failed; durable job state retained"));
 
   const queue = new Queue("interviewos-maintenance", { connection });
   await queue.upsertJobScheduler("maintenance", { every: MAINTENANCE_INTERVAL_MS }, { name: "run", opts: { removeOnComplete: 100, removeOnFail: 500 } });
@@ -35,6 +42,8 @@ async function main() {
   logger.log("Worker started");
 
   const stop = async () => {
+    await assessmentWorker.close();
+    await assessmentQueue.close();
     await worker.close();
     await queue.close();
     await ctx.close();

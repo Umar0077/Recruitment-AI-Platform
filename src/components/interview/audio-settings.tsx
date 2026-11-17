@@ -52,6 +52,8 @@ export function AudioSettingsPanel({
   micActive,
   onSelectDevice,
   showLanguage = true,
+  testDisabled = false,
+  settingsLocked = false,
 }: {
   voices: TTSVoice[];
   voice?: TTSVoice;
@@ -62,6 +64,8 @@ export function AudioSettingsPanel({
   micActive: boolean;
   onSelectDevice: (id: string) => void;
   showLanguage?: boolean;
+  testDisabled?: boolean;
+  settingsLocked?: boolean;
 }) {
   const s = useAudioSettings();
   const female = voices.filter((v) => v.likelyFemale);
@@ -80,25 +84,30 @@ export function AudioSettingsPanel({
           </>
         )}
         <div className="mt-2 flex flex-wrap gap-2">
-          <Button size="sm" variant="secondary" disabled={!voices.length} onClick={() => onTestVoice(VOICE_SAMPLE)}><Volume2 />Test Interviewer Voice</Button>
+          <Button size="sm" variant="secondary" disabled={!voices.length || testDisabled} onClick={() => onTestVoice(VOICE_SAMPLE)}><Volume2 />Test Interviewer Voice</Button>
           <label className="flex items-center gap-2 text-xs text-fg-secondary">
             <Switch checked={s.muted} onCheckedChange={(v) => { s.set({ muted: v }); toast.info(v ? "Interviewer muted — questions will appear as text only." : "Interviewer voice on."); }} aria-label="Mute interviewer" />
             {s.muted ? <VolumeX className="size-3.5" aria-hidden /> : null}Mute interviewer
           </label>
         </div>
       </div>
+      {testDisabled && <p className="text-xs text-fg-muted">Voice testing is available when question playback and recording have stopped.</p>}
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <Label htmlFor="tts-rate">Speech speed · {s.rate.toFixed(2)}×</Label>
           <input id="tts-rate" type="range" min={0.8} max={1.15} step={0.01} value={s.rate} onChange={(e) => s.set({ rate: Number(e.target.value) })} className="w-full" />
         </div>
         <div>
+          <Label htmlFor="tts-pitch">Voice pitch · {s.pitch.toFixed(2)}</Label>
+          <input id="tts-pitch" type="range" min={0.5} max={1.5} step={0.05} value={s.pitch} onChange={(e) => s.set({ pitch: Number(e.target.value) })} className="w-full" />
+        </div>
+        <div>
           <Label htmlFor="tts-volume">Voice volume · {Math.round(s.volume * 100)}%</Label>
           <input id="tts-volume" type="range" min={0.2} max={1} step={0.05} value={s.volume} onChange={(e) => s.set({ volume: Number(e.target.value) })} className="w-full" />
         </div>
       </div>
-      <div>
-        <Label>Microphone</Label>
+      <fieldset disabled={settingsLocked} className={settingsLocked ? "pointer-events-none opacity-60" : ""}>
+        <Label>Microphone diagnostics device</Label>
         <Select
           label="Microphone"
           size="sm"
@@ -106,12 +115,18 @@ export function AudioSettingsPanel({
           onValueChange={onSelectDevice}
           options={devices.length ? devices.map((d) => ({ value: d.deviceId, label: d.label })) : [{ value: "default", label: "Default microphone (names appear after permission)" }]}
         />
-      </div>
+        <p className="mt-2 text-xs text-fg-muted">This selection controls the level meter and device check. Browser speech recognition uses the browser&apos;s default microphone; select it in browser settings. Processing shown below applies to the diagnostic stream.</p>
+      </fieldset>
       {showLanguage && (
-        <div>
+        <fieldset disabled={settingsLocked} className={settingsLocked ? "pointer-events-none opacity-60" : ""}>
           <Label>Speech recognition language</Label>
           <Select label="Recognition language" size="sm" value={s.lang} onValueChange={(v) => s.set({ lang: v })} options={RECOGNITION_LANGUAGES} />
-        </div>
+          <p className="mt-2 text-xs text-fg-muted">Choose the locale that works best in your browser. Locale selection does not guarantee accent accuracy.</p>
+          <div className="mt-3 grid grid-cols-2 gap-3">
+            <label className="text-xs">Recognition alternatives<input aria-label="Recognition alternatives" type="number" min={1} max={3} value={s.maxAlternatives} onChange={e => s.set({ maxAlternatives: Math.max(1, Math.min(3, Number(e.target.value))) })} className="mt-1 w-full rounded border border-subtle bg-transparent p-2" /></label>
+            <label className="text-xs">Maximum restarts<input aria-label="Maximum restarts" type="number" min={0} max={6} value={s.maxRestarts} onChange={e => s.set({ maxRestarts: Math.max(0, Math.min(6, Number(e.target.value))) })} className="mt-1 w-full rounded border border-subtle bg-transparent p-2" /></label>
+          </div>
+        </fieldset>
       )}
       <div className="rounded-xl border border-subtle bg-overlay/[0.02] p-3">
         <p className="mb-2 text-xs font-medium text-fg">Audio processing</p>

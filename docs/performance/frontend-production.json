@@ -1,0 +1,56 @@
+{
+  "mode": "api",
+  "production": true,
+  "apiUrl": "https://api.example.invalid/api/v1",
+  "deploymentReady": false,
+  "routes": [
+    {
+      "route": "/candidate/login",
+      "status": 200,
+      "htmlResponseMs": 12,
+      "cacheControl": "s-maxage=31536000",
+      "poweredBy": null,
+      "nosniff": null,
+      "framePolicy": null,
+      "csp": false
+    },
+    {
+      "route": "/admin/login",
+      "status": 200,
+      "htmlResponseMs": 20,
+      "cacheControl": "s-maxage=31536000",
+      "poweredBy": null,
+      "nosniff": null,
+      "framePolicy": null,
+      "csp": false
+    },
+    {
+      "route": "/admin/api-usage",
+      "status": 200,
+      "htmlResponseMs": 37,
+      "cacheControl": "s-maxage=31536000",
+      "poweredBy": null,
+      "nosniff": null,
+      "framePolicy": null,
+      "csp": false
+    },
+    {
+      "route": "/privacy",
+      "status": 200,
+      "htmlResponseMs": 22,
+      "cacheControl": "s-maxage=31536000",
+      "poweredBy": null,
+      "nosniff": null,
+      "framePolicy": null,
+      "csp": false
+    }
+  ],
+  "applicationWrites": 0,
+  "startupAndFirstResponseMs": 1266,
+  "staticAsset": {
+    "status": 200,
+    "cacheControl": "public, max-age=31536000, immutable"
+  },
+  "status": "passed",
+  "processStopped": true
+}

@@ -1,9 +1,10 @@
-# InterviewOS — AI Recruitment & Interview Platform (UI Prototype)
+# InterviewOS — AI Recruitment & Interview Platform
 
-An interactive, frontend-only prototype for stakeholder design approval. It covers the
-candidate interview experience and the HR recruitment workspace. **Everything is simulated
-in the browser**: logins, interviews, assessments, and status changes use fictional demo data.
-There is no backend, no real AI, no recording, and no production authentication.
+Next.js candidate interviews and an HR recruitment workspace, with a separate NestJS API,
+PostgreSQL database and Firebase authentication. Demo mode uses fictional browser data;
+API mode persists confirmed answers and supports asynchronous evidence-based assessment.
+External LLM processing is governed by the backend provider policy; the default free model
+accepts only synthetic testing and fictional reference drafting.
 
 > "InterviewOS" is a placeholder name. Change it in one place: `src/lib/brand.ts`.
 
@@ -222,3 +223,6 @@ Setup: [Firebase / Google Sign-In](interviewos-backend/docs/firebase-setup.md).
 profile, interviews, interview review, remarks, review status, pipeline moves, analytics, notifications, team and question sets.
 Demo mode is unchanged. Step-by-step local run (PostgreSQL + Firebase Auth Emulator + backend + frontend):
 [interviewos-backend/docs/local-api-mode.md](interviewos-backend/docs/local-api-mode.md).
+# Phase 5 AI-assisted assessment
+
+The implementation, deployment steps, privacy gate, migration details and actual verification results are documented in [the Phase 5 report](interviewos-backend/docs/phase5.md). Reference rubric management is available at `/admin/assessments/rubrics` in API mode. Eight draft rubrics require HR approval; the selected free model is restricted to synthetic fixtures and fictional rubric preparation.

@@ -52,6 +52,7 @@ class UsersService {
   async setRoles(id: string, dto: SetRolesDto, ctx: RequestContext) {
     const user = await this.prisma.user.findUnique({ where: { id }, select: userSelect });
     if (!user) throw notFound("User");
+    if (await this.prisma.adminCredential.findUnique({ where: { userId: id } })) throw conflict("CONFLICT", "Manage administrator credentials through Admin Accounts.");
     const before = user.roles.map((r) => r.role.code);
     if (id === ctx.user.id && before.includes("SUPER_ADMIN") && !dto.roles.includes("SUPER_ADMIN")) {
       throw conflict("CONFLICT", "You cannot remove your own Super Admin role.");
@@ -73,6 +74,7 @@ class UsersService {
   }
 
   async setStatus(id: string, dto: SetStatusDto, ctx: RequestContext) {
+    if (await this.prisma.adminCredential.findUnique({ where: { userId: id } })) throw conflict("CONFLICT", "Manage administrator credentials through Admin Accounts.");
     if (id === ctx.user.id && dto.status !== "ACTIVE") throw conflict("CONFLICT", "You cannot disable your own account.");
     const user = await this.prisma.user.findUnique({ where: { id }, select: { status: true } });
     if (!user) throw notFound("User");

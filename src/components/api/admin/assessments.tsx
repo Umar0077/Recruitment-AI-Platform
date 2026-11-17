@@ -1,9 +1,9 @@
 "use client";
 /**
- * API mode: assessment reports as they exist in PostgreSQL. The AI evaluation engine is not built yet,
- * so reports are normally "Assessment Not Yet Generated". Nothing is scored or invented here.
+ * API mode: persisted evidence and diagnostics. Reading never triggers LLM generation.
  */
 import Link from "next/link";
+import { useState } from "react";
 import { useParams } from "next/navigation";
 import { ClipboardCheck, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,13 +15,15 @@ import { ApiReviewBadge } from "./common";
 import { useAssessment, useAssessments, useInterviewDetail, useInterviews } from "@/lib/data/queries";
 import { ASSESSMENT_STATUS } from "@/lib/api/labels";
 import { formatDateTime } from "@/lib/utils";
+import { AssessmentAnalysis } from "./assessment-analysis";
 
 export function ApiAssessmentsList() {
   const list = useInterviews({ status: "SUBMITTED", limit: 50, sortBy: "submittedAt", sortDir: "desc" });
   const rows = list.data?.items ?? [];
   return (
     <div>
-      <PageHeader title="AI Assessments" description="Assessment status for submitted interviews. Automated scoring is not enabled yet — HR reviews the confirmed answers." />
+      <PageHeader title="AI Assessments" description="Evidence-based diagnostics for submitted interviews. HR makes the final decision." />
+      <Link className="mt-3 inline-block text-sm underline" href="/admin/assessments/rubrics">Reference rubric management & AI usage</Link>
       {list.isError ? (
         <GlassCard className="mt-6"><ApiErrorPanel error={list.error} onRetry={() => void list.refetch()} /></GlassCard>
       ) : list.isPending ? (
@@ -31,7 +33,7 @@ export function ApiAssessmentsList() {
       ) : (
         <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {rows.map((i) => (
-            <Link key={i.id} href={`/admin/assessments/${i.id}`} className="surface group flex h-full flex-col rounded-xl p-5 transition-colors hover:border-glow/50">
+            <Link key={i.id} href={`/admin/assessments/${i.id}`} data-pointer-surface className="surface group relative flex h-full flex-col rounded-xl p-5 transition-colors hover:border-glow/50">
               <span className="flex items-center gap-3">
                 <CandidateAvatar name={i.candidate.fullName} size="md" />
                 <span className="min-w-0"><span className="block truncate font-medium">{i.candidate.fullName}</span><span className="block truncate text-xs text-fg-muted">{i.jobRole.title}</span></span>
@@ -54,11 +56,14 @@ export function ApiAssessmentDetail() {
   const { id } = useParams<{ id: string }>();
   const iv = useInterviewDetail(id);
   const reports = useAssessments(id);
-  const reportId = reports.data?.reports[0]?.id;
+  const [selectedReport, setSelectedReport] = useState("");
+  const reportId = reports.data?.reports.find(r => r.id === selectedReport)?.id ?? reports.data?.reports[0]?.id;
   const report = useAssessment(reportId);
   if (iv.isPending || reports.isPending) return <SkeletonPage />;
   if (iv.isError) return <ApiErrorPanel error={iv.error} onRetry={() => void iv.refetch()} />;
   if (reports.isError) return <ApiErrorPanel error={reports.error} onRetry={() => void reports.refetch()} />;
+  if (reportId && report.isPending) return <SkeletonPage />;
+  if (report.isError) return <ApiErrorPanel error={report.error} onRetry={() => void report.refetch()} />;
   const d = iv.data;
   const r = report.data;
   const status = r?.status ?? (reportId ? "PENDING" : "NOT_AVAILABLE");
@@ -81,6 +86,7 @@ export function ApiAssessmentDetail() {
       </GlassCard>
       <GlassCard className="mt-6 p-6">
         <CardHeader title="Assessment status" />
+        <label className="mt-3 block text-sm">Report history <select aria-label="Report version" className="ml-2 rounded border border-border bg-surface p-2" value={reportId ?? ""} onChange={e => setSelectedReport(e.target.value)}>{reports.data?.reports.map(r => <option key={r.id} value={r.id}>Version {r.version} · {r.status}</option>)}</select></label>
         <div className="mt-4 flex flex-col gap-3">
           <Badge tone={meta.tone}>{meta.label}</Badge>
           {meta.body && <p className="max-w-2xl text-sm text-fg-muted">{meta.body}</p>}
@@ -96,6 +102,7 @@ export function ApiAssessmentDetail() {
         </GlassCard>
       )}
       <p className="mt-6 text-xs text-fg-muted">AI assessments are decision support only. Hiring decisions are made by the HR team.</p>
+      {r && <AssessmentAnalysis report={r} interview={d} refresh={() => { setSelectedReport(""); void reports.refetch(); void report.refetch(); void iv.refetch(); }} />}
     </div>
   );
 }

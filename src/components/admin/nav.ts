@@ -1,4 +1,5 @@
 import {
+  Activity,
   BarChart3,
   Briefcase,
   ClipboardCheck,
@@ -17,6 +18,7 @@ export interface NavItem {
   href: string;
   icon: LucideIcon;
   match?: string[];
+  permission?: string;
 }
 
 export const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
@@ -35,6 +37,7 @@ export const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
     items: [
       { label: "Jobs & Interview Setup", href: "/admin/interview-setup", icon: Briefcase },
       { label: "Analytics & Reports", href: "/admin/analytics", icon: BarChart3 },
+      { label: "API Usage", href: "/admin/api-usage", icon: Activity, permission: "users:manage" },
       { label: "HR Team", href: "/admin/team", icon: UserCog },
     ],
   },
@@ -48,6 +51,11 @@ export const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
 ];
 
 export const ALL_NAV = NAV_GROUPS.flatMap((g) => g.items);
+
+/** Navigation visibility only; protected APIs enforce the same permission server-side. */
+export function isNavVisible(item: NavItem, permissions: readonly string[] | undefined, apiMode: boolean) {
+  return !apiMode || !item.permission || !!permissions?.includes(item.permission);
+}
 
 export function isActive(pathname: string, href: string) {
   return href === "/admin" ? pathname === "/admin" : pathname === href || pathname.startsWith(`${href}/`);

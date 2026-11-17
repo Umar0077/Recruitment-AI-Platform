@@ -201,8 +201,17 @@ export class CandidatesService {
     return { ...a, statusLabel: RECRUITMENT_STATUS_LABELS[a.status], allowedTransitions: ALLOWED_HR_TRANSITIONS[a.status] };
   }
 
+  /** Access probes do not need the application's candidate, interview and review detail graph. */
+  private async assertApplicationAccess(id: string, user: AuthUser) {
+    const application = await this.prisma.application.findFirst({
+      where: { id, ...this.scope.applicationWhere(user) },
+      select: { id: true },
+    });
+    if (!application) throw notFound("Application");
+  }
+
   async timeline(id: string, user: AuthUser) {
-    await this.getApplication(id, user);
+    await this.assertApplicationAccess(id, user);
     const [events, remarks] = await Promise.all([
       this.prisma.recruitmentEvent.findMany({ where: { applicationId: id }, orderBy: { createdAt: "asc" }, include: { actor: { select: { id: true, displayName: true, email: true } } } }),
       this.prisma.hrRemark.findMany({ where: { applicationId: id }, orderBy: { createdAt: "asc" }, include: { author: { select: { id: true, displayName: true, email: true } } } }),
@@ -212,7 +221,7 @@ export class CandidatesService {
 
   /** Manual HR status change: validated against the allowed transitions, locked, audited, timelined. */
   async updateStatus(id: string, dto: UpdateStatusDto, ctx: RequestContext) {
-    await this.getApplication(id, ctx.user);
+    await this.assertApplicationAccess(id, ctx.user);
     const updated = await this.prisma.$transaction(async (tx) => {
       const [row] = await tx.$queryRaw<{ status: RecruitmentStatus }[]>`SELECT status FROM applications WHERE id = ${id}::uuid FOR UPDATE`;
       if (!row) throw notFound("Application");
@@ -241,7 +250,7 @@ export class CandidatesService {
   }
 
   async addRemark(id: string, dto: RemarkDto, ctx: RequestContext) {
-    await this.getApplication(id, ctx.user);
+    await this.assertApplicationAccess(id, ctx.user);
     return this.prisma.$transaction(async (tx) => {
       const remark = await tx.hrRemark.create({ data: { applicationId: id, authorId: ctx.user.id, body: dto.body.trim() }, include: { author: { select: { id: true, displayName: true } } } });
       await tx.recruitmentEvent.create({ data: { applicationId: id, type: "HR_REMARK_ADDED", actorUserId: ctx.user.id } });
@@ -251,7 +260,7 @@ export class CandidatesService {
   }
 
   async assign(id: string, dto: AssignDto, ctx: RequestContext) {
-    await this.getApplication(id, ctx.user);
+    await this.assertApplicationAccess(id, ctx.user);
     if (dto.recruiterId) {
       const staff = await this.prisma.user.findFirst({ where: { id: dto.recruiterId, status: "ACTIVE", roles: { some: { role: { code: { in: ["RECRUITER", "HR_MANAGER", "SUPER_ADMIN"] } } } } } });
       if (!staff) throw unprocessable("VALIDATION_FAILED", "The assignee must be an active recruiter or HR manager.");

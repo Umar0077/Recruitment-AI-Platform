@@ -1,0 +1,5 @@
+# Generates a test pattern and tone only; never reads any capture device.
+FROM debian:bookworm-slim
+RUN apt-get update && apt-get install --no-install-recommends -y ffmpeg && rm -rf /var/lib/apt/lists/*
+ENTRYPOINT ["ffmpeg"]
+CMD ["-hide_banner", "-loglevel", "error", "-y", "-f", "lavfi", "-i", "testsrc=size=320x240:rate=10", "-f", "lavfi", "-i", "sine=frequency=440:sample_rate=48000", "-t", "2", "-c:v", "libvpx", "-pix_fmt", "yuv420p", "-c:a", "libopus", "/out/synthetic-pattern.webm"]

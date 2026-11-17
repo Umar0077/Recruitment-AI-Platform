@@ -38,11 +38,14 @@ interviewos-infrastructure/ ← local PostgreSQL (no Docker), server compose fil
 | `start:dev` / `build` / `start` | Develop / compile / run compiled API |
 | `start:worker` | BullMQ worker (needs `REDIS_ENABLED=true`) |
 | `typecheck`, `lint` | Static checks |
+| `test:auth` | Isolated auth/security tests; no PostgreSQL access or reset |
+| `auth:check:live` | Read-only real Firebase credential/provider check; no database access or credential output |
 | `test`, `test:unit`, `test:e2e` | Jest; e2e uses `TEST_DATABASE_URL` only (refuses any DB without "test" in its name) |
 | `db:migrate:dev` | Create a new migration (development only) |
 | `db:migrate:deploy` | Apply migrations (the production strategy, never `db push` / `migrate reset`) |
 | `db:seed` | Idempotent reference data + dev sample data |
-| `admin:grant -- <uid-or-email> SUPER_ADMIN` | Grant the first staff role from the server shell |
+| `admin:bootstrap` | One-time local admin initialization; hidden temporary-password input |
+| `admin:recover -- EMAIL --confirm-recovery` | Audited operator recovery with session revocation |
 | `db:inspect -- <candidate-email>` | Read-only: show a candidate's latest interview, answers, review and events |
 
 ## Documentation

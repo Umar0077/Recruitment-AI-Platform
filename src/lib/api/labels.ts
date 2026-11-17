@@ -34,7 +34,7 @@ export const REVIEW_STATUS: Record<HrReviewStatus, { label: string; tone: Tone }
 
 export const ASSESSMENT_STATUS: Record<AssessmentStatus | "NOT_AVAILABLE", { label: string; tone: Tone; body: string }> = {
   NOT_AVAILABLE: { label: "Not Available", tone: "neutral", body: "No assessment exists for this interview." },
-  PENDING: { label: "Assessment Not Yet Generated", tone: "neutral", body: "Automated assessment is not enabled yet. No scores are produced from transcripts — review the confirmed answers directly." },
+  PENDING: { label: "Assessment Pending", tone: "neutral", body: "Check analysis progress for rubric, capacity, or provider requirements. Confirmed answers remain available for HR review." },
   PROCESSING: { label: "Processing", tone: "cyan", body: "The assessment is being prepared." },
   COMPLETED: { label: "Completed", tone: "success", body: "" },
   FAILED: { label: "Failed", tone: "danger", body: "The assessment could not be generated. Review the confirmed answers directly." },

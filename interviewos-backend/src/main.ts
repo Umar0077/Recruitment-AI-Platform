@@ -11,6 +11,7 @@ async function main() {
   configureApp(app);
   const config = app.get<ConfigService<EnvironmentVariables, true>>(ConfigService);
   const port = config.get("PORT", { infer: true });
+  if (config.get("RECORDING_MODE", { infer: true }) === "local_test" && process.env.HOST && !["127.0.0.1", "localhost", "::1"].includes(process.env.HOST)) throw new Error("The fictional recording lab must bind to loopback.");
   // Bind to loopback by default; in a container set HOST=0.0.0.0 and keep the port private behind Nginx.
   await app.listen(port, process.env.HOST ?? "127.0.0.1");
 }

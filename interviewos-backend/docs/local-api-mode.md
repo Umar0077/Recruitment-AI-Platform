@@ -1,3 +1,5 @@
+> Current staff sign-in: `/admin/login` uses PostgreSQL administrator credentials, not Firebase. Run `npm run admin:bootstrap` in an interactive terminal, then change the temporary password. See [current setup](../../docs/admin-auth-speech-upgrade.md). Firebase emulator instructions below apply to candidates only.
+
 # Running InterviewOS end-to-end locally (API mode)
 
 Frontend (Next.js) → Backend (NestJS) → PostgreSQL, with sign-in through the **Firebase Auth Emulator**
@@ -26,6 +28,9 @@ In `interviewos-backend/.env` set (development only — refused in production):
 AUTH_MODE=firebase
 FIREBASE_PROJECT_ID=demo-interviewos
 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099
+GOOGLE_APPLICATION_CREDENTIALS=
+FIREBASE_CLIENT_EMAIL=
+FIREBASE_PRIVATE_KEY=
 ```
 
 then `npm run build && npm start` (or `npm run start:dev`).
@@ -50,8 +55,7 @@ then `npm run dev`. **Switch back to Demo mode** by deleting `.env.local` (or se
 
 *Continue with Google* opens the emulator's fake account picker; choose **Add new account** and type any email.
 
-- **HR user:** sign in on `/admin/login` with e.g. `hr.manager@bali-tech.example`. You'll see "No workspace access" — that is correct.
-  Grant a role from the backend folder: `npm run admin:grant -- hr.manager@bali-tech.example HR_MANAGER`, then reload.
+- **HR user:** bootstrap the administrator, then use `/admin/settings/accounts` to provision HR roles.
 - **Candidate:** HR opens a candidate (e.g. *Sana Malik (Sample)*, `sana@dev.invalid`) and clicks **Issue AI Interview**.
   Then sign in on `/candidate/login` with **the same email**. The verified email links the login to that candidate
   because they now hold an open invitation. Any other email sees "No Interview Linked to This Account".

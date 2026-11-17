@@ -15,7 +15,9 @@ export interface TTSVoice {
 
 export interface SpeakOptions {
   voiceId?: string;
-  rate?: number; // 0.5–1.5, interview default ~0.97
+  rate?: number; // 0.5–1.5, interview default 0.95
+  pitch?: number;
+  lang?: string;
   volume?: number; // 0–1
   onStart?: () => void;
 }
@@ -24,7 +26,23 @@ export type SpeakResult = "completed" | "cancelled" | "failed" | "blocked";
 
 export type STTStatus = "unsupported" | "idle" | "starting" | "listening" | "stopping" | "error";
 
-export type STTErrorCode = "permission-denied" | "no-microphone" | "no-speech" | "network" | "language-not-supported" | "aborted" | "unknown";
+export type STTErrorCode = "permission-denied" | "no-microphone" | "no-speech" | "network" | "language-not-supported" | "aborted" | "timeout" | "unknown";
+
+export interface SpeechSnapshot {
+  finalText: string;
+  interimText: string;
+  originalText: string;
+  hasUnfinalized: boolean;
+  /** Engine-reported low confidence is only a review hint, never an accuracy score. */
+  lowConfidence?: boolean;
+  rawFinalText?: string;
+}
+
+export interface RecognitionOptions {
+  lang: string;
+  maxAlternatives?: number;
+  maxRestarts?: number;
+}
 
 export interface STTCallbacks {
   onStart?: () => void;
@@ -34,6 +52,9 @@ export interface STTCallbacks {
   onFinal?: (finalText: string) => void;
   onError?: (code: STTErrorCode, message: string) => void;
   onEnd?: (finalText: string) => void;
+  onSnapshot?: (snapshot: SpeechSnapshot) => void;
+  onSpeechActivity?: (active: boolean) => void;
+  onAudioActivity?: (active: boolean) => void;
 }
 
 export type MicrophoneStatus = "off" | "requesting" | "active" | "denied" | "no-device" | "in-use" | "error";
@@ -59,8 +80,11 @@ export interface MicrophoneDevice {
 export interface AudioSettings {
   voiceId?: string;
   rate: number;
+  pitch: number;
   volume: number;
   muted: boolean;
   micDeviceId?: string;
   lang: string;
+  maxAlternatives: number;
+  maxRestarts: number;
 }

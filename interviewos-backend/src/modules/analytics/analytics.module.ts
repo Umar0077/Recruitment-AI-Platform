@@ -26,7 +26,7 @@ class ActivityQueryDto {
 @ApiTags("analytics")
 @ApiBearerAuth()
 @Controller("analytics")
-class AnalyticsController {
+export class AnalyticsController {
   constructor(private readonly prisma: PrismaService, private readonly config: ConfigService<EnvironmentVariables, true>) {}
 
   /**
@@ -40,15 +40,18 @@ class AnalyticsController {
     const weeks = q.weeks;
     const rows = await this.prisma.$queryRaw<{ week_start: Date; applications: number; interviews: number; reviews: number }[]>`
       WITH w AS (
-        SELECT generate_series(date_trunc('week', now()) - make_interval(weeks => ${weeks - 1}::int), date_trunc('week', now()), interval '1 week') AS week_start
+        SELECT utc_week AT TIME ZONE 'UTC' AS week_start,
+               (utc_week + interval '1 week') AT TIME ZONE 'UTC' AS week_end
+        FROM generate_series(date_trunc('week', now() AT TIME ZONE 'UTC') - make_interval(weeks => ${weeks - 1}::int),
+          date_trunc('week', now() AT TIME ZONE 'UTC'), interval '1 week') AS utc_week
       )
       SELECT w.week_start,
         (SELECT count(*)::int FROM applications a JOIN candidates c ON c.id = a.candidate_id
-          WHERE a.submitted_at >= w.week_start AND a.submitted_at < w.week_start + interval '1 week' AND (${includeSample} OR c.is_sample = false)) AS applications,
+          WHERE a.submitted_at >= w.week_start AND a.submitted_at < w.week_end AND (${includeSample} OR c.is_sample = false)) AS applications,
         (SELECT count(*)::int FROM interview_sessions s
-          WHERE s.submitted_at >= w.week_start AND s.submitted_at < w.week_start + interval '1 week' AND (${includeSample} OR s.is_sample = false)) AS interviews,
-        (SELECT count(*)::int FROM hr_reviews r
-          WHERE r.status = 'REVIEWED' AND r.reviewed_at >= w.week_start AND r.reviewed_at < w.week_start + interval '1 week') AS reviews
+          WHERE s.submitted_at >= w.week_start AND s.submitted_at < w.week_end AND (${includeSample} OR s.is_sample = false)) AS interviews,
+        (SELECT count(*)::int FROM hr_reviews r LEFT JOIN interview_sessions s ON s.id = r.interview_session_id
+          WHERE r.status = 'REVIEWED' AND r.reviewed_at >= w.week_start AND r.reviewed_at < w.week_end AND (${includeSample} OR s.is_sample = false)) AS reviews
       FROM w ORDER BY w.week_start`;
     return { includeSample, weeks: rows.map((r) => ({ weekStart: r.week_start, applications: r.applications, interviews: r.interviews, reviews: r.reviews })) };
   }

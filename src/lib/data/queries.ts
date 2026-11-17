@@ -133,7 +133,7 @@ export function useAssessments(interviewId?: string) {
 }
 export function useAssessment(reportId?: string) {
   const ready = useReady();
-  return useQuery({ queryKey: qk.assessment(reportId ?? ""), queryFn: ({ signal }) => api.assessments.get(reportId!, { signal }), enabled: ready && !!reportId });
+  return useQuery({ queryKey: qk.assessment(reportId ?? ""), queryFn: ({ signal }) => api.assessments.get(reportId!, { signal }), enabled: ready && !!reportId, refetchInterval: query => ["PENDING", "PROCESSING"].includes(query.state.data?.status ?? "") ? 15000 : false });
 }
 export function usePipelineCounts() {
   const ready = useReady();

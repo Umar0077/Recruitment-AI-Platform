@@ -1,14 +1,17 @@
 "use client";
+import { useUserProfile } from "@/lib/auth/user-profile";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CircleStop } from "lucide-react";
+import { CircleStop, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/primitives";
 import { Dialog, DialogContent, DialogFooter } from "@/components/ui/overlays";
 import { HelpDialog, useCandidateGate, usePageTitle } from "@/components/candidate/shell";
 import { VoiceInterview } from "@/components/interview/voice-interview";
+import { RecordingSession } from "@/components/interview/recording-session";
+import { InterviewOSLoader } from "@/components/ui/interviewos-loader";
 import { useDemoStore } from "@/lib/demo/store";
 import { useCandidate, roleTitle } from "@/lib/demo/selectors";
 import { officialQuestions } from "@/lib/demo/questions";
@@ -19,6 +22,7 @@ import { useFlowGate } from "@/components/candidate/flow-gate";
 import { ApiErrorPanel, errorText } from "@/components/api/query-state";
 import { ApiError } from "@/lib/api/client";
 import type { InterviewQuestion } from "@/types";
+import type { AnswerTranscriptMetadata } from "@/services/speech/transcript";
 
 export default function SessionPage() {
   return isApiMode ? <ApiSessionPage /> : <DemoSessionPage />;
@@ -27,7 +31,7 @@ export default function SessionPage() {
 function SessionSkeleton() {
   return (
     <div className="app-backdrop grid min-h-dvh place-items-center p-6">
-      <div className="w-full max-w-3xl space-y-4"><Skeleton className="h-10 w-1/2" /><Skeleton className="h-80 w-full rounded-2xl" /></div>
+      <div className="w-full max-w-3xl space-y-4"><InterviewOSLoader message="Loading your interview…" /><Skeleton className="h-80 w-full rounded-2xl" /></div>
     </div>
   );
 }
@@ -46,18 +50,42 @@ function DemoSessionPage() {
   }
   if (!flow.consent) return <Blocked reason="consent" />;
   if (flow.stage === "submitted") return <Blocked reason="submitted" />;
+  // Confirming an answer updates flow; it must not remount the running voice state machine.
+  // Route re-entry still initializes the session at the first unanswered question.
   return <Session key={candidate.id} />;
 }
 
 function Blocked({ reason }: { reason: "consent" | "submitted" }) {
+  const router = useRouter();
+  const resetDemoInterview = useDemoStore((s) => s.resetDemoInterview);
   return (
     <div className="app-backdrop grid min-h-dvh place-items-center p-6 text-center">
       <div className="max-w-md">
         <h1 className="text-2xl font-bold">{reason === "consent" ? "Consent Needed First" : "Interview Already Submitted"}</h1>
-        <p className="mt-2 text-fg-muted">{reason === "consent" ? "Please review and agree to the recording consent before starting your interview." : "Your interview has been submitted. You can check its status at any time."}</p>
-        <Button className="mt-6" asChild>
-          <Link href={reason === "consent" ? "/candidate/interview/consent" : "/candidate/status"}>{reason === "consent" ? "Review Consent" : "View Status"}</Link>
-        </Button>
+        <p className="mt-2 text-fg-muted">{reason === "consent" ? "Please review and agree to the interview consent before starting your interview." : "Your interview has been submitted. You can check its status at any time or restart a fresh demo interview."}</p>
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+          {reason === "submitted" ? (
+            <>
+              <Button
+                onClick={() => {
+                  resetDemoInterview();
+                  toast.success("Demo reset. Ready to start a fresh interview.");
+                  router.push("/candidate/interview");
+                }}
+              >
+                <RotateCcw className="size-4" />
+                Start New Demo Interview
+              </Button>
+              <Button variant="secondary" asChild>
+                <Link href="/candidate/status">View Status</Link>
+              </Button>
+            </>
+          ) : (
+            <Button asChild>
+              <Link href="/candidate/interview/consent">Review Consent</Link>
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -89,8 +117,8 @@ function Session() {
         candidateName={candidate.name}
         roleTitle={roleTitle(candidate)}
         responseSeconds={setup.secondsPerQuestion}
-        onAnswerConfirmed={(q, text, durationSec, inputMode) =>
-          recordAnswer({ sessionId: candidate.interviewId, questionId: q.id, questionNumber: q.number, questionText: q.text, category: q.category, confirmed: true, transcript: text, durationSec, inputMode, confirmedAt: new Date().toISOString() })
+        onAnswerConfirmed={(q, text, durationSec, inputMode, metadata) =>
+          recordAnswer({ sessionId: candidate.interviewId, questionId: q.id, questionNumber: q.number, questionText: q.text, category: q.category, confirmed: true, transcript: text, durationSec, inputMode, ...metadata, confirmedAt: new Date().toISOString() })
         }
         onComplete={() => {
           const ref = submit();
@@ -146,6 +174,7 @@ function ApiSessionLoader() {
   const start = useStartInterview(f.interviewId);
   const status = f.interviewStatus;
   const decided = useRef(false);
+  const running = useRef<Detail | null>(null);
 
   // Decide ONCE, from the status when this page loads: PENDING (with consent) → start, INTERRUPTED → resume.
   // Later changes (e.g. the candidate pressing Exit, which pauses the session) must not trigger a resume.
@@ -157,13 +186,16 @@ function ApiSessionLoader() {
   }, [status, f.consent, f.interviewId, start]);
 
   useEffect(() => {
-    if (status === "COMPLETED") router.replace("/candidate/interview/complete");
+    if (status === "COMPLETED" && !running.current) router.replace("/candidate/interview/complete");
     if (start.error instanceof ApiError && start.error.code === "INTERVIEW_EXPIRED") router.replace("/candidate/interview/unavailable?reason=expired");
   }, [status, start.error, router]);
 
   const detail = useInterviewDetail(status === "IN_PROGRESS" || start.isSuccess ? f.interviewId : undefined);
 
   const wrap = (node: React.ReactNode) => <div className="app-backdrop grid min-h-dvh place-items-center p-6"><div className="w-full max-w-xl">{node}</div></div>;
+  // Query invalidation after the last confirmed answer must not unmount the recorder before upload finalizes.
+  if (!running.current && detail.data?.status === "IN_PROGRESS") running.current = detail.data;
+  if (running.current) return <ApiSession key={running.current.interviewId} detail={running.current} />;
   if (gate) return wrap(gate);
   if (status === "PENDING" && !f.consent) return <Blocked reason="consent" />;
   if (status === "SUBMITTED") return <Blocked reason="submitted" />;
@@ -176,6 +208,7 @@ function ApiSessionLoader() {
 type Detail = NonNullable<ReturnType<typeof useInterviewDetail>["data"]>;
 
 function ApiSession({ detail }: { detail: Detail }) {
+  const account = useUserProfile("candidate");
   const router = useRouter();
   const interviewId = detail.interviewId;
   const save = useSaveAnswer(interviewId);
@@ -191,13 +224,13 @@ function ApiSession({ detail }: { detail: Detail }) {
   const startIndex = firstOpen < 0 ? questions.length - 1 : firstOpen;
   const [savedCount, setSavedCount] = useState(detail.completedQuestions);
 
-  const persist = async (q: InterviewQuestion, text: string, durationSec: number, mode: "voice" | "typed") => {
+  const persist = async (q: InterviewQuestion, text: string, durationSec: number, mode: "voice" | "typed", metadata?: AnswerTranscriptMetadata) => {
     const input = {
       transcript: text,
       source: mode === "voice" ? ("SPEECH_TO_TEXT" as const) : ("TYPED_FALLBACK" as const),
       responseDurationSec: Math.min(3600, Math.max(0, Math.round(durationSec))),
       engine: mode === "voice" ? "browser-web-speech" : undefined,
-      language: typeof navigator !== "undefined" ? navigator.language.slice(0, 20) : undefined,
+      ...metadata,
     };
     try {
       await save.mutateAsync({ code: q.id, input });
@@ -219,16 +252,17 @@ function ApiSession({ detail }: { detail: Detail }) {
   };
 
   return (
-    <>
+    <RecordingSession sessionId={interviewId}>{({ stream, finish }) => <>
       <VoiceInterview
+        recordingStream={stream}
         variant="session"
         questions={questions}
         startIndex={startIndex}
-        candidateName={detail.candidate.fullName}
+        candidateName={account.fullName}
         roleTitle={detail.jobRole.title}
         responseSeconds={questions[startIndex]?.responseSeconds ?? 90}
         onAnswerConfirmed={persist}
-        onComplete={() => router.push("/candidate/interview/complete")}
+        onComplete={() => finish(() => router.push("/candidate/interview/complete"))}
         onExit={() => setConfirmEnd(true)}
         onHelp={() => setHelp(true)}
       />
@@ -252,7 +286,7 @@ function ApiSession({ detail }: { detail: Detail }) {
                   onSuccess: () => {
                     setConfirmEnd(false);
                     toast.info("Interview paused. Your confirmed answers are saved.");
-                    router.push("/candidate/interview/resume");
+                    finish(() => router.push("/candidate/interview/resume"));
                   },
                 })
               }
@@ -263,6 +297,6 @@ function ApiSession({ detail }: { detail: Detail }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+    </>}</RecordingSession>
   );
 }

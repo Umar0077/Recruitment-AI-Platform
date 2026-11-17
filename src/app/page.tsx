@@ -19,7 +19,7 @@ export default function LandingPage() {
         <FAQ />
         <FinalCTA />
       </main>
-      <Footer />
+      <Footer year={new Date().getUTCFullYear()} />
     </div>
   );
 }

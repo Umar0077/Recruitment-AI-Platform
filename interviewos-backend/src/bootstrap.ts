@@ -20,12 +20,12 @@ export function configureApp(app: NestExpressApplication): INestApplication {
 
   const origins = config.get("FRONTEND_ORIGINS", { infer: true }).split(",").map((o) => o.trim()).filter(Boolean);
   app.enableCors({
-    // Exact-match allowlist. Auth uses bearer tokens, so cookies/credentials are not needed.
+    // Exact-match origins plus custom-header/origin checks protect admin cookie mutations.
     origin: (origin, cb) => cb(null, !origin || origins.includes(origin)),
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Authorization", "Content-Type", "X-Request-Id"],
+    allowedHeaders: ["Authorization", "Content-Type", "X-Request-Id", "X-Admin-Request"],
     exposedHeaders: ["X-Request-Id"],
-    credentials: false,
+    credentials: true,
     maxAge: 600,
   });
 

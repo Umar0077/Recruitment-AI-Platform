@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, SkipForward } from "lucide-react";
 import { toast } from "sonner";
 import { CandidateShell } from "@/components/candidate/shell";
@@ -34,6 +34,11 @@ function Practice() {
   const [done, setDone] = useState(f.practiceDone);
   const questions = useMemo<InterviewQuestion[]>(() => [{ id: "practice", number: 0, category: "Practice", text: f.practiceQuestion, responseSeconds: PRACTICE_SECONDS }], [f.practiceQuestion]);
   const gate = useFlowGate(f);
+
+  useEffect(() => {
+    router.prefetch("/candidate/interview/session");
+  }, [router]);
+
   if (gate) return gate;
 
   const goInterview = () => {

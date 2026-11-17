@@ -26,7 +26,7 @@ export function MetricCard({ label, value, icon: Icon, hint, trend, href, spark 
   );
   const cls = "surface group relative block rounded-xl p-5 transition-[border-color,background-color] duration-200";
   return href ? (
-    <Link href={href} className={cn(cls, "hover:border-glow/50 hover:bg-overlay/[0.05]")}>
+    <Link href={href} data-pointer-surface className={cn(cls, "hover:border-glow/50 hover:bg-overlay/[0.025]")}>
       {body}
       <ArrowUpRight className="absolute right-4 top-4 size-4 text-fg-disabled opacity-0 transition-opacity group-hover:opacity-100" aria-hidden />
     </Link>
@@ -38,7 +38,7 @@ export function MetricCard({ label, value, icon: Icon, hint, trend, href, spark 
 function Sparkline({ values }: { values: number[] }) {
   const max = Math.max(1, ...values);
   const w = 64, h = 24;
-  const pts = values.map((v, i) => `${(i / (values.length - 1)) * w},${h - (v / max) * (h - 2) - 1}`).join(" ");
+  const pts = values.map((v, i) => `${values.length === 1 ? w / 2 : (i / (values.length - 1)) * w},${h - (v / max) * (h - 2) - 1}`).join(" ");
   return (
     <svg width={w} height={h} className="mr-5 opacity-80" aria-hidden>
       <polyline points={pts} fill="none" stroke="#38BDF8" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />

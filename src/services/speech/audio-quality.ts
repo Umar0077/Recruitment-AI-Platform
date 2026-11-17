@@ -15,23 +15,44 @@ export function createLevelMeter(
   stream: MediaStream,
   opts: { onLowInput?: (low: boolean) => void; lowThreshold?: number; lowAfterMs?: number } = {},
 ): LevelMeter {
-  const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-  const ctx = new Ctx();
-  const source = ctx.createMediaStreamSource(stream);
-  const analyser = ctx.createAnalyser();
-  analyser.fftSize = 1024;
-  analyser.smoothingTimeConstant = 0.6;
-  source.connect(analyser); // not connected to speakers: no feedback loop
-  const data = new Float32Array(analyser.fftSize);
+  let ctx: AudioContext | undefined;
+  let source: MediaStreamAudioSourceNode | undefined;
+  let analyser: AnalyserNode | undefined;
   const threshold = opts.lowThreshold ?? 0.035;
   const lowAfter = opts.lowAfterMs ?? 5000;
   let level = 0;
   let raf = 0;
   let quietSince = performance.now();
   let lowReported = false;
+  let stopped = false;
+
+  const stop = () => {
+    if (stopped) return;
+    stopped = true;
+    level = 0;
+    cancelAnimationFrame(raf);
+    try { source?.disconnect(); } catch { /* Already disconnected by the browser. */ }
+    try { analyser?.disconnect(); } catch { /* Already disconnected by the browser. */ }
+    try { if (ctx && ctx.state !== "closed") void ctx.close().catch(() => {}); } catch { /* Closing diagnostics cannot block stream cleanup. */ }
+  };
+  const meter: LevelMeter = { get level() { return level; }, stop };
+
+  try {
+    const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (!Ctx) return meter;
+    ctx = new Ctx();
+    source = ctx.createMediaStreamSource(stream);
+    analyser = ctx.createAnalyser();
+    analyser.fftSize = 1024;
+    analyser.smoothingTimeConstant = 0.6;
+    source.connect(analyser); // not connected to speakers: no feedback loop
+  } catch { stop(); return meter; }
+  const input = analyser;
+  const data = new Float32Array(input.fftSize);
 
   const tick = () => {
-    analyser.getFloatTimeDomainData(data);
+    if (stopped) return;
+    try { input.getFloatTimeDomainData(data); } catch { stop(); return; }
     let sum = 0;
     for (let i = 0; i < data.length; i++) sum += data[i]! * data[i]!;
     const rms = Math.sqrt(sum / data.length);
@@ -45,19 +66,9 @@ export function createLevelMeter(
       lowReported = true;
       opts.onLowInput?.(true);
     }
-    raf = requestAnimationFrame(tick);
+    if (!stopped) raf = requestAnimationFrame(tick);
   };
-  void ctx.resume();
-  tick();
-
-  return {
-    get level() {
-      return level;
-    },
-    stop() {
-      cancelAnimationFrame(raf);
-      source.disconnect();
-      void ctx.close();
-    },
-  };
+  // A blocked/suspended AudioContext affects only diagnostics, not the microphone stream.
+  try { void ctx.resume().then(() => { if (!stopped) tick(); }, stop); } catch { stop(); }
+  return meter;
 }

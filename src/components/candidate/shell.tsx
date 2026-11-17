@@ -8,11 +8,13 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { AppLogo } from "@/components/ui/brand";
 import { Button } from "@/components/ui/button";
 import { DemoBadge } from "@/components/ui/states";
-import { Dialog, DialogContent, DialogFooter } from "@/components/ui/overlays";
+import { Dialog, DialogContent, DialogFooter, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuItem } from "@/components/ui/overlays";
 import { Skeleton } from "@/components/ui/primitives";
 import { PageTransition } from "@/components/motion";
 import { useDemoStore } from "@/lib/demo/store";
 import { useAuth } from "@/lib/auth/auth-provider";
+import { useUserProfile } from "@/lib/auth/user-profile";
+import { AccountAvatar } from "@/components/auth/account-avatar";
 import { useAccessGate } from "@/lib/auth/use-access-gate";
 import { isApiMode } from "@/lib/config/environment";
 import { BRAND } from "@/lib/brand";
@@ -61,7 +63,7 @@ export function HelpDialog({ open, onOpenChange }: { open: boolean; onOpenChange
           {[
             { icon: RefreshCw, t: "Camera or microphone not working", d: "Check your browser's site permissions (the camera icon in the address bar), close other apps using the camera, then retry the equipment check." },
             { icon: WifiOff, t: "Connection dropped", d: "Reconnect, then sign in again. You can resume from the next unanswered question while your invitation is open." },
-            { icon: LifeBuoy, t: "Accessibility or alternative assessment", d: "Contact the recruitment team to discuss adjustments or an alternative to a video interview." },
+            { icon: LifeBuoy, t: "Accessibility or alternative assessment", d: "You can type answers and leave the camera off. Contact the recruitment team to discuss other adjustments or an alternative assessment." },
           ].map((x) => (
             <li key={x.t} className="flex gap-3 rounded-xl border border-subtle bg-overlay/[0.02] p-3.5">
               <x.icon className="mt-0.5 size-4 shrink-0 text-brand-cyan" aria-hidden />
@@ -91,7 +93,7 @@ export function useCandidateGate() {
 const PAGE_TITLES: Record<string, string> = {
   "/candidate/interview": "Your Interview",
   "/candidate/interview/instructions": "Interview Instructions",
-  "/candidate/interview/consent": "Recording Consent",
+  "/candidate/interview/consent": "Interview Consent",
   "/candidate/interview/equipment": "Equipment Check",
   "/candidate/interview/practice": "Practice Question",
   "/candidate/interview/complete": "Interview Submitted",
@@ -115,6 +117,7 @@ export function CandidateShell({ children, step, wide, className }: { children: 
   const endSession = useDemoStore((s) => s.endSession);
   const router = useRouter();
   const auth = useAuth();
+  const account = useUserProfile("candidate");
 
   return (
     <div className="app-backdrop relative min-h-dvh">
@@ -132,22 +135,19 @@ export function CandidateShell({ children, step, wide, className }: { children: 
             <Button variant="ghost" size="sm" asChild>
               <Link href="/candidate/status">Status</Link>
             </Button>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              aria-label="Sign out"
-              onClick={() => {
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild><button aria-label="Account menu" className="flex min-w-0 items-center gap-2 rounded-full focus-visible:ring-2 focus-visible:ring-brand-cyan/60"><span className="hidden max-w-40 truncate text-sm font-medium md:block">{account.fullName}</span><AccountAvatar name={account.fullName} photoURL={account.photoURL} /></button></DropdownMenuTrigger>
+              <DropdownMenuContent className="w-64"><DropdownMenuLabel><span className="block break-words text-sm font-medium text-fg">{account.fullName}</span><span className="block truncate font-normal">{account.email}</span></DropdownMenuLabel><DropdownMenuSeparator />
+              <DropdownMenuItem destructive onSelect={() => {
                 if (isApiMode) {
-                  void auth.signOut().then(() => { toast.success("Signed out."); router.replace("/candidate/login"); });
+                  void auth.signOut().then(() => { toast.success("Signed out."); router.replace("/candidate/login"); }).catch(() => toast.error("Sign-out could not finish. Please try again."));
                   return;
                 }
                 endSession("candidate");
                 toast.success("Signed out of the demo.");
                 router.push("/");
               }}
-            >
-              <LogOut />
-            </Button>
+            ><LogOut />Sign out</DropdownMenuItem></DropdownMenuContent></DropdownMenu>
           </div>
         </div>
       </header>

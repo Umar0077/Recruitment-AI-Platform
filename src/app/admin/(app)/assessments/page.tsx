@@ -41,7 +41,7 @@ function DemoAssessmentsPage() {
         <ul className="mt-6 grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
           {shown.map(({ i, c, r }) => (
             <li key={i.id}>
-              <Link href={`/admin/assessments/${i.id}`} className="surface group flex h-full flex-col rounded-xl p-5 transition-colors hover:border-glow/50">
+              <Link href={`/admin/assessments/${i.id}`} data-pointer-surface className="surface group relative flex h-full flex-col rounded-xl p-5 transition-colors hover:border-glow/50">
                 <div className="flex items-center gap-3">
                   <CandidateAvatar name={c.name} />
                   <div className="min-w-0 flex-1">

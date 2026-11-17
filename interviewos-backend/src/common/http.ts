@@ -84,7 +84,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
       }
     }
 
-    if (status >= 500) this.logger.error({ err: exception, requestId: req.id }, "Unhandled error");
+    // Database validation errors can embed query arguments (including credential hashes).
+    // Record only diagnostic categories, never raw exception bodies or stack strings.
+    if (status >= 500) this.logger.error({ errorType: exception instanceof Error ? exception.name : "UnknownError", databaseCode: exception instanceof Prisma.PrismaClientKnownRequestError ? exception.code : undefined, requestId: req.id }, "Unhandled error");
     res.status(status).json({ success: false, error: { code, message, ...(details !== undefined ? { details } : {}) }, meta: { requestId: req.id } });
   }
 }

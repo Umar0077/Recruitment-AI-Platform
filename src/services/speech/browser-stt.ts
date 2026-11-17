@@ -1,187 +1,171 @@
 "use client";
-/**
- * Web Speech API recognition (SpeechRecognition / webkitSpeechRecognition).
- * Availability varies: Chrome and Edge desktop support it; Safari partially; Firefox does not.
- * In Chrome, audio is sent to the browser vendor's speech service for transcription.
- *
- * Finals are stored by result index, so repeated "final" events for the same segment
- * never duplicate words. Recognition that ends on its own (e.g. after a pause) restarts
- * transparently while the candidate is still answering, keeping earlier words.
- */
+/** Browser recognition only. Availability and vendor processing depend on browser/device. */
 import type { STTProvider } from "./stt-provider";
-import type { STTCallbacks, STTErrorCode } from "./types";
+import type { RecognitionOptions, SpeechSnapshot, STTCallbacks, STTErrorCode } from "./types";
 
-interface RecognitionAlternative { transcript: string }
+interface RecognitionAlternative { transcript: string; confidence?: number }
 interface RecognitionResult { isFinal: boolean; length: number; [i: number]: RecognitionAlternative }
 interface RecognitionEvent { resultIndex: number; results: { length: number; [i: number]: RecognitionResult } }
-interface RecognitionErrorEvent { error: string; message?: string }
 interface Recognition {
-  lang: string;
-  continuous: boolean;
-  interimResults: boolean;
-  maxAlternatives: number;
-  onstart: (() => void) | null;
-  onresult: ((e: RecognitionEvent) => void) | null;
-  onerror: ((e: RecognitionErrorEvent) => void) | null;
-  onend: (() => void) | null;
-  start(): void;
-  stop(): void;
-  abort(): void;
+  lang: string; continuous: boolean; interimResults: boolean; maxAlternatives: number;
+  onstart: (() => void) | null; onend: (() => void) | null;
+  onaudiostart: (() => void) | null; onaudioend: (() => void) | null;
+  onspeechstart: (() => void) | null; onspeechend: (() => void) | null;
+  onresult: ((event: RecognitionEvent) => void) | null;
+  onerror: ((event: { error: string }) => void) | null;
+  start(): void; stop(): void; abort(): void;
 }
 type RecognitionCtor = new () => Recognition;
-
+type Segment = { text: string; final: boolean; confidence?: number };
+const join = (parts: Segment[]) => parts.map(p => p.text.trim()).filter(Boolean).join(" ");
+const ERROR_MAP: Record<string, STTErrorCode> = { "not-allowed": "permission-denied", "service-not-allowed": "permission-denied", "audio-capture": "no-microphone", "no-speech": "no-speech", network: "network", "language-not-supported": "language-not-supported", aborted: "aborted" };
+const MESSAGES: Record<STTErrorCode, string> = {
+  "permission-denied": "Microphone access was blocked. Allow it in your browser or type your answer.",
+  "no-microphone": "No working microphone was found. Check your input device.",
+  "no-speech": "Recognition stopped without hearing speech. Your captured words are kept; review them or retry.",
+  network: "The browser's speech service could not be reached. Your captured words are kept.",
+  "language-not-supported": "This browser cannot recognize the selected language. Choose another or type your answer.",
+  aborted: "Listening stopped. Your captured words are kept.",
+  timeout: "Speech recognition did not respond in time. Review any captured words, then retry or type.",
+  unknown: "Speech recognition stopped unexpectedly. Review any captured words or retry.",
+};
 function getCtor(): RecognitionCtor | null {
   if (typeof window === "undefined") return null;
-  const w = window as unknown as { SpeechRecognition?: RecognitionCtor; webkitSpeechRecognition?: RecognitionCtor };
-  return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
+  const browser = window as unknown as { SpeechRecognition?: RecognitionCtor; webkitSpeechRecognition?: RecognitionCtor };
+  return browser.SpeechRecognition ?? browser.webkitSpeechRecognition ?? null;
 }
 
-const ERROR_MAP: Record<string, STTErrorCode> = {
-  "not-allowed": "permission-denied",
-  "service-not-allowed": "permission-denied",
-  "audio-capture": "no-microphone",
-  "no-speech": "no-speech",
-  network: "network",
-  "language-not-supported": "language-not-supported",
-  aborted: "aborted",
-};
-
-const MESSAGES: Record<STTErrorCode, string> = {
-  "permission-denied": "Microphone access was blocked, so speech can't be transcribed.",
-  "no-microphone": "No working microphone was found.",
-  "no-speech": "We didn't hear any speech. Check your microphone and try again.",
-  network: "Speech recognition needs an internet connection in this browser and couldn't reach its service.",
-  "language-not-supported": "This browser can't recognise the selected language.",
-  aborted: "Listening stopped.",
-  unknown: "Speech recognition stopped unexpectedly.",
-};
-
-const joinText = (...parts: string[]) => parts.map((p) => p.trim()).filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
-
+/** One owner at a time, including the asynchronous starting/stopping phases. */
+const owner: { current: BrowserSTT | null } = { current: null };
 export class BrowserSTT implements STTProvider {
   readonly id = "browser-web-speech";
   private rec: Recognition | null = null;
-  private wanted = false; // candidate still wants to be listening
-  private earlierText = ""; // text from previous (auto-restarted) recognition sessions
-  private finals: string[] = []; // finals for the current session, by result index
-  private restarts = 0;
+  private wanted = false;
+  private generation = 0;
+  private earlier: Segment[] = [];
+  private segments: Segment[] = [];
   private callbacks: STTCallbacks = {};
-  private stopResolvers: ((t: string) => void)[] = [];
+  private options: RecognitionOptions = { lang: "en-US" };
+  private restarts = 0;
+  private started = false;
   private fatal = false;
+  private stopResolvers: ((text: string) => void)[] = [];
+  private startTimer: ReturnType<typeof setTimeout> | undefined;
+  private stopTimer: ReturnType<typeof setTimeout> | undefined;
   isActive = false;
-
-  isSupported() {
-    return !!getCtor();
+  isSupported() { return !!getCtor(); }
+  get snapshot(): SpeechSnapshot {
+    const all = [...this.earlier, ...this.segments].filter(Boolean);
+    return { rawFinalText: all.filter(p => p.final).map(p => p.text).join(" "), lowConfidence: all.some(p => p.final && p.confidence !== undefined && p.confidence > 0 && p.confidence < 0.6), finalText: join(all.filter(p => p.final)), interimText: join(all.filter(p => !p.final)), originalText: join(all), hasUnfinalized: all.some(p => !p.final && !!p.text.trim()) };
   }
-
-  private text() {
-    return joinText(this.earlierText, ...this.finals);
+  private publish() {
+    const snapshot = this.snapshot;
+    this.callbacks.onSnapshot?.(snapshot);
+    this.callbacks.onFinal?.(snapshot.finalText);
+    this.callbacks.onInterim?.(snapshot.interimText);
   }
-
-  start({ lang, ...callbacks }: { lang: string } & STTCallbacks) {
+  start({ lang, maxAlternatives = 3, maxRestarts = 3, ...callbacks }: RecognitionOptions & STTCallbacks) {
+    if (this.isActive) return;
+    owner.current?.abort();
     const Ctor = getCtor();
-    if (!Ctor) {
-      callbacks.onError?.("unknown", "Speech recognition isn't available in this browser.");
-      return;
-    }
-    if (this.isActive) this.abort();
     this.callbacks = callbacks;
-    this.earlierText = "";
-    this.restarts = 0;
-    this.fatal = false;
-    this.wanted = true;
-    this.launch(Ctor, lang);
+    this.options = { lang, maxAlternatives: Math.max(1, Math.min(3, maxAlternatives)), maxRestarts: Math.max(0, Math.min(6, maxRestarts)) };
+    this.earlier = []; this.segments = []; this.restarts = 0; this.started = false; this.fatal = false;
+    this.generation++; this.wanted = true; this.isActive = true; owner.current = this;
+    if (!Ctor) { this.fail("unknown"); return; }
+    this.launch(Ctor);
   }
-
-  private launch(Ctor: RecognitionCtor, lang: string) {
-    const rec = new Ctor();
-    this.rec = rec;
-    this.finals = [];
-    rec.lang = lang;
-    rec.continuous = true;
-    rec.interimResults = true;
-    rec.maxAlternatives = 1;
+  private detach(rec: Recognition) {
+    rec.onstart = rec.onresult = rec.onerror = rec.onend = null;
+    rec.onaudiostart = rec.onaudioend = rec.onspeechstart = rec.onspeechend = null;
+  }
+  private launch(Ctor: RecognitionCtor) {
+    const generation = this.generation;
+    let rec: Recognition;
+    try { rec = new Ctor(); } catch { this.fail("unknown"); return; }
+    this.rec = rec; this.segments = [];
+    const current = () => this.rec === rec && generation === this.generation;
+    rec.lang = this.options.lang; rec.continuous = true; rec.interimResults = true; rec.maxAlternatives = this.options.maxAlternatives ?? 3;
     rec.onstart = () => {
-      this.isActive = true;
-      if (this.restarts === 0) this.callbacks.onStart?.();
+      if (!current()) return;
+      clearTimeout(this.startTimer);
+      if (!this.started) { this.started = true; this.callbacks.onStart?.(); }
     };
-    rec.onresult = (e) => {
-      let interim = "";
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        const r = e.results[i]!;
-        const t = r[0]?.transcript ?? "";
-        if (r.isFinal) this.finals[i] = t;
-        else interim += ` ${t}`;
+    rec.onaudiostart = () => { if (current()) this.callbacks.onAudioActivity?.(true); };
+    rec.onaudioend = () => { if (current()) this.callbacks.onAudioActivity?.(false); };
+    rec.onspeechstart = () => { if (current()) this.callbacks.onSpeechActivity?.(true); };
+    rec.onspeechend = () => { if (current()) this.callbacks.onSpeechActivity?.(false); };
+    rec.onresult = event => {
+      if (!current()) return;
+      // resultIndex marks the first CHANGED result; retain earlier interim results too.
+      this.segments.length = event.results.length;
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const result = event.results[i];
+        if (result) this.segments[i] = { text: result[0]?.transcript ?? "", final: result.isFinal, confidence: result[0]?.confidence };
       }
-      this.callbacks.onFinal?.(this.text());
-      this.callbacks.onInterim?.(interim.trim());
+      this.publish();
     };
-    rec.onerror = (e) => {
-      const code = ERROR_MAP[e.error] ?? "unknown";
-      if (code === "aborted") return;
-      // "no-speech" is recoverable: keep listening if the candidate hasn't stopped.
-      if (code === "no-speech" && this.wanted && this.restarts < 6) return;
-      if (code !== "no-speech") this.fatal = true;
-      this.callbacks.onError?.(code, MESSAGES[code]);
+    rec.onerror = event => {
+      if (!current()) return;
+      const code = ERROR_MAP[event.error] ?? "unknown";
+      if (code === "no-speech" && this.wanted && this.restarts < (this.options.maxRestarts ?? 3)) {
+        clearTimeout(this.startTimer);
+        this.startTimer = setTimeout(() => { if (current()) this.fail("timeout"); }, 2500);
+        return;
+      }
+      this.fail(code);
     };
     rec.onend = () => {
-      // Fold this session's finals into the running transcript before any restart.
-      this.earlierText = this.text();
-      this.finals = [];
-      if (this.wanted && !this.fatal && this.restarts < 6) {
-        this.restarts++;
-        try {
-          this.launch(Ctor, lang);
-          return;
-        } catch {
-          /* fall through to end */
-        }
+      if (!current()) return;
+      clearTimeout(this.startTimer); this.detach(rec); this.rec = null;
+      this.earlier.push(...this.segments.filter(Boolean)); this.segments = [];
+      this.callbacks.onAudioActivity?.(false); this.callbacks.onSpeechActivity?.(false);
+      if (this.wanted && !this.fatal && this.restarts < (this.options.maxRestarts ?? 3)) {
+        this.restarts++; this.launch(Ctor); return;
       }
-      this.isActive = false;
-      this.wanted = false;
-      this.rec = null;
-      const finalText = this.earlierText;
-      this.callbacks.onInterim?.("");
-      this.callbacks.onEnd?.(finalText);
-      this.stopResolvers.splice(0).forEach((r) => r(finalText));
+      if (this.wanted) this.callbacks.onError?.("no-speech", MESSAGES["no-speech"]);
+      this.finish();
     };
-    rec.start();
+    this.startTimer = setTimeout(() => { if (current()) this.fail("timeout"); }, 8000);
+    try { rec.start(); } catch { this.fail("unknown"); }
   }
-
+  private fail(code: STTErrorCode) {
+    this.fatal = true; this.wanted = false;
+    this.callbacks.onError?.(code, MESSAGES[code]);
+    const rec = this.rec;
+    if (rec) { this.detach(rec); this.rec = null; try { rec.abort(); } catch { /* already ended */ } }
+    this.finish();
+  }
+  private finish() {
+    clearTimeout(this.startTimer); clearTimeout(this.stopTimer);
+    this.startTimer = undefined; this.stopTimer = undefined;
+    this.isActive = false; this.wanted = false;
+    if (owner.current === this) owner.current = null;
+    this.publish();
+    this.callbacks.onAudioActivity?.(false); this.callbacks.onSpeechActivity?.(false);
+    const text = this.snapshot.originalText;
+    this.callbacks.onEnd?.(text);
+    this.stopResolvers.splice(0).forEach(resolve => resolve(text));
+  }
   stop(): Promise<string> {
     this.wanted = false;
-    if (!this.rec) return Promise.resolve(this.text());
-    return new Promise((resolve) => {
+    if (!this.isActive) return Promise.resolve(this.snapshot.originalText);
+    return new Promise(resolve => {
       this.stopResolvers.push(resolve);
-      try {
-        this.rec?.stop();
-      } catch {
-        resolve(this.text());
-      }
-      // Safety net: some engines never fire onend after stop().
-      window.setTimeout(() => {
-        if (this.stopResolvers.includes(resolve)) {
-          this.stopResolvers = this.stopResolvers.filter((r) => r !== resolve);
-          this.isActive = false;
-          resolve(this.text());
-        }
-      }, 2500);
+      if (this.stopTimer) return;
+      // A timeout is a failure fallback, never evidence that the engine finalized words.
+      this.stopTimer = setTimeout(() => this.fail("timeout"), 2500);
+      try { this.rec?.stop(); } catch { this.fail("unknown"); }
     });
   }
-
   abort() {
-    this.wanted = false;
-    this.fatal = true;
-    try {
-      this.rec?.abort();
-    } catch {
-      /* already stopped */
-    }
-    this.rec = null;
-    this.isActive = false;
+    if (!this.isActive) return;
+    this.generation++; this.wanted = false;
+    const rec = this.rec;
+    if (rec) { this.detach(rec); this.rec = null; try { rec.abort(); } catch { /* already ended */ } }
+    this.finish();
   }
 }
-
-let instance: BrowserSTT | null = null;
-export const getBrowserSTT = () => (instance ??= new BrowserSTT());
+/** Each hook owns its callbacks; the provider arbitrates the one browser microphone session. */
+export const getBrowserSTT = () => new BrowserSTT();
 export const isSpeechRecognitionSupported = () => !!getCtor();

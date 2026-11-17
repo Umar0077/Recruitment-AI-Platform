@@ -1,0 +1,41 @@
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+const s = vi.hoisted(() => ({ api: true, request: vi.fn(), replace: vi.fn() }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ replace: s.replace }) }));
+vi.mock("@/lib/config/environment", () => ({ get isApiMode() { return s.api; } }));
+vi.mock("@/lib/auth/auth-provider", () => ({ useAuth: () => ({ status: "signedIn", profile: { id: "fictional" }, refresh: async () => {} }) }));
+vi.mock("@/lib/api/client", () => ({ apiRequest: s.request, ApiError: class extends Error {} }));
+vi.mock("@/components/candidate/shell", () => ({ CandidateShell: ({ children }) => <main>{children}</main> }));
+import Page from "@/app/candidate/onboarding/page";
+const show = () => render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } })}><Page /></QueryClientProvider>);
+beforeEach(() => { vi.clearAllMocks(); s.api = true; });
+afterEach(cleanup);
+it("requires explicit role selection then assigns using no supplied user identity", async () => {
+  s.request.mockResolvedValueOnce({ data: { state: "select_role", roles: [{ code: "CSR-FRESHER", title: "Customer Sales Representative (Fresher)" }] } }).mockResolvedValueOnce({ data: { state: "assigned", interviewId: "fictional" } });
+  show(); const select = await screen.findByRole("button", { name: /Select Role:/ }); expect(select.getAttribute("aria-pressed")).toBe("false");
+  fireEvent.click(select); fireEvent.click(screen.getByRole("button", { name: "Continue to Interview" }));
+  await waitFor(() => expect(s.replace).toHaveBeenCalledWith("/candidate/interview"));
+  expect(s.request).toHaveBeenLastCalledWith("/interviews/initial", { method: "POST", body: { roleCode: "CSR-FRESHER" } });
+});
+it("uses explicit application selection instead of guessing a track", async () => {
+  s.request.mockResolvedValue({ data: { state: "select_application", applications: [{ id: "app", title: "Existing role", status: "APPLICATION_RECEIVED" }] } }); show();
+  const select = await screen.findByRole("button", { name: /Select Role:/ }); expect(select.getAttribute("aria-pressed")).toBe("false");
+  fireEvent.click(select); fireEvent.click(screen.getByRole("button", { name: "Continue to Interview" }));
+  await waitFor(() => expect(s.request).toHaveBeenLastCalledWith("/interviews/initial", { method: "POST", body: { applicationId: "app" } }));
+});
+it("reuses an assigned interview without asking for another role", async () => { s.request.mockResolvedValue({ data: { state: "assigned", interviewId: "existing" } }); show(); await waitFor(() => expect(s.replace).toHaveBeenCalledWith("/candidate/interview")); expect(screen.queryByRole("combobox")).toBeNull(); });
+it("never calls the API in demo mode", async () => { s.api = false; show(); await waitFor(() => expect(s.replace).toHaveBeenCalledWith("/candidate/interview")); expect(s.request).not.toHaveBeenCalled(); });
+it("preserves the selected role and choices after assignment fails", async () => {
+  s.request.mockResolvedValueOnce({ data: { state: "select_role", roles: [{ code: "CSR-FRESHER", title: "Fresher", description: "Sales opportunity", track: "CSR_FRESHER" }] } }).mockRejectedValueOnce(new Error("Temporarily unavailable"));
+  show(); fireEvent.click(await screen.findByRole("button", { name: "Select Role: Fresher" }));
+  fireEvent.click(screen.getByRole("button", { name: "Continue to Interview" }));
+  await waitFor(() => expect(s.request).toHaveBeenCalledTimes(2));
+  await waitFor(() => expect(screen.getByRole("button", { name: "Continue to Interview" }).disabled).toBe(false));
+  expect(screen.getByRole("button", { name: "Select Role: Fresher" }).getAttribute("aria-pressed")).toBe("true");
+  expect(s.replace).not.toHaveBeenCalled();
+  s.request.mockResolvedValueOnce({ data: { state: "assigned", interviewId: "existing" } });
+  fireEvent.click(screen.getByRole("button", { name: "Continue to Interview" }));
+  await waitFor(() => expect(s.replace).toHaveBeenCalledWith("/candidate/interview"));
+  expect(s.request).toHaveBeenLastCalledWith("/interviews/initial", { method: "POST", body: { roleCode: "CSR-FRESHER" } });
+});

@@ -137,7 +137,7 @@ class AssessmentQueryDto {
   @ApiPropertyOptional({ format: "uuid" }) @IsOptional() @IsUUID() interviewId?: string;
 }
 
-const NOT_GENERATED = "Automated assessment is not enabled. No scores are generated from transcripts in this phase; HR reviews the confirmed answers directly.";
+const NOT_GENERATED = "Assessment observations support human review. Similarity is not factual accuracy. External processing requires provider approval.";
 
 @ApiTags("assessments")
 @ApiBearerAuth()
@@ -162,7 +162,7 @@ class AssessmentsController {
   async get(@Param("id", ParseUUIDPipe) id: string, @Ctx() { user }: RequestContext) {
     const r = await this.prisma.assessmentReport.findFirst({
       where: { id, session: { application: this.scope.applicationWhere(user) } },
-      include: { criteria: { orderBy: { position: "asc" } }, observations: true },
+      include: { criteria: { orderBy: { position: "asc" } }, observations: true, corrections: { orderBy: { createdAt: "asc" } } },
     });
     if (!r) throw notFound("Assessment");
     return { ...r, notice: r.status === "COMPLETED" ? null : NOT_GENERATED };

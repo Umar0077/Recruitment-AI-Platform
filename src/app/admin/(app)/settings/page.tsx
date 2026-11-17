@@ -275,5 +275,5 @@ function DemoControls({ onNavigate }: { onNavigate: (href: string) => void }) {
 
 /** API mode renders the PostgreSQL-backed screen; demo mode keeps the original demo screen unchanged. */
 export default function SettingsPage() {
-  return isApiMode ? <ApiSettings /> : <DemoSettingsPage />;
+  return isApiMode ? <><nav aria-label="Account settings" className="mb-6 flex gap-4"><Button asChild variant="secondary"><Link href="/admin/settings/security">Account security</Link></Button><Button asChild variant="secondary"><Link href="/admin/settings/accounts">Admin accounts</Link></Button></nav><ApiSettings /></> : <DemoSettingsPage />;
 }

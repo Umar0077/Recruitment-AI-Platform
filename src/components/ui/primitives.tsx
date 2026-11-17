@@ -8,8 +8,8 @@ import { cn, initials } from "@/lib/utils";
 import type { Tone } from "@/lib/demo/statuses";
 
 /* ---------- Cards ---------- */
-export function GlassCard({ className, glow, as: As = "div", ...props }: React.HTMLAttributes<HTMLDivElement> & { glow?: boolean; as?: "div" | "section" | "article" | "aside" }) {
-  return <As className={cn("surface rounded-xl", glow && "surface-glow", className)} {...props} />;
+export function GlassCard({ className, glow, interactive = false, as: As = "div", ...props }: React.HTMLAttributes<HTMLDivElement> & { glow?: boolean; interactive?: boolean; as?: "div" | "section" | "article" | "aside" }) {
+  return <As data-pointer-surface={interactive ? "" : undefined} className={cn("surface rounded-xl", interactive && "interactive-card", glow && "surface-glow", className)} {...props} />;
 }
 
 export function CardHeader({ title, description, action, className, icon }: { title: React.ReactNode; description?: React.ReactNode; action?: React.ReactNode; className?: string; icon?: React.ReactNode }) {

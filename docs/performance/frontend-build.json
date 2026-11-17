@@ -1,0 +1,7 @@
+{
+  "mode": "api",
+  "apiUrl": "https://api.example.invalid/api/v1",
+  "deploymentReady": false,
+  "elapsedMs": 127326,
+  "exitCode": 0
+}

@@ -26,6 +26,10 @@ export interface VoiceMachine {
   status: VoiceState;
   index: number;
   draft: string;
+  originalTranscript?: string;
+  interimTranscript?: string;
+  cleanedTranscript?: string;
+  hasUnfinalized?: boolean;
   inputMode: InputMode;
   /** Non-blocking notice (e.g. voice playback failed). */
   notice?: string;
@@ -50,7 +54,8 @@ export type VoiceEvent =
   | { type: "MIC_READY" }
   | { type: "MIC_FAILED"; kind: "microphone" | "recognition"; message: string }
   | { type: "STOP" }
-  | { type: "TRANSCRIPT_READY"; text: string; notice?: string }
+  | { type: "TRANSCRIPT_READY"; text: string; original?: string; interim?: string; cleaned?: string; hasUnfinalized?: boolean; notice?: string }
+  | { type: "MIC_CANCEL" }
   | { type: "TYPE_INSTEAD" }
   | { type: "EDIT"; text: string }
   | { type: "RETRY" }
@@ -66,7 +71,7 @@ const ALLOWED: Record<VoiceState, VoiceEvent["type"][]> = {
   tts_ready: ["TTS_STARTED", "TTS_SKIPPED", "TTS_DONE"],
   ai_speaking: ["TTS_DONE", "TTS_SKIPPED", "REPLAY"],
   awaiting_candidate: ["MIC_START", "TYPE_INSTEAD", "REPLAY", "TIMEOUT"],
-  microphone_initializing: ["MIC_READY", "MIC_FAILED"],
+  microphone_initializing: ["MIC_READY", "MIC_FAILED", "MIC_CANCEL"],
   listening: ["STOP", "TIMEOUT", "MIC_FAILED"],
   transcribing: ["TRANSCRIPT_READY"],
   answer_review: ["EDIT", "RETRY", "CONFIRM", "REPLAY", "MIC_START"],
@@ -88,7 +93,7 @@ export function voiceReducer(s: VoiceMachine, e: VoiceEvent): VoiceMachine {
     case "START":
       return { ...s, status: "loading_question" };
     case "QUESTION_READY":
-      return { ...s, status: "tts_ready", draft: "", inputMode: "voice", notice: undefined, error: undefined, responseStartedAt: undefined, timedOut: false, afterSpeech: undefined };
+      return { ...s, status: "tts_ready", draft: "", originalTranscript: undefined, interimTranscript: undefined, cleanedTranscript: undefined, hasUnfinalized: false, inputMode: "voice", notice: undefined, error: undefined, responseStartedAt: undefined, timedOut: false, afterSpeech: undefined };
     case "TTS_STARTED":
       return { ...s, status: "ai_speaking" };
     case "TTS_DONE":
@@ -101,18 +106,20 @@ export function voiceReducer(s: VoiceMachine, e: VoiceEvent): VoiceMachine {
       return { ...s, status: "microphone_initializing", error: undefined, notice: undefined, inputMode: "voice", responseStartedAt: s.responseStartedAt ?? Date.now() };
     case "MIC_READY":
       return { ...s, status: "listening" };
+    case "MIC_CANCEL":
+      return { ...s, status: "awaiting_candidate" };
     case "MIC_FAILED":
       return { ...s, status: "error", error: { kind: e.kind, message: e.message } };
     case "STOP":
       return { ...s, status: "transcribing" };
     case "TRANSCRIPT_READY":
-      return { ...s, status: "answer_review", draft: e.text, notice: e.notice };
+      return { ...s, status: "answer_review", draft: e.text, originalTranscript: e.original ?? e.text, interimTranscript: e.interim, cleanedTranscript: e.cleaned, hasUnfinalized: e.hasUnfinalized, notice: e.notice };
     case "TYPE_INSTEAD":
       return { ...s, status: "answer_review", inputMode: "typed", error: undefined, responseStartedAt: s.responseStartedAt ?? Date.now() };
     case "EDIT":
       return { ...s, draft: e.text };
     case "RETRY":
-      return { ...s, status: "awaiting_candidate", draft: "", notice: undefined, timedOut: false };
+      return { ...s, status: "awaiting_candidate", draft: "", originalTranscript: undefined, cleanedTranscript: undefined, hasUnfinalized: false, notice: undefined, timedOut: false };
     case "CONFIRM":
       return { ...s, status: "answer_confirmed" };
     case "NEXT":

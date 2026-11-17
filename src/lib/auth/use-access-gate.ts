@@ -28,17 +28,21 @@ export function useAccessGate(area: Area): boolean {
   if (!isApiMode) {
     allowed = hydrated && !!demoSession;
     if (hydrated && !demoSession) redirect = `/${area}/login`;
+  } else if (status === "verificationRequired") {
+    redirect = `/candidate/verify-email?area=${area}`;
+  } else if (status === "profileRequired") {
+    redirect = `/${area}/complete-profile`;
   } else if (status === "signedOut" || status === "unconfigured") {
     redirect = login;
   } else if (status === "signedIn" && profile) {
     if (area === "admin") {
       allowed = profile.isStaff;
-      if (!allowed) redirect = "/admin/login?denied=1";
+      if (allowed && profile.mustChangePassword && pathname !== "/admin/settings/security") { allowed = false; redirect = "/admin/settings/security"; }
+      if (!profile.isStaff) redirect = "/admin/login?denied=1";
     } else if (!profile.roles.includes("CANDIDATE")) {
       redirect = "/candidate/login?denied=staff";
-    } else if (!profile.candidateId) {
-      // Signed in, but no invitation/application is linked to this account.
-      redirect = "/candidate/interview/unavailable?reason=not-linked";
+    } else if (!profile.candidateId && pathname !== "/candidate/onboarding") {
+      redirect = "/candidate/onboarding";
     } else {
       allowed = true;
     }

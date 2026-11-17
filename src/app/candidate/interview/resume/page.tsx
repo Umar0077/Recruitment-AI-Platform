@@ -1,7 +1,8 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CalendarClock, Headphones, LifeBuoy, PlayCircle, Briefcase } from "lucide-react";
+import { CalendarClock, Headphones, LifeBuoy, PlayCircle, Briefcase, RotateCcw } from "lucide-react";
+import { toast } from "sonner";
 import { CandidateShell } from "@/components/candidate/shell";
 import { Button } from "@/components/ui/button";
 import { Badge, GlassCard } from "@/components/ui/primitives";
@@ -38,6 +39,30 @@ function Resume() {
   const done = questions.filter((q) => answeredIds.has(q.id)).length;
   const nextQ = questions.find((q) => !answeredIds.has(q.id));
   const hoursLeft = interview?.expiresAt ? Math.max(0, Math.ceil((new Date(interview.expiresAt).getTime() - Date.now()) / 3600000)) : 0;
+
+  if (flow.stage === "submitted" || (done === total && total > 0)) {
+    return (
+      <div className="py-16 text-center">
+        <h1 className="text-2xl font-bold">Interview Completed</h1>
+        <p className="mt-2 text-fg-muted">Your interview has already been submitted.</p>
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+          <Button
+            onClick={() => {
+              useDemoStore.getState().resetDemoInterview();
+              toast.success("Demo reset. Ready to start a fresh interview.");
+              router.push("/candidate/interview");
+            }}
+          >
+            <RotateCcw className="size-4" />
+            Start New Demo Interview
+          </Button>
+          <Button variant="secondary" asChild>
+            <Link href="/candidate/status">View Status</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   if (done === 0 && flow.stage !== "interrupted") {
     return (

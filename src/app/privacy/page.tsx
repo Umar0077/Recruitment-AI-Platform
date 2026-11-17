@@ -5,15 +5,20 @@ import { AppLogo } from "@/components/ui/brand";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { BRAND } from "@/lib/brand";
+import { INTERVIEW_PRIVACY } from "@/lib/interview/privacy-copy";
 
 export const metadata: Metadata = { title: "Privacy Notice" };
 
 const SECTIONS = [
-  { h: "What the interview captures", p: "Video and audio of your interview answers, the time taken for each response, and basic technical details needed to run the session." },
-  { h: "Why it is collected", p: "To assess your application for the specific role you applied for, using the same structured questions for every candidate on your track." },
-  { h: "Who can review it", p: "Authorised members of the recruitment team for this role. AI summarises job-related answer content to support their review; people make every hiring decision." },
-  { h: "What is never done", p: "Your video is not used to judge your emotions, personality, honesty, or appearance." },
-  { h: "Your choices", p: "You will be asked for consent before anything is recorded. If a video interview is not suitable for you, you can ask for an alternative assessment." },
+  { h: "What the interview saves", p: INTERVIEW_PRIVACY.text },
+  { h: "Connected interviews", p: INTERVIEW_PRIVACY.apiStorage },
+  { h: "Demo Mode", p: INTERVIEW_PRIVACY.demoStorage },
+  { h: "Review and assessment", p: "Authorized recruitment staff review saved answers. Assessment uses candidate-confirmed text; original and cleaned versions are retained separately. AI observations depend on assessment configuration and provider policy and require human review." },
+  { h: "Camera preview", p: INTERVIEW_PRIVACY.camera },
+  { h: "Browser speech recognition", p: INTERVIEW_PRIVACY.speech },
+  { h: "Spoken questions", p: INTERVIEW_PRIVACY.voice },
+  { h: "Equipment test recording", p: INTERVIEW_PRIVACY.equipment },
+  { h: "Your choices", p: "Interview consent is requested before starting. You can type answers, mute spoken questions and leave the camera off. Contact the recruitment team to discuss accessibility needs or an alternative assessment." },
 ];
 
 export default function PrivacyPage() {
@@ -33,7 +38,7 @@ export default function PrivacyPage() {
         <h1 className="mt-3 text-[32px] font-bold leading-tight sm:text-[40px]">Interview Privacy Notice</h1>
         <div className="mt-6 flex items-start gap-3 rounded-xl border border-amber-400/30 bg-amber-400/[0.08] p-4 text-sm text-amber-800 dark:text-amber-100">
           <FileText className="mt-0.5 size-4 shrink-0" aria-hidden />
-          <p>Placeholder summary for the UI preview. The approved privacy notice, including data retention and legal details, will replace this page before launch.</p>
+          <p>This summary describes the current application&apos;s capture and storage behavior. An approved privacy notice, including retention and legal details, is still required before launch.</p>
         </div>
         <div className="surface mt-8 divide-y divide-[color:var(--border-subtle)] rounded-2xl">
           {SECTIONS.map((s) => (

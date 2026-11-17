@@ -1,5 +1,6 @@
 "use client";
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { ThemeProvider, useTheme } from "next-themes";
 import { Toaster } from "sonner";
 import { MotionConfig } from "motion/react";
@@ -8,14 +9,18 @@ import { useHydrated } from "@/hooks/use-demo";
 import { useDemoStore } from "@/lib/demo/store";
 import { AuthProvider } from "@/lib/auth/auth-provider";
 import { QueryProvider } from "@/lib/query/provider";
+import { PointerSystem } from "@/components/motion/pointer-system";
 
 function ThemedToaster() {
   const { resolvedTheme } = useTheme();
+  const interviewControls = usePathname() === "/candidate/interview/session";
   return (
     <Toaster
       position="bottom-right"
       theme={resolvedTheme === "light" ? "light" : "dark"}
       duration={3200}
+      offset={interviewControls ? { bottom: 84 } : undefined}
+      mobileOffset={interviewControls ? { bottom: 84 } : undefined}
       toastOptions={{
         classNames: {
           toast: "!rounded-xl !border !border-[color:var(--border-subtle)] !bg-[var(--toast-bg)] !backdrop-blur-md !text-fg !shadow-float !font-sans",
@@ -47,6 +52,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     // next-themes injects a blocking script, so the saved theme applies before first paint (no flash).
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem themes={["light", "dark"]} storageKey="interviewos-theme" disableTransitionOnChange>
       <MotionConfig reducedMotion={hydrated && reduceMotion ? "always" : "user"}>
+        <PointerSystem />
         <TooltipProvider delayDuration={250}>
           <QueryProvider>
             <AuthProvider>{children}</AuthProvider>

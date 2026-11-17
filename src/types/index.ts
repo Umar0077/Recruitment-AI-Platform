@@ -55,6 +55,11 @@ export interface InterviewAnswer {
   startedAtSec: number;
   durationSec: number;
   transcript: string;
+  originalTranscript?: string;
+  cleanedTranscript?: string;
+  hasUnfinalized?: boolean;
+  language?: string;
+  cleanupVersion?: string;
   /** Set for answers captured live in the candidate demo. */
   inputMode?: "voice" | "typed";
   /** Snapshot of the question as asked, so reviews never show mismatched text after a set changes. */
@@ -70,9 +75,14 @@ export interface CapturedAnswer {
   questionNumber?: number;
   questionText?: string;
   category?: string;
-  /** Only confirmed answers are ever stored; interim recognition is never saved. */
+  /** Answers are stored only on confirmation; original text can include explicitly reviewed interim words. */
   confirmed?: true;
   transcript: string;
+  originalTranscript?: string;
+  cleanedTranscript?: string;
+  hasUnfinalized?: boolean;
+  language?: string;
+  cleanupVersion?: string;
   durationSec: number;
   inputMode: "voice" | "typed";
   confirmedAt: string;

@@ -1,16 +1,16 @@
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
-import { Loader2 } from "lucide-react";
+import { InterviewOSLoader } from "./interviewos-loader";
 import { cn } from "@/lib/utils";
 
 export const buttonVariants = cva(
-  "relative inline-flex select-none items-center justify-center gap-2 whitespace-nowrap font-medium transition-[background-color,border-color,color,box-shadow,transform] duration-button ease-premium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan/70 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950 active:translate-y-px disabled:pointer-events-none disabled:opacity-45 [&_svg]:size-4 [&_svg]:shrink-0",
+  "premium-button relative inline-flex select-none items-center justify-center gap-2 whitespace-nowrap font-semibold transition-[background-color,border-color,color,box-shadow,transform] duration-button ease-premium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan/70 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950 active:translate-y-px disabled:pointer-events-none disabled:opacity-45 [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
         primary:
-          "bg-gradient-to-b from-[#3B82F6] to-brand text-white shadow-[0_1px_0_0_rgba(255,255,255,0.25)_inset,0_8px_24px_-10px_rgba(37,99,235,0.9)] hover:from-brand hover:to-brand-hover hover:shadow-[0_1px_0_0_rgba(255,255,255,0.25)_inset,0_10px_30px_-8px_rgba(37,99,235,1)]",
+          "button-primary bg-brand text-white hover:bg-brand-hover",
         secondary: "border border-subtle bg-white text-fg shadow-[0_1px_2px_rgba(15,23,42,0.06)] hover:border-glow hover:bg-slate-50 dark:bg-overlay/[0.05] dark:shadow-none dark:hover:bg-overlay/[0.08]",
         ghost: "text-fg-secondary hover:bg-overlay/[0.06] hover:text-fg",
         outline: "border border-glow/60 bg-transparent text-fg hover:bg-brand/10",
@@ -45,7 +45,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           children
         ) : (
           <>
-            {loading && <Loader2 className="animate-spin" aria-hidden />}
+            {loading && <InterviewOSLoader variant="button" size="sm" />}
             {children}
           </>
         )}

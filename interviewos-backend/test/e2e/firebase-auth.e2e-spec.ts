@@ -31,7 +31,7 @@ if (!UP) console.warn(`Firebase Auth Emulator not reachable at ${HOST} — skipp
 const suite = UP ? describe : describe.skip;
 
 // Must be set before the app (and firebase-admin) is loaded.
-Object.assign(process.env, { AUTH_MODE: "firebase", FIREBASE_PROJECT_ID: PROJECT, FIREBASE_AUTH_EMULATOR_HOST: HOST, FIREBASE_CLIENT_EMAIL: "", FIREBASE_PRIVATE_KEY: "" });
+Object.assign(process.env, { AUTH_MODE: "firebase", FIREBASE_PROJECT_ID: PROJECT, FIREBASE_AUTH_EMULATOR_HOST: HOST, GOOGLE_APPLICATION_CREDENTIALS: "", FIREBASE_CLIENT_EMAIL: "", FIREBASE_PRIVATE_KEY: "" });
 
 async function idp(provider: "google.com" | "apple.com", sub: string, email: string, name?: string) {
   const claims = JSON.stringify({ sub, email, email_verified: true, ...(name ? { name } : {}) });

@@ -166,6 +166,7 @@ model User {
   createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt     DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
 
+  adminCredential  AdminCredential?
   identities       AuthIdentity[]
   roles            UserRole[]          @relation("UserRoles")
   rolesAssigned    UserRole[]          @relation("RoleAssigner")
@@ -414,6 +415,7 @@ model Question {
   isActive         Boolean                  @default(true) @map("is_active")
   version          QuestionSetVersion       @relation(fields: [versionId], references: [id], onDelete: Restrict)
   sessionQuestions InterviewSessionQuestion[]
+  rubrics          ReferenceRubricVersion[]
 
   @@unique([versionId, code])
   @@unique([versionId, position])
@@ -423,6 +425,7 @@ model Question {
 // ───────────────────────────── Interviews ─────────────────────────────
 
 model InterviewSession {
+  initialAssignmentKey  String?            @unique @map("initial_assignment_key")
   id                    String             @id @default(uuid()) @db.Uuid
   candidateId           String             @map("candidate_id") @db.Uuid
   applicationId         String             @map("application_id") @db.Uuid
@@ -451,6 +454,8 @@ model InterviewSession {
   review                HrReview?
   assessments           AssessmentReport[]
   media                 MediaAsset[]
+  recordings            InterviewRecording[]
+  sessionEvents         InterviewSessionEvent[]
 
   @@index([candidateId])
   @@index([applicationId])
@@ -551,6 +556,15 @@ model AssessmentReport {
   session       InterviewSession        @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   criteria      AssessmentCriterion[]
   observations  AssessmentObservation[]
+  phase         String                  @default("NOT_GENERATED")
+  nlp           Json?                   @db.JsonB
+  findings      Json?                   @db.JsonB
+  rubricSnapshot Json?                  @map("rubric_snapshot") @db.JsonB
+  promptVersion String?                 @map("prompt_version")
+  processingAt DateTime?                @map("processing_at") @db.Timestamptz(3)
+  nextAttemptAt DateTime?               @map("next_attempt_at") @db.Timestamptz(3)
+  corrections AssessmentCorrection[]
+  requests LLMRequestUsage[]
 
   @@unique([sessionId, version])
   @@index([status])
@@ -668,4 +682,141 @@ model SystemSetting {
   updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   @@map("system_settings")
+}
+
+/// Each row is a separate rubric version. Approved rows are immutable through the API.
+model ReferenceRubricVersion {
+  id String @id @default(uuid()) @db.Uuid
+  questionId String @map("question_id") @db.Uuid
+  version Int
+  content Json @db.JsonB
+  status String @default("DRAFT")
+  approvedById String? @map("approved_by_id") @db.Uuid
+  approvedAt DateTime? @map("approved_at") @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Restrict)
+  @@unique([questionId, version])
+  @@map("reference_rubric_versions")
+}
+
+model LLMRequestUsage {
+  id String @id @default(uuid()) @db.Uuid
+  reportId String? @map("report_id") @db.Uuid
+  model String
+  purpose String
+  attempt Int
+  status String @default("RESERVED")
+  httpStatus Int? @map("http_status")
+  tokens Int @default(0)
+  inputTokens Int? @map("input_tokens")
+  outputTokens Int? @map("output_tokens")
+  costUsd Decimal? @map("cost_usd") @db.Decimal(18, 10)
+  providerRequestId String? @map("provider_request_id")
+  latencyMs Int? @map("latency_ms")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  finishedAt DateTime? @map("finished_at") @db.Timestamptz(3)
+  report AssessmentReport? @relation(fields: [reportId], references: [id], onDelete: Restrict)
+  @@index([createdAt])
+  @@index([model, createdAt])
+  @@index([status, createdAt])
+  @@index([purpose, createdAt])
+  @@map("llm_request_usage")
+}
+
+model AssessmentCorrection {
+  id String @id @default(uuid()) @db.Uuid
+  reportId String @map("report_id") @db.Uuid
+  actorUserId String @map("actor_user_id") @db.Uuid
+  questionCode String? @map("question_code")
+  relevance String?
+  note String
+  reviewed Boolean @default(false)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  report AssessmentReport @relation(fields: [reportId], references: [id], onDelete: Restrict)
+  @@index([reportId, createdAt])
+  @@map("assessment_corrections")
+}
+
+model AdminCredential {
+ id String @id @default(uuid()) @db.Uuid
+ userId String @unique @map("user_id") @db.Uuid
+ email String @unique
+ passwordHash String @map("password_hash")
+ mustChangePassword Boolean @default(true) @map("must_change_password")
+ failedLoginAttempts Int @default(0) @map("failed_login_attempts")
+ lockedUntil DateTime? @map("locked_until") @db.Timestamptz(3)
+ passwordChangedAt DateTime? @map("password_changed_at") @db.Timestamptz(3)
+ createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+ updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+ user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+ sessions AdminSession[]
+ @@map("admin_credentials")
+}
+model AdminSession {
+ id String @id @default(uuid()) @db.Uuid
+ credentialId String @map("credential_id") @db.Uuid
+ tokenHash String @unique @map("token_hash")
+ expiresAt DateTime @map("expires_at") @db.Timestamptz(3)
+ lastSeenAt DateTime @default(now()) @map("last_seen_at") @db.Timestamptz(3)
+ revokedAt DateTime? @map("revoked_at") @db.Timestamptz(3)
+ createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+ credential AdminCredential @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+ @@index([credentialId, revokedAt])
+ @@index([expiresAt])
+ @@map("admin_sessions")
+}
+
+model InterviewRecording {
+  id String @id @default(uuid()) @db.Uuid
+  sessionId String @map("session_id") @db.Uuid
+  candidateId String @map("candidate_id") @db.Uuid
+  clientId String @unique @map("client_id") @db.Uuid
+  status String @default("RECORDING")
+  objectKey String @unique @map("object_key")
+  uploadId String? @map("upload_id")
+  contentType String @map("content_type")
+  sizeBytes Int? @map("size_bytes")
+  durationMs Int? @map("duration_ms")
+  consentAt DateTime @default(now()) @map("consent_at") @db.Timestamptz(3)
+  policyReference String @map("policy_reference")
+  monitoringConsent Boolean @default(false) @map("monitoring_consent")
+  cameraConsent Boolean @map("camera_consent")
+  systemAudioConsent Boolean @map("system_audio_consent")
+  displaySurface String @map("display_surface")
+  retentionUntil DateTime @map("retention_until") @db.Timestamptz(3)
+  completedAt DateTime? @map("completed_at") @db.Timestamptz(3)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  session InterviewSession @relation(fields:[sessionId], references:[id], onDelete: Restrict)
+  segments RecordingSegment[]
+  events InterviewSessionEvent[]
+  @@index([sessionId, createdAt])
+  @@index([status, retentionUntil])
+  @@map("interview_recordings")
+}
+model RecordingSegment {
+  id String @id @default(uuid()) @db.Uuid
+  recordingId String @map("recording_id") @db.Uuid
+  partNumber Int @map("part_number")
+  sizeBytes Int @map("size_bytes")
+  etag String?
+  recording InterviewRecording @relation(fields:[recordingId], references:[id], onDelete: Cascade)
+  @@unique([recordingId, partNumber])
+  @@map("recording_segments")
+}
+model InterviewSessionEvent {
+  id String @id @db.Uuid
+  sessionId String @map("session_id") @db.Uuid
+  recordingId String @map("recording_id") @db.Uuid
+  type String
+  occurredAt DateTime @map("occurred_at") @db.Timestamptz(3)
+  receivedAt DateTime @default(now()) @map("received_at") @db.Timestamptz(3)
+  durationMs Int? @map("duration_ms")
+  captureState String @map("capture_state")
+  session InterviewSession @relation(fields:[sessionId], references:[id], onDelete: Restrict)
+  recording InterviewRecording @relation(fields:[recordingId], references:[id], onDelete: Cascade)
+  @@index([sessionId, occurredAt])
+  @@map("interview_session_events")
 }

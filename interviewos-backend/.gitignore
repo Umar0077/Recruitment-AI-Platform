@@ -6,3 +6,6 @@ coverage/
 !.env.example
 *.log
 *.tsbuildinfo
+# Firebase private credentials
+secrets/
+*service-account*.json

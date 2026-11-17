@@ -12,6 +12,8 @@ import type { EnvironmentVariables } from "../../config/env.validation";
 import { AuditService } from "../audit/audit.module";
 import { NotificationsService } from "../notifications/notifications.module";
 import type { InterviewListQueryDto, SaveAnswerDto } from "./interviews.dto";
+import { answerTranscripts, transcriptVersions } from "./answer-transcripts";
+import { assignInitial } from "./initial-assignment";
 
 type Tx = Prisma.TransactionClient;
 const OPEN: InterviewStatus[] = ["PENDING", "IN_PROGRESS", "INTERRUPTED"];
@@ -31,6 +33,9 @@ type SessionFull = Prisma.InterviewSessionGetPayload<{ include: typeof sessionIn
 
 @Injectable()
 export class InterviewsService {
+  onboard(input: { roleCode?: string; applicationId?: string }, ctx: RequestContext) {
+    return assignInitial(this.prisma, this.config, this.audit, input, ctx);
+  }
   constructor(
     private readonly prisma: PrismaService,
     private readonly config: ConfigService<EnvironmentVariables, true>,
@@ -60,6 +65,10 @@ export class InterviewsService {
     const reminderH = this.config.get("INTERVIEW_REMINDER_AFTER_HOURS", { infer: true });
 
     const session = await this.prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM candidates WHERE id = ${app.candidateId}::uuid FOR UPDATE`;
+      await tx.$queryRaw`SELECT id FROM applications WHERE id = ${app.id}::uuid FOR UPDATE`;
+      const existing = await tx.interviewSession.findFirst({ where: { applicationId: app.id } });
+      if (existing) return existing;
       const s = await tx.interviewSession.create({
         data: {
           candidateId: app.candidateId,
@@ -130,6 +139,12 @@ export class InterviewsService {
   async detail(id: string, user: AuthUser) {
     const s = await this.load(id, user);
     const staff = hasPermission(user, PERMISSIONS.INTERVIEWS_READ);
+    // Fetch sensitive variants only for an authorized detail view, never usage or progress logs.
+    const transcripts = await this.prisma.interviewTranscript.findMany({
+      where: { answer: { sessionId: id } },
+      select: { answerId: true, kind: true, text: true, language: true, metadata: true },
+      orderBy: { createdAt: "asc" },
+    });
     return {
       ...this.progressOf(s),
       candidate: s.candidate,
@@ -145,7 +160,7 @@ export class InterviewsService {
           text: q.textSnapshot,
           responseSeconds: q.responseSeconds,
           answer: a
-            ? { transcript: a.transcript, source: a.source, responseDurationSec: a.responseDurationSec, confirmedAt: a.confirmedAt, questionTextSnapshot: a.questionTextSnapshot }
+            ? { transcript: a.transcript, source: a.source, responseDurationSec: a.responseDurationSec, confirmedAt: a.confirmedAt, questionTextSnapshot: a.questionTextSnapshot, ...transcriptVersions(transcripts.filter(row => row.answerId === a.id)) }
             : null,
         };
       }),
@@ -238,10 +253,7 @@ export class InterviewsService {
           responseDurationSec: dto.responseDurationSec,
           confirmedAt: now,
           transcripts: {
-            create: [
-              { kind: "CONFIRMED", text: transcript, engine: dto.engine, language: dto.language },
-              ...(dto.provisionalTranscript ? [{ kind: "PROVISIONAL" as const, text: dto.provisionalTranscript, engine: dto.engine, language: dto.language }] : []),
-            ],
+            create: answerTranscripts(dto, transcript),
           },
         },
       });
@@ -284,7 +296,7 @@ export class InterviewsService {
       }
       await tx.recruitmentEvent.create({ data: { applicationId: app.id, type: "INTERVIEW_SUBMITTED", actorUserId: ctx.user.id } });
       await tx.hrReview.upsert({ where: { interviewSessionId: id }, create: { applicationId: app.id, interviewSessionId: id }, update: {} });
-      // Assessment generation is queued only as PENDING — no scores are produced in Phase 3.
+      // Durable assessment outbox: the background worker picks up this pending report after commit.
       await tx.assessmentReport.upsert({ where: { sessionId_version: { sessionId: id, version: 1 } }, create: { sessionId: id, version: 1, status: "PENDING" }, update: {} });
       await this.notifications.notifyStaff(
         { type: "INTERVIEW_COMPLETED", title: "Interview submitted", message: `${s.candidateName} submitted their AI interview.`, entityType: "interview_session", entityId: id, dedupeKey: `interview-completed:${id}` },

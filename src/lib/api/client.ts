@@ -52,11 +52,16 @@ export interface RequestOptions {
   timeoutMs?: number;
   /** Skip the Authorization header (public endpoints). */
   anonymous?: boolean;
+  admin?: boolean;
+  /** Session probes/login handle expected rejection locally; protected requests still notify by default. */
+  notifyAuthFailure?: boolean;
 }
 
 async function send(url: URL, opts: RequestOptions, forceRefresh: boolean) {
   const headers: Record<string, string> = { Accept: "application/json" };
-  if (!opts.anonymous) {
+  const admin = opts.admin ?? (typeof window !== "undefined" && window.location.pathname.startsWith("/admin"));
+  if (admin) headers["X-Admin-Request"] = "1";
+  if (!opts.anonymous && !admin) {
     const token = await tokenProvider(forceRefresh);
     if (token) headers.Authorization = `Bearer ${token}`;
   }
@@ -64,7 +69,7 @@ async function send(url: URL, opts: RequestOptions, forceRefresh: boolean) {
   const timeout = AbortSignal.timeout(opts.timeoutMs ?? 20_000);
   const signal = opts.signal ? AbortSignal.any([opts.signal, timeout]) : timeout;
   try {
-    return await fetch(url, { method: opts.method ?? "GET", headers, body: opts.body === undefined ? undefined : JSON.stringify(opts.body), signal, credentials: "omit", cache: "no-store" });
+    return await fetch(url, { method: opts.method ?? "GET", headers, body: opts.body === undefined ? undefined : JSON.stringify(opts.body), signal, credentials: admin ? "include" : "omit", cache: "no-store" });
   } catch (e) {
     const aborted = e instanceof DOMException && (e.name === "TimeoutError" || e.name === "AbortError");
     throw new ApiError(aborted ? "TIMEOUT" : "NETWORK_ERROR", aborted ? "The server took too long to respond." : "Could not reach the server. Check your connection.", 0);
@@ -79,7 +84,7 @@ export async function apiRequest<T>(path: string, opts: RequestOptions = {}): Pr
 
   let res = await send(url, opts, false);
   // An ID token can expire between requests; get a fresh one and retry once.
-  if (res.status === 401 && !opts.anonymous) res = await send(url, opts, true);
+  if (res.status === 401 && !opts.anonymous && !(opts.admin ?? (typeof window !== "undefined" && window.location.pathname.startsWith("/admin")))) res = await send(url, opts, true);
 
   let body: ApiEnvelope<T> | null = null;
   try {
@@ -92,7 +97,7 @@ export async function apiRequest<T>(path: string, opts: RequestOptions = {}): Pr
   }
   if (!body.success) {
     const err = new ApiError(body.error.code, body.error.message, res.status, body.error.details, body.meta?.requestId);
-    if (!opts.anonymous && (res.status === 401 || body.error.code === "ACCOUNT_DISABLED")) authFailureListeners.forEach((fn) => fn(err));
+    if (!opts.anonymous && opts.notifyAuthFailure !== false && (res.status === 401 || body.error.code === "ACCOUNT_DISABLED")) authFailureListeners.forEach((fn) => fn(err));
     throw err;
   }
   return { data: body.data, meta: body.meta };

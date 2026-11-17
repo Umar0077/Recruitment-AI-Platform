@@ -7,6 +7,7 @@ import type { PermissionCode } from "../../common/constants/permissions";
 import { AppError } from "../../common/errors";
 import type { EnvironmentVariables } from "../../config/env.validation";
 import type { VerifiedIdentity } from "../../integrations/firebase/token-verifier";
+import { AuditService } from "../audit/audit.module";
 
 const LAST_LOGIN_WRITE_INTERVAL_MS = 5 * 60 * 1000;
 
@@ -16,6 +17,7 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly config: ConfigService<EnvironmentVariables, true>,
+    private readonly audit: AuditService,
   ) {}
 
   /**
@@ -23,22 +25,27 @@ export class AuthService {
    * New users get ONLY the CANDIDATE role. Staff roles are granted solely by an administrator.
    */
   async resolve(identity: VerifiedIdentity): Promise<AuthUser> {
+    const displayName = identity.name?.trim() || null;
     let user = await this.prisma.user.findUnique({ where: { firebaseUid: identity.uid }, include: this.include });
 
     if (!user) {
       // Identity is keyed ONLY by the verified Firebase UID. Users are never merged by email.
       const candidateRole = await this.prisma.role.findUniqueOrThrow({ where: { code: "CANDIDATE" } });
-      user = await this.prisma.user.create({
+      user = await this.prisma.$transaction(async (tx) => {
+        const created = await tx.user.create({
         data: {
           firebaseUid: identity.uid,
           email: identity.email,
           emailVerified: identity.emailVerified,
-          displayName: identity.name,
+          displayName,
           lastLoginAt: new Date(),
           roles: { create: { roleId: candidateRole.id } },
           identities: identity.signInProvider ? { create: { provider: identity.signInProvider, email: identity.email } } : undefined,
         },
         include: this.include,
+        });
+        await this.audit.record({ actorUserId: created.id, action: "user.profile_initialized", entityType: "user", entityId: created.id, summary: { source: "firebase", fields: displayName ? ["displayName", "emailVerified"] : ["emailVerified"] } }, tx);
+        return created;
       }).catch(async (e: unknown) => {
         // Two first requests raced: the unique firebase_uid constraint won, so load the row that exists.
         if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
@@ -54,17 +61,22 @@ export class AuthService {
       const emailChanged = !!identity.email && (user.email !== identity.email || user.emailVerified !== identity.emailVerified);
       // Approved profile sync: email + verification, and the display name only if none is stored yet
       // (staff-edited names are kept).
-      const nameMissing = !user.displayName && !!identity.name;
+      const nameMissing = !user.displayName?.trim() && !!displayName;
       if (stale || emailChanged || nameMissing) {
-        user = await this.prisma.user.update({
-          where: { id: user.id },
-          data: {
+        const data = {
             lastLoginAt: new Date(),
             ...(emailChanged ? { email: identity.email, emailVerified: identity.emailVerified } : {}),
-            ...(nameMissing ? { displayName: identity.name } : {}),
-          },
-          include: this.include,
-        });
+            ...(nameMissing ? { displayName } : {}),
+        };
+        if (nameMissing) {
+          const { id, displayName: previousName } = user;
+          user = await this.prisma.$transaction(async (tx) => {
+            // Compare-and-set prevents a concurrent approved name edit being overwritten.
+            const updated = await tx.user.updateMany({ where: { id, displayName: previousName }, data });
+            if (updated.count) await this.audit.record({ actorUserId: id, action: "user.profile_completed", entityType: "user", entityId: id, summary: { source: "firebase", fields: ["displayName"] } }, tx);
+            return tx.user.findUniqueOrThrow({ where: { id }, include: this.include });
+          });
+        } else user = await this.prisma.user.update({ where: { id: user.id }, data, include: this.include });
       }
       if (identity.signInProvider && !user.identities.some((i) => i.provider === identity.signInProvider)) {
         await this.prisma.authIdentity.upsert({
@@ -75,6 +87,8 @@ export class AuthService {
       }
     }
 
+    // Also check the row loaded after a concurrent first-login uniqueness conflict.
+    if (user.status === "DISABLED") throw new AppError("ACCOUNT_DISABLED", "This account is disabled.", HttpStatus.FORBIDDEN);
     let candidateId = user.candidate?.id ?? null;
     const roles = user.roles.map((r) => r.role.code);
     if (!candidateId && roles.includes("CANDIDATE")) candidateId = await this.tryLinkCandidate(user.id, identity);

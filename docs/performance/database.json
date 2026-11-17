@@ -1,0 +1,181 @@
+{
+  "measuredAt": "2026-11-17T14:55:33.077Z",
+  "database": "existing local test database",
+  "writes": 0,
+  "analytics": [
+    {
+      "timezone": "UTC",
+      "includeSample": false,
+      "result": "passed",
+      "countPerSeries": 1
+    },
+    {
+      "timezone": "UTC",
+      "includeSample": true,
+      "result": "passed",
+      "countPerSeries": 2
+    },
+    {
+      "timezone": "Asia/Karachi",
+      "includeSample": false,
+      "result": "passed",
+      "countPerSeries": 1
+    },
+    {
+      "timezone": "Asia/Karachi",
+      "includeSample": true,
+      "result": "passed",
+      "countPerSeries": 2
+    },
+    {
+      "timezone": "America/New_York",
+      "includeSample": false,
+      "result": "passed",
+      "countPerSeries": 1
+    },
+    {
+      "timezone": "America/New_York",
+      "includeSample": true,
+      "result": "passed",
+      "countPerSeries": 2
+    }
+  ],
+  "queryComparison": {
+    "status": "measured",
+    "method": "10 alternating warm reads of each shape on one existing sample application, same scoped predicate and connection; no row values recorded",
+    "originalDetailProbe": {
+      "samples": [
+        {
+          "elapsedMs": 10.84,
+          "sqlCount": 5,
+          "sqlDurationMs": 3,
+          "returnedBytes": 1372
+        },
+        {
+          "elapsedMs": 8.28,
+          "sqlCount": 5,
+          "sqlDurationMs": 2,
+          "returnedBytes": 1372
+        },
+        {
+          "elapsedMs": 4.06,
+          "sqlCount": 5,
+          "sqlDurationMs": 0,
+          "returnedBytes": 1372
+        },
+        {
+          "elapsedMs": 6.64,
+          "sqlCount": 5,
+          "sqlDurationMs": 0,
+          "returnedBytes": 1372
+        },
+        {
+          "elapsedMs": 9.89,
+          "sqlCount": 5,
+          "sqlDurationMs": 3,
+          "returnedBytes": 1372
+        },
+        {
+          "elapsedMs": 3.57,
+          "sqlCount": 5,
+          "sqlDurationMs": 0,
+          "returnedBytes": 1372
+        },
+        {
+          "elapsedMs": 5.95,
+          "sqlCount": 5,
+          "sqlDurationMs": 0,
+          "returnedBytes": 1372
+        },
+        {
+          "elapsedMs": 6.04,
+          "sqlCount": 5,
+          "sqlDurationMs": 0,
+          "returnedBytes": 1372
+        },
+        {
+          "elapsedMs": 4.01,
+          "sqlCount": 5,
+          "sqlDurationMs": 0,
+          "returnedBytes": 1372
+        },
+        {
+          "elapsedMs": 9.18,
+          "sqlCount": 5,
+          "sqlDurationMs": 2,
+          "returnedBytes": 1372
+        }
+      ],
+      "medianMs": 6.34,
+      "minMs": 3.57,
+      "maxMs": 10.84
+    },
+    "idOnlyProbe": {
+      "samples": [
+        {
+          "elapsedMs": 1.67,
+          "sqlCount": 1,
+          "sqlDurationMs": 0,
+          "returnedBytes": 45
+        },
+        {
+          "elapsedMs": 3.56,
+          "sqlCount": 1,
+          "sqlDurationMs": 0,
+          "returnedBytes": 45
+        },
+        {
+          "elapsedMs": 4.59,
+          "sqlCount": 1,
+          "sqlDurationMs": 1,
+          "returnedBytes": 45
+        },
+        {
+          "elapsedMs": 1.38,
+          "sqlCount": 1,
+          "sqlDurationMs": 0,
+          "returnedBytes": 45
+        },
+        {
+          "elapsedMs": 1.39,
+          "sqlCount": 1,
+          "sqlDurationMs": 0,
+          "returnedBytes": 45
+        },
+        {
+          "elapsedMs": 4.44,
+          "sqlCount": 1,
+          "sqlDurationMs": 1,
+          "returnedBytes": 45
+        },
+        {
+          "elapsedMs": 1.55,
+          "sqlCount": 1,
+          "sqlDurationMs": 0,
+          "returnedBytes": 45
+        },
+        {
+          "elapsedMs": 3.75,
+          "sqlCount": 1,
+          "sqlDurationMs": 1,
+          "returnedBytes": 45
+        },
+        {
+          "elapsedMs": 1.43,
+          "sqlCount": 1,
+          "sqlDurationMs": 0,
+          "returnedBytes": 45
+        },
+        {
+          "elapsedMs": 1.63,
+          "sqlCount": 1,
+          "sqlDurationMs": 0,
+          "returnedBytes": 45
+        }
+      ],
+      "medianMs": 1.65,
+      "minMs": 1.38,
+      "maxMs": 4.59
+    }
+  }
+}

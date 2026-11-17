@@ -1,6 +1,9 @@
 "use client";
+import { useUserProfile } from "@/lib/auth/user-profile";
 import Link from "next/link";
-import { Check, Circle, Clock } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Check, Circle, Clock, RotateCcw } from "lucide-react";
+import { toast } from "sonner";
 import { CandidateShell } from "@/components/candidate/shell";
 import { Button } from "@/components/ui/button";
 import { Badge, GlassCard } from "@/components/ui/primitives";
@@ -28,7 +31,9 @@ export default function StatusPage() {
 }
 
 function Status() {
+  const router = useRouter();
   const flow = useDemoStore((s) => s.flow);
+  const resetDemoInterview = useDemoStore((s) => s.resetDemoInterview);
   const candidate = useCandidate(flow.candidateId);
   const interview = useInterview(candidate?.interviewId);
   if (!candidate) return null;
@@ -74,7 +79,18 @@ function Status() {
         The recruitment team will contact you about any next steps. Detailed review notes are internal and aren&apos;t shown in this portal.
       </p>
       <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-        {!completed && (
+        {completed ? (
+          <Button
+            onClick={() => {
+              resetDemoInterview();
+              toast.success("Demo reset. Ready to start a fresh interview.");
+              router.push("/candidate/interview");
+            }}
+          >
+            <RotateCcw className="size-4" />
+            Start New Demo Interview
+          </Button>
+        ) : (
           <Button asChild><Link href={inProgress ? "/candidate/interview/resume" : "/candidate/interview"}>{inProgress ? "Resume Interview" : "Go to Interview"}</Link></Button>
         )}
         <Button variant="secondary" asChild><Link href="/">Back to Interview Home</Link></Button>
@@ -85,6 +101,7 @@ function Status() {
 
 /** API mode: candidate-safe stage from the backend (no remarks, reviews or internal outcomes). */
 function ApiStatus() {
+  const account = useUserProfile("candidate");
   const my = useMyInterview();
   if (my.isPending) return <FlowSkeleton />;
   if (my.isError) return <ApiErrorPanel error={my.error} onRetry={() => void my.refetch()} />;
@@ -93,8 +110,9 @@ function ApiStatus() {
   if (!app) {
     return (
       <div className="py-16 text-center">
-        <h1 className="text-2xl font-bold">No Application Linked</h1>
-        <p className="mt-2 text-fg-muted">We couldn&apos;t find an application for this account. Contact the recruitment team.</p>
+        <h1 className="text-2xl font-bold">Prepare Your Interview</h1>
+        <Button className="mt-6" asChild><Link href="/candidate/onboarding">Continue Onboarding</Link></Button>
+        <p className="mt-2 text-fg-muted">Choose your role or existing application to prepare your interview.</p>
       </div>
     );
   }
@@ -108,7 +126,7 @@ function ApiStatus() {
     <div>
       <p className="eyebrow">Your application</p>
       <h1 className="mt-3 text-[30px] font-bold sm:text-[40px]">Interview Status</h1>
-      <p className="mt-2 text-[15px] text-fg-muted">{app.jobRole.title} · Reference {iv?.reference ?? app.reference}</p>
+      <p className="mt-2 text-[15px] text-fg-muted">{account.fullName} · {app.jobRole.title} · Reference {iv?.reference ?? app.reference}</p>
       <GlassCard className="mt-8 p-6 sm:p-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-fg-muted">Current status</p>

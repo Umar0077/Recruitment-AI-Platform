@@ -1,8 +1,8 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { ArrowLeft, ArrowRight, Eye, FileText, Lock, Mic, ShieldCheck, Users } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ArrowLeft, ArrowRight, Eye, FileText, Lock, Mic, ShieldCheck, Users, Volume2 } from "lucide-react";
 import { toast } from "sonner";
 import { CandidateShell } from "@/components/candidate/shell";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { BRAND } from "@/lib/brand";
 import { useCandidateFlow } from "@/lib/data/candidate-flow";
 import { useFlowGate } from "@/components/candidate/flow-gate";
 import { isApiMode } from "@/lib/config/environment";
+import { INTERVIEW_PRIVACY, interviewReviewNotice, interviewStorageNotice } from "@/lib/interview/privacy-copy";
 
 export default function ConsentPage() {
   return (
@@ -26,28 +27,33 @@ function Consent() {
   const router = useRouter();
   const f = useCandidateFlow();
   const updateFlow = useDemoStore((s) => s.updateFlow);
-  const settings = useDemoStore((s) => s.settings);
-  const alternative = useDemoStore((s) => s.setups.fresher.alternativeInfo);
   // Never pre-checked — even if consent was given before, the candidate confirms again here.
   const [agreed, setAgreed] = useState(false);
   const gate = useFlowGate(f);
+
+  useEffect(() => {
+    router.prefetch("/candidate/interview/equipment");
+  }, [router]);
+
   if (gate) return gate;
 
   return (
     <div>
-      <p className="eyebrow">Recording consent</p>
-      <h1 className="mt-3 text-[28px] font-bold sm:text-[36px]">Before We Record Anything</h1>
+      <p className="eyebrow">Interview consent</p>
+      <h1 className="mt-3 text-[28px] font-bold sm:text-[36px]">Before You Begin</h1>
       <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-fg-muted">
-        Please read how your interview is recorded and used. Giving consent here is separate from allowing camera and microphone access, which your browser will ask for on the next step.
+        Please read how your interview text is captured, saved and reviewed. Consent here is separate from browser permissions for the microphone or optional camera, requested when you enable those features.
       </p>
 
       <GlassCard className="mt-8 divide-y divide-[rgba(148,163,184,0.12)]">
         {[
-          { icon: Eye, title: "What is recorded", body: "Video and audio of your answers during the interview, and the time taken for each response. The practice question is not used for assessment." },
-          { icon: FileText, title: "How it is used", body: `${settings.privacyText} AI summarises the job-related content of your answers to support — not replace — the recruiter's review.` },
-          { icon: Users, title: "Who can see it", body: "Authorised members of the recruitment team for this role. Your recording is not shared with other candidates." },
-          { icon: Lock, title: "What is never done", body: "Your video is not used to judge your emotions, personality, or appearance." },
-          { icon: Mic, title: "Microphone and speech-to-text", body: "The microphone turns on only when you click it, and you can always see when it is listening. Your spoken answers are converted to text so you can review and edit them before confirming. In this demo, transcription uses your browser's built-in speech recognition, which may send audio to the browser provider's speech service; InterviewOS does not save any audio. This demo is not a final recruitment assessment — production recording and retention policies will be set separately." },
+          { icon: Eye, title: "What is saved", body: INTERVIEW_PRIVACY.text },
+          { icon: FileText, title: isApiMode ? "Application storage" : "Demo browser storage", body: interviewStorageNotice(isApiMode) },
+          { icon: Users, title: "Review and assessment", body: interviewReviewNotice(isApiMode) },
+          { icon: Lock, title: "Optional camera preview", body: INTERVIEW_PRIVACY.camera },
+          { icon: Mic, title: "Microphone and speech recognition", body: INTERVIEW_PRIVACY.speech },
+          { icon: Volume2, title: "Spoken questions", body: INTERVIEW_PRIVACY.voice },
+          { icon: Mic, title: "Optional equipment test clip", body: INTERVIEW_PRIVACY.equipment },
         ].map((x) => (
           <div key={x.title} className="flex gap-4 p-5 sm:p-6">
             <x.icon className="mt-0.5 size-5 shrink-0 text-brand-cyan" aria-hidden />
@@ -66,17 +72,17 @@ function Consent() {
       <label htmlFor="consent" className="mt-8 flex cursor-pointer items-start gap-4 rounded-2xl border border-glow/40 bg-brand/[0.06] p-5 transition-colors hover:bg-brand/[0.09]">
         <Checkbox id="consent" checked={agreed} onCheckedChange={(v) => setAgreed(v === true)} className="mt-0.5" aria-describedby="consent-desc" />
         <span id="consent-desc" className="text-[15px] leading-relaxed text-fg">
-          I have read the information above and consent to my interview responses being recorded and reviewed for this application.
+          {isApiMode ? "I have read the information above and consent to my interview text, transcript versions and response times being saved and reviewed for this application." : "I have read the information above and agree to fictional interview text, transcript versions and response times being saved in this browser for the demo."}
         </span>
       </label>
 
-      <Notice className="mt-4" title="Prefer not to record a video interview?">
-        {alternative}
+      <Notice className="mt-4" title="Need a different way to answer?">
+        You can type your answers and leave the camera off. Contact the recruitment team to discuss other accessibility needs or an alternative assessment.
       </Notice>
 
       <div className="mt-10 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
         <Button variant="ghost" asChild>
-          <Link href="/candidate/interview/instructions"><ArrowLeft />Back</Link>
+          <Link href="/candidate/interview/instructions" prefetch={true}><ArrowLeft />Back</Link>
         </Button>
         <Button
           size="lg"
@@ -85,7 +91,7 @@ function Consent() {
             // API mode: kept in this tab and sent with the Start request, where the server records it.
             if (isApiMode) f.update({ consent: true });
             else updateFlow({ consent: true, stage: f.stage === "active" || f.stage === "interrupted" ? f.stage : "equipment" });
-            toast.success("Consent recorded for this demo session.");
+            toast.success(isApiMode ? "Consent confirmed for this interview." : "Consent saved for this demo session.");
             router.push("/candidate/interview/equipment");
           }}
         >

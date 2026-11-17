@@ -15,6 +15,13 @@ export class SaveAnswerDto {
   @ApiProperty({ minimum: 0, maximum: 3600 }) @Type(() => Number) @IsInt() @Min(0) @Max(3600) responseDurationSec!: number;
   /** Raw speech-recognition output before candidate edits (kept separately as PROVISIONAL). */
   @ApiPropertyOptional({ maxLength: 10000 }) @IsOptional() @IsString() @MaxLength(10000) provisionalTranscript?: string;
+  /** Original captured text, retained verbatim even when the candidate edits the final answer. */
+  @ApiPropertyOptional({ maxLength: 10000 }) @IsOptional() @IsString() @MaxLength(10000) originalTranscript?: string;
+  @ApiPropertyOptional({ maxLength: 10000 }) @IsOptional() @IsString() @MaxLength(10000) interimTranscript?: string;
+  /** Optional local formatting suggestion; never substitutes for the confirmed assessment text. */
+  @ApiPropertyOptional({ maxLength: 10000 }) @IsOptional() @IsString() @MaxLength(10000) cleanedTranscript?: string;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() hasUnfinalized?: boolean;
+  @ApiPropertyOptional({ maxLength: 60 }) @IsOptional() @IsString() @MaxLength(60) cleanupVersion?: string;
   @ApiPropertyOptional({ example: "browser-web-speech" }) @IsOptional() @IsString() @MaxLength(60) engine?: string;
   @ApiPropertyOptional({ example: "en-US" }) @IsOptional() @IsString() @MaxLength(20) language?: string;
 }
@@ -36,4 +43,9 @@ export class InterviewListQueryDto extends PageQueryDto {
 export class StartInterviewDto {
   /** Required (true) the first time a PENDING interview is started; recorded with the STARTED event. */
   @ApiPropertyOptional() @IsOptional() @IsBoolean() @Equals(true, { message: "consent must be true" }) consent?: boolean;
+}
+
+export class InitialInterviewDto {
+ @IsOptional() @IsIn(["FE-CLOSER", "CSR-FRESHER"]) roleCode?: string;
+ @IsOptional() @IsUUID() applicationId?: string;
 }

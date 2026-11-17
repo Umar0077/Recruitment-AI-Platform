@@ -7,7 +7,8 @@
 import type { AppliedProcessing, AudioProcessingSupport, MicrophoneDevice, MicrophoneStatus } from "./types";
 
 export function getProcessingSupport(): AudioProcessingSupport {
-  const c = typeof navigator !== "undefined" && navigator.mediaDevices?.getSupportedConstraints ? navigator.mediaDevices.getSupportedConstraints() : {};
+  let c: MediaTrackSupportedConstraints = {};
+  try { c = typeof navigator !== "undefined" && navigator.mediaDevices?.getSupportedConstraints ? navigator.mediaDevices.getSupportedConstraints() : {}; } catch { /* Browser diagnostics are optional. */ }
   return { echoCancellation: !!c.echoCancellation, noiseSuppression: !!c.noiseSuppression, autoGainControl: !!c.autoGainControl };
 }
 
@@ -23,32 +24,38 @@ export async function openMicrophone(deviceId?: string): Promise<{ stream: Media
     channelCount: { ideal: 1 },
   };
   const stream = await navigator.mediaDevices.getUserMedia({ audio, video: false });
-  const track = stream.getAudioTracks()[0];
-  const s = (track?.getSettings() ?? {}) as MediaTrackSettings;
-  return {
-    stream,
-    applied: { echoCancellation: s.echoCancellation, noiseSuppression: s.noiseSuppression, autoGainControl: s.autoGainControl },
-    deviceId: s.deviceId,
-    label: track?.label || "Microphone",
-  };
+  try {
+    const track = stream.getAudioTracks()[0];
+    if (!track || track.readyState === "ended") throw new DOMException("No active audio input", "NotFoundError");
+    const s = track.getSettings?.() ?? {};
+    return {
+      stream,
+      applied: { echoCancellation: s.echoCancellation, noiseSuppression: s.noiseSuppression, autoGainControl: s.autoGainControl },
+      deviceId: s.deviceId,
+      label: track.label || "Microphone",
+    };
+  } catch (error) { stopStream(stream); throw error; }
 }
 
 export function stopStream(stream?: MediaStream | null) {
-  stream?.getTracks().forEach((t) => t.stop());
+  stream?.getTracks().forEach((t) => { try { t.stop(); } catch { /* Continue releasing the other tracks. */ } });
 }
 
 export async function listMicrophones(): Promise<MicrophoneDevice[]> {
-  if (!navigator.mediaDevices?.enumerateDevices) return [];
-  const all = await navigator.mediaDevices.enumerateDevices();
-  return all
-    .filter((d) => d.kind === "audioinput" && d.deviceId !== "communications")
-    .map((d, i) => ({ deviceId: d.deviceId, label: d.label || `Microphone ${i + 1}` }));
+  if (typeof navigator === "undefined" || !navigator.mediaDevices?.enumerateDevices) return [];
+  try {
+    const all = await navigator.mediaDevices.enumerateDevices();
+    return all
+      .filter((d) => d.kind === "audioinput" && d.deviceId !== "communications")
+      .map((d, i) => ({ deviceId: d.deviceId, label: d.label || `Microphone ${i + 1}` }));
+  } catch { return []; }
 }
 
 export function onDeviceChange(cb: () => void) {
-  if (!navigator.mediaDevices?.addEventListener) return () => {};
-  navigator.mediaDevices.addEventListener("devicechange", cb);
-  return () => navigator.mediaDevices.removeEventListener("devicechange", cb);
+  const media = typeof navigator === "undefined" ? undefined : navigator.mediaDevices;
+  if (!media?.addEventListener) return () => {};
+  media.addEventListener("devicechange", cb);
+  return () => media.removeEventListener("devicechange", cb);
 }
 
 export function mapMicrophoneError(e: unknown): { status: MicrophoneStatus; message: string } {

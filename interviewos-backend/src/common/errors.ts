@@ -2,12 +2,15 @@ import { HttpException, HttpStatus } from "@nestjs/common";
 
 /** Stable machine-readable error codes returned in { success: false, error: { code, message } }. */
 export type ErrorCode =
+ | "PASSWORD_CHANGE_REQUIRED"
+  | "PROFILE_INCOMPLETE" | "PROFILE_LINK_REQUIRED" | "APPLICATION_NOT_ELIGIBLE" | "INVALID_ROLE"
   | "VALIDATION_FAILED"
   | "UNAUTHENTICATED"
   | "AUTH_NOT_CONFIGURED"
   | "FORBIDDEN"
   | "ACCOUNT_DISABLED"
   | "SIGN_IN_METHOD_NOT_ALLOWED"
+  | "EMAIL_NOT_VERIFIED"
   | "RESOURCE_NOT_FOUND"
   | "CONFLICT"
   | "INVALID_STATUS_TRANSITION"

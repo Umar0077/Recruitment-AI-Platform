@@ -1,7 +1,8 @@
 "use client";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "motion/react";
-import { ArrowRight, CalendarCheck, Hash, Mail, UserRound, Briefcase, ShieldCheck } from "lucide-react";
+import { ArrowRight, CalendarCheck, Hash, Mail, UserRound, Briefcase, RotateCcw, ShieldCheck } from "lucide-react";
 import { CandidateShell } from "@/components/candidate/shell";
 import { Button } from "@/components/ui/button";
 import { Badge, GlassCard } from "@/components/ui/primitives";
@@ -11,9 +12,10 @@ import { formatDateTime } from "@/lib/utils";
 import { EASE } from "@/components/motion";
 import { useEffect, useRef } from "react";
 import { RefreshCw } from "lucide-react";
+import { toast } from "sonner";
 import { isApiMode } from "@/lib/config/environment";
 import { useCandidateFlow, clearPreChecks } from "@/lib/data/candidate-flow";
-import { useProgress, useSubmitInterview } from "@/lib/data/queries";
+import { useMyInterview, useProgress, useSubmitInterview } from "@/lib/data/queries";
 import { useFlowGate } from "@/components/candidate/flow-gate";
 import { ApiErrorPanel, errorText } from "@/components/api/query-state";
 
@@ -26,8 +28,10 @@ export default function CompletePage() {
 }
 
 function Complete() {
+  const router = useRouter();
   const reduce = useReducedMotion();
   const flow = useDemoStore((s) => s.flow);
+  const resetDemoInterview = useDemoStore((s) => s.resetDemoInterview);
   const candidate = useCandidate(flow.candidateId);
   if (!candidate) return null;
   const submitted = flow.stage === "submitted";
@@ -53,7 +57,7 @@ function Complete() {
         </div>
       </motion.div>
       <motion.div initial={reduce ? false : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2, ease: EASE }}>
-        <h1 className="mt-8 text-[30px] font-bold leading-tight sm:text-[40px]">Your Interview Has Been Submitted.</h1>
+        <h1 className="mt-8 text-[30px] font-bold leading-tight sm:text-[40px]">Your Interview Has Been Successfully Completed</h1>
         <p className="mx-auto mt-3 max-w-xl text-[15px] leading-relaxed text-fg-muted sm:text-base">
           Thank you for completing your AI-assisted interview. Your responses have been submitted for recruiter review.
         </p>
@@ -61,7 +65,9 @@ function Complete() {
       </motion.div>
 
       <motion.div initial={reduce ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.35, ease: EASE }}>
-        <GlassCard className="mx-auto mt-10 max-w-xl text-left" glow>
+        <p className="mt-4 text-fg-muted">Our HR team will contact you regarding the next steps in the recruitment process.</p>
+      <div className="mt-4"><Badge tone="success">Awaiting HR Review</Badge></div>
+      <GlassCard className="mx-auto mt-10 max-w-xl text-left" glow>
           <dl className="divide-y divide-[rgba(148,163,184,0.12)]">
             {[
               { icon: UserRound, k: "Candidate", v: candidate.name },
@@ -89,7 +95,21 @@ function Complete() {
         </div>
 
         <div className="mt-10 flex flex-col justify-center gap-3 sm:flex-row">
-          <Button size="lg" asChild><Link href="/candidate/status">Return to Interview Portal<ArrowRight /></Link></Button>
+          <Button
+            size="lg"
+            className="min-w-64"
+            onClick={() => {
+              resetDemoInterview();
+              toast.success("Demo interview reset. Ready for a new presentation.");
+              router.push("/candidate/interview");
+            }}
+          >
+            <RotateCcw className="size-4" />
+            Start New Demo Interview
+          </Button>
+          <Button size="lg" variant="secondary" asChild>
+            <Link href="/candidate/status">Return to Interview Portal<ArrowRight /></Link>
+          </Button>
         </div>
       </motion.div>
     </div>
@@ -103,6 +123,7 @@ function Complete() {
 function ApiComplete() {
   const reduce = useReducedMotion();
   const f = useCandidateFlow();
+  const my = useMyInterview();
   const gate = useFlowGate(f);
   const progress = useProgress(f.interviewId);
   const submit = useSubmitInterview(f.interviewId);
@@ -149,9 +170,9 @@ function ApiComplete() {
           </svg>
         </div>
       </motion.div>
-      <h1 className="mt-8 text-[30px] font-bold leading-tight sm:text-[40px]">Your Interview Has Been Submitted.</h1>
+      <h1 className="mt-8 text-[30px] font-bold leading-tight sm:text-[40px]">Your Interview Has Been Successfully Completed</h1>
       <p className="mx-auto mt-3 max-w-xl text-[15px] leading-relaxed text-fg-muted sm:text-base">
-        Thank you for completing your AI-assisted interview. Your responses have been submitted for recruiter review.
+        Thank you for completing your AI-assisted interview. Your responses have been submitted successfully and are now awaiting review by our recruitment team.
       </p>
       <GlassCard className="mx-auto mt-10 max-w-xl text-left" glow>
         <dl className="divide-y divide-[rgba(148,163,184,0.12)]">
@@ -159,7 +180,7 @@ function ApiComplete() {
             { icon: UserRound, k: "Candidate", v: f.candidateName },
             { icon: Briefcase, k: "Applied role", v: p.jobRole.title },
             { icon: Hash, k: "Interview reference", v: <span className="font-mono text-[13px]">{p.reference}</span> },
-            { icon: ShieldCheck, k: "Submission status", v: <Badge tone="success">Submitted for review</Badge> },
+            { icon: ShieldCheck, k: "Recruitment status", v: my.current?.application.stage.label ?? "Unavailable" },
             { icon: CalendarCheck, k: "Submitted", v: formatDateTime(p.submittedAt ?? undefined) },
           ].map((r) => (
             <div key={r.k} className="flex items-center gap-4 px-6 py-4">

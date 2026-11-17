@@ -9,6 +9,9 @@
 import { memo, useEffect, useId, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { usePrefersReducedMotion, useMediaQuery } from "@/hooks/use-demo";
+import { useSpring } from "motion/react";
+import { subscribePointer } from "@/components/motion/pointer-system";
+import { SPRING } from "@/components/motion";
 
 export type CoreState = "idle" | "speaking" | "listening" | "processing" | "complete" | "dim";
 
@@ -41,7 +44,7 @@ function Particles({ count }: { count: number }) {
     if (!canvas || count === 0) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    let w = 0, h = 0, raf = 0, visible = true;
+    let w = 0, h = 0, raf = 0, visible = false, last = 0;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const resize = () => {
       w = canvas.clientWidth; h = canvas.clientHeight;
@@ -53,10 +56,12 @@ function Particles({ count }: { count: number }) {
     const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
     const ps = Array.from({ length: count }, () => ({ a: rnd() * Math.PI * 2, r: 0.3 + rnd() * 0.22, s: 0.4 + rnd() * 1.3, v: (rnd() - 0.5) * 0.0009, o: 0.25 + rnd() * 0.55, dy: rnd() * 1000 }));
     const draw = (t: number) => {
-      if (!visible) return;
+      if (!visible || document.hidden) return;
+      const delta = Math.min(t - (last || t - 16.67), 32) / 16.67;
+      last = t;
       ctx.clearRect(0, 0, w, h);
       for (const p of ps) {
-        p.a += p.v;
+        p.a += p.v * delta;
         const bob = Math.sin(t / 2400 + p.dy) * 6;
         const x = w / 2 + Math.cos(p.a) * p.r * w;
         const y = h / 2 + Math.sin(p.a) * p.r * h * 0.62 + bob;
@@ -68,14 +73,19 @@ function Particles({ count }: { count: number }) {
       }
       raf = requestAnimationFrame(draw);
     };
-    const io = new IntersectionObserver(([e]) => {
-      visible = !!e?.isIntersecting && !document.hidden;
+    const schedule = () => {
       cancelAnimationFrame(raf);
-      if (visible) raf = requestAnimationFrame(draw);
+      last = 0;
+      if (visible && !document.hidden) raf = requestAnimationFrame(draw);
+    };
+    const io = new IntersectionObserver(([e]) => {
+      visible = !!e?.isIntersecting;
+      schedule();
     });
     io.observe(canvas);
-    window.addEventListener("resize", resize);
-    return () => { cancelAnimationFrame(raf); io.disconnect(); window.removeEventListener("resize", resize); };
+    const ro = new ResizeObserver(resize); ro.observe(canvas);
+    document.addEventListener("visibilitychange", schedule);
+    return () => { cancelAnimationFrame(raf); io.disconnect(); ro.disconnect(); document.removeEventListener("visibilitychange", schedule); };
   }, [count]);
   return <canvas ref={ref} className="pointer-events-none absolute inset-0 size-full" aria-hidden />;
 }
@@ -103,31 +113,39 @@ function AICoreBase({
   const energy = ENERGY[state] * (excited ? 1.18 : 1);
   const animate = !reduce;
   const voiceActive = state === "speaking" || state === "listening";
+  const px = useSpring(0, SPRING.parallax);
+  const py = useSpring(0, SPRING.parallax);
 
   // Mouse parallax via CSS variables — no React re-render per move.
   useEffect(() => {
-    if (!parallax || !isDesktop || reduce) return;
     const el = root.current;
     if (!el) return;
-    let raf = 0;
-    const onMove = (e: PointerEvent) => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        el.style.setProperty("--px", ((e.clientX / window.innerWidth) * 2 - 1).toFixed(3));
-        el.style.setProperty("--py", ((e.clientY / window.innerHeight) * 2 - 1).toFixed(3));
-      });
-    };
-    window.addEventListener("pointermove", onMove, { passive: true });
-    return () => { window.removeEventListener("pointermove", onMove); cancelAnimationFrame(raf); };
-  }, [parallax, isDesktop, reduce]);
+    if (!parallax || !isDesktop || reduce) { px.jump(0); py.jump(0); el.style.setProperty("--px", "0"); el.style.setProperty("--py", "0"); return; }
+    const stopX = px.on("change", v => el.style.setProperty("--px", v.toFixed(3)));
+    const stopY = py.on("change", v => el.style.setProperty("--py", v.toFixed(3)));
+    const unsubscribe = subscribePointer(point => {
+      if (el.dataset.paused === "true") { px.jump(0); py.jump(0); return; }
+      if (!point.active) { px.set(0); py.set(0); return; }
+      px.set(point.x); py.set(point.y);
+    });
+    return () => { unsubscribe(); stopX(); stopY(); px.jump(0); py.jump(0); };
+  }, [parallax, isDesktop, reduce, px, py]);
+
+  useEffect(() => {
+    const el = root.current; if (!el) return;
+    let visible = false;
+    const sync = () => { el.dataset.paused = String(!visible || document.hidden || reduce); if (!visible || document.hidden) { px.jump(0); py.jump(0); } };
+    const io = new IntersectionObserver(([entry]) => { visible = !!entry?.isIntersecting; sync(); });
+    io.observe(el); document.addEventListener("visibilitychange", sync);
+    return () => { io.disconnect(); document.removeEventListener("visibilitychange", sync); };
+  }, [reduce, px, py]);
 
   const layer = (depth: number) => ({
     transform: `translate3d(calc(var(--px, 0) * ${depth}px), calc(var(--py, 0) * ${depth}px), 0)`,
-    transition: "transform 900ms cubic-bezier(0.22,1,0.36,1)",
   });
 
   const accent = state === "listening" ? "#38BDF8" : "#60A5FA";
-  const particleCount = !particles || !animate ? 0 : isMobile ? 12 : isDesktop ? 38 : 22;
+  const particleCount = !particles || !animate || isMobile ? 0 : isDesktop ? 24 : 12;
 
   return (
     <div
@@ -135,7 +153,7 @@ function AICoreBase({
       role="img"
       aria-label={label}
       data-state={state}
-      className={cn("relative aspect-square w-full select-none", className)}
+      className={cn("ai-core relative aspect-square w-full select-none", className)}
       style={{ ["--core-energy" as string]: energy }}
     >
       {/* Ambient halo */}
@@ -248,7 +266,7 @@ function AICoreBase({
                       rx="1.2"
                       fill={i % 6 === 0 ? "#BAE6FD" : accent}
                       opacity={0.35 + ((i * 7) % 10) / 20}
-                      className={animate && state !== "dim" && state !== "complete" ? "core-bar" : undefined}
+                      className={animate && voiceActive ? "core-bar" : undefined}
                       style={animate ? { animationDelay: `-${delay}s`, animationDuration: `${dur}s`, transition: "y 500ms, height 500ms" } : undefined}
                     />
                   </g>

@@ -8,11 +8,11 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { toast } from "sonner";
 import { AppLogo, BrandMark } from "@/components/ui/brand";
 import { Button } from "@/components/ui/button";
-import { CandidateAvatar, Kbd, SkeletonPage } from "@/components/ui/primitives";
+import { Kbd, SkeletonPage } from "@/components/ui/primitives";
 import { DemoBadge, EmptyState } from "@/components/ui/states";
 import { Drawer, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, Popover, PopoverContent, PopoverTrigger, Tooltip } from "@/components/ui/overlays";
 import { PageTransition } from "@/components/motion";
-import { NAV_GROUPS, isActive, pageTitle } from "./nav";
+import { NAV_GROUPS, isActive, isNavVisible, pageTitle } from "./nav";
 import { CommandPalette } from "./command-palette";
 import { useDemoStore } from "@/lib/demo/store";
 import { useNotificationFeed } from "@/lib/data/notification-feed";
@@ -20,13 +20,15 @@ import { useOpenReviewCount } from "@/lib/data/queries";
 import { useAuth } from "@/lib/auth/auth-provider";
 import { useAccessGate } from "@/lib/auth/use-access-gate";
 import { isApiMode } from "@/lib/config/environment";
-import { CURRENT_ADMIN_ID } from "@/lib/demo/seed";
-import { TEAM_ROLE_LABEL } from "@/lib/demo/statuses";
+import { useUserProfile } from "@/lib/auth/user-profile";
+import { AccountAvatar } from "@/components/auth/account-avatar";
 import { BRAND } from "@/lib/brand";
 import { cn, timeAgo } from "@/lib/utils";
 import type { NotificationKind } from "@/types";
 
 function SidebarNav({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: () => void }) {
+  const { profile } = useAuth();
+  const router = useRouter();
   const pathname = usePathname();
   const demoAwaiting = useDemoStore((s) => s.interviews.filter((i) => i.reviewStatus === "awaiting_review").length);
   const apiAwaiting = useOpenReviewCount();
@@ -38,12 +40,14 @@ function SidebarNav({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?
           {!collapsed && <p className="mb-1.5 px-3 text-[11px] font-medium uppercase tracking-[0.14em] text-fg-disabled">{g.label}</p>}
           {collapsed && <div className="mx-auto mb-2 h-px w-6 bg-overlay/[0.06]" aria-hidden />}
           <ul className="space-y-0.5">
-            {g.items.map((item) => {
+            {g.items.filter(item => isNavVisible(item, profile?.permissions, isApiMode)).map((item) => {
               const active = isActive(pathname, item.href);
               const badge = item.href === "/admin/interviews" && awaiting > 0 ? awaiting : undefined;
               const link = (
                 <Link
                   href={item.href}
+                  prefetch={true}
+                  onMouseEnter={() => router.prefetch(item.href)}
                   onClick={onNavigate}
                   aria-current={active ? "page" : undefined}
                   className={cn(
@@ -79,18 +83,7 @@ function SidebarNav({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?
 }
 
 /** Who is signed in: the demo team member, or the verified staff user from the backend. */
-function useStaffIdentity() {
-  const demoMe = useDemoStore((s) => s.team.find((t) => t.id === CURRENT_ADMIN_ID));
-  const demoSession = useDemoStore((s) => s.adminSession);
-  const auth = useAuth();
-  if (!isApiMode) return demoMe ? { name: demoMe.name, roleLabel: TEAM_ROLE_LABEL[demoMe.role], email: demoSession?.email ?? demoMe.email } : null;
-  const role = auth.profile?.roles.find((r) => r !== "CANDIDATE");
-  return {
-    name: auth.profile?.displayName ?? auth.user?.displayName ?? auth.profile?.email ?? "Staff member",
-    roleLabel: role ? TEAM_ROLE_LABEL[role.toLowerCase() as keyof typeof TEAM_ROLE_LABEL] ?? role : "",
-    email: auth.profile?.email ?? auth.user?.email ?? "",
-  };
-}
+function useStaffIdentity() { const account = useUserProfile("admin"); return { ...account, name: account.fullName }; }
 
 function SidebarUser({ collapsed }: { collapsed: boolean }) {
   const me = useStaffIdentity();
@@ -98,7 +91,7 @@ function SidebarUser({ collapsed }: { collapsed: boolean }) {
   return (
     <div className={cn("border-t border-subtle p-3", collapsed && "flex justify-center")}>
       <div className={cn("flex items-center gap-3 rounded-xl p-2", !collapsed && "bg-overlay/[0.03]")}>
-        <CandidateAvatar name={me.name} size="sm" />
+        <AccountAvatar name={me.name} photoURL={me.photoURL} size="sm" />
         {!collapsed && (
           <div className="min-w-0">
             <p className="truncate text-sm font-medium text-fg">{me.name}</p>
@@ -287,8 +280,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             <NotificationCenter />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="rounded-full focus-visible:ring-2 focus-visible:ring-brand-cyan/60" aria-label="Account menu">
-                  <CandidateAvatar name={me?.name ?? "HR"} size="md" />
+                <button className="flex items-center gap-2 rounded-full focus-visible:ring-2 focus-visible:ring-brand-cyan/60" aria-label="Account menu">
+                  <span className="hidden max-w-40 truncate text-sm font-medium lg:block">{me.name}</span><AccountAvatar name={me.name} photoURL={me.photoURL} size="md" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-60">
@@ -312,7 +305,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
         <main className="px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
           <div className="mx-auto max-w-[1480px]">
-            {ready ? <PageTransition key={pathname}>{children}</PageTransition> : <SkeletonPage />}
+            {ready ? <PageTransition>{children}</PageTransition> : <SkeletonPage />}
           </div>
         </main>
       </div>

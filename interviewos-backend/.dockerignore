@@ -1,0 +1,15 @@
+# Credentials must never enter Docker build contexts or cached COPY layers.
+.env
+.env.*
+!.env.example
+secrets/
+**/secrets/
+**/*service-account*.json
+**/*.pem
+**/*.key
+node_modules/
+dist/
+coverage/
+*.log
+*.tsbuildinfo
+.git/

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
-import { Bot, ClipboardCheck, MessageSquarePlus, RefreshCw, Search, Star, UserRound, VideoOff } from "lucide-react";
+import { Bot, ClipboardCheck, MessageSquarePlus, RefreshCw, Search, Star, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge, CandidateAvatar, CardHeader, Field, GlassCard, Label, Pill, SearchInput, SkeletonPage, Textarea } from "@/components/ui/primitives";
@@ -15,12 +15,15 @@ import { useApplication, useAssessments, useInterviewDetail, useUpdateReview } f
 import { ANSWER_SOURCE, ASSESSMENT_STATUS, REVIEW_STATUS, TRACK_LABEL } from "@/lib/api/labels";
 import type { HrReviewStatus } from "@/lib/api/types";
 import { cn, formatDateTime, formatMinutes } from "@/lib/utils";
+import { RecordingReview } from "./recording-review";
+import { TranscriptVersions } from "@/components/interview/transcript-versions";
 
 export function ApiInterviewReview() {
   const { id } = useParams<{ id: string }>();
   const iv = useInterviewDetail(id);
   const app = useApplication(iv.data?.applicationId);
   const assessments = useAssessments(iv.data?.status === "SUBMITTED" ? id : undefined);
+  const [tab, setTab] = useState<"responses" | "recording">("responses");
   const [q, setQ] = useState("");
   const [qFilter, setQFilter] = useState("all");
   const [statusOpen, setStatusOpen] = useState(false);
@@ -74,10 +77,12 @@ export function ApiInterviewReview() {
 
       <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="min-w-0 space-y-4">
-          <div className="flex items-start gap-3 rounded-xl border border-subtle bg-overlay/[0.02] p-4 text-sm text-fg-secondary">
-            <VideoOff className="mt-0.5 size-4 shrink-0 text-fg-muted" aria-hidden />
-            <p><span className="font-medium text-fg">Recording not available.</span> InterviewOS stores the candidate&apos;s confirmed text answers only — no audio or video is recorded.</p>
+          <div role="tablist" aria-label="Interview review sections" className="flex flex-wrap gap-2">
+            <Button role="tab" aria-selected={tab === "responses"} aria-controls="responses-panel" onClick={() => setTab("responses")}>Responses</Button>
+            <Button role="tab" aria-selected={tab === "recording"} aria-controls="recording-panel" onClick={() => setTab("recording")}>Recording</Button>
           </div>
+          {tab === "recording" && <div role="tabpanel" id="recording-panel"><RecordingReview sessionId={id} /></div>}
+          <div role="tabpanel" id="responses-panel" hidden={tab !== "responses"}>
 
           <GlassCard className="p-5 sm:p-6">
             <CardHeader title="Question-by-Question Responses" description={`${d.totalQuestions} questions exactly as asked (version ${d.questionSetVersion})`} />
@@ -97,7 +102,7 @@ export function ApiInterviewReview() {
                   <p className="mt-2 text-sm font-medium leading-relaxed text-fg">{x.answer?.questionTextSnapshot ?? x.text}</p>
                   {x.answer ? (
                     <>
-                      <p className="mt-3 whitespace-pre-wrap break-words border-l-2 border-brand/40 pl-3 text-sm leading-relaxed text-fg-secondary">{x.answer.transcript}</p>
+                      <TranscriptVersions answer={x.answer} />
                       <p className="mt-2 text-[11px] text-fg-disabled">Confirmed {formatDateTime(x.answer.confirmedAt)}</p>
                     </>
                   ) : (
@@ -137,6 +142,7 @@ export function ApiInterviewReview() {
               </ol>
             )}
           </GlassCard>
+          </div>
         </div>
 
         <div className="space-y-4">

@@ -1,7 +1,15 @@
 node_modules
 .next
+.next-recording-lab
 out
 *.tsbuildinfo
 next-env.d.ts
 .env*
 !.env.example
+firebase-debug*.log
+# Never commit captured interview media or local object-store data.
+/recordings/
+recording-artifacts/
+minio-data/
+*.webm
+*.mp4

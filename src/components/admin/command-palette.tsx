@@ -7,13 +7,15 @@ import { CandidateAvatar, Kbd } from "@/components/ui/primitives";
 import { useDemoStore } from "@/lib/demo/store";
 import { isApiMode } from "@/lib/config/environment";
 import { useApplicationSearch } from "@/lib/data/queries";
+import { useAuth } from "@/lib/auth/auth-provider";
+import { useCommandSearch } from "@/hooks/use-command-search";
 import type { Candidate, InterviewSession } from "@/types";
 
 const NO_CANDIDATES: Candidate[] = [];
 const NO_INTERVIEWS: InterviewSession[] = [];
 import { JOB_ROLES, roleById } from "@/lib/demo/questions";
 import { statusLabel } from "@/lib/demo/statuses";
-import { ALL_NAV } from "./nav";
+import { ALL_NAV, isNavVisible } from "./nav";
 import { cn } from "@/lib/utils";
 
 interface Result {
@@ -27,22 +29,25 @@ interface Result {
 
 export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
   const router = useRouter();
+  const { profile } = useAuth();
   const demoCandidates = useDemoStore((s) => s.candidates);
   const demoInterviews = useDemoStore((s) => s.interviews);
   // API mode never searches demo records; candidates come from a server-side search instead.
   const candidates = isApiMode ? NO_CANDIDATES : demoCandidates;
   const interviews = isApiMode ? NO_INTERVIEWS : demoInterviews;
   const [q, setQ] = useState("");
-  const remote = useApplicationSearch(isApiMode ? q.trim() : "");
+  const searchTerm = useCommandSearch(open, q, isApiMode);
+  const remote = useApplicationSearch(searchTerm);
   const [active, setActive] = useState(0);
   const listRef = useRef<HTMLUListElement>(null);
 
   useEffect(() => { if (open) { setQ(""); setActive(0); } }, [open]);
 
   const results = useMemo<Result[]>(() => {
+    if (!open) return [];
     const term = q.trim().toLowerCase();
     const has = (...s: string[]) => !term || s.some((x) => x.toLowerCase().includes(term));
-    const pages: Result[] = ALL_NAV.filter((n) => has(n.label)).map((n) => ({ id: n.href, group: "Pages", label: n.label, href: n.href, icon: <n.icon className="size-4" /> }));
+    const pages: Result[] = ALL_NAV.filter((n) => isNavVisible(n, profile?.permissions, isApiMode) && has(n.label)).map((n) => ({ id: n.href, group: "Pages", label: n.label, href: n.href, icon: <n.icon className="size-4" /> }));
     const cands: Result[] = candidates
       .filter((c) => term && has(c.name, c.id, c.email))
       .slice(0, 6)
@@ -52,9 +57,9 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
       .slice(0, 4)
       .map((i) => ({ id: i.id, group: "Interviews", label: i.id, sub: candidates.find((c) => c.id === i.candidateId)?.name, href: `/admin/interviews/${i.id}`, icon: <Video className="size-4" /> }));
     const roles: Result[] = JOB_ROLES.filter((r) => has(r.title)).map((r) => ({ id: r.id, group: "Job Roles", label: r.title, sub: r.department, href: `/admin/interview-setup?track=${r.track}`, icon: <Briefcase className="size-4" /> }));
-    const apiCands: Result[] = (remote.data?.items ?? []).map((a) => ({ id: a.id, group: "Candidates", label: a.candidate.fullName, sub: `${a.jobRole.title} · ${a.statusLabel}`, href: `/admin/candidates/${a.id}`, icon: <CandidateAvatar name={a.candidate.fullName} size="sm" /> }));
+    const apiCands: Result[] = (searchTerm ? remote.data?.items ?? [] : []).map((a) => ({ id: a.id, group: "Candidates", label: a.candidate.fullName, sub: `${a.jobRole.title} · ${a.statusLabel}`, href: `/admin/candidates/${a.id}`, icon: <CandidateAvatar name={a.candidate.fullName} size="sm" /> }));
     return [...apiCands, ...cands, ...ivs, ...pages, ...roles];
-  }, [q, candidates, interviews, remote.data]);
+  }, [open, q, candidates, interviews, remote.data, profile?.permissions, searchTerm]);
 
   useEffect(() => setActive(0), [q]);
   useEffect(() => {

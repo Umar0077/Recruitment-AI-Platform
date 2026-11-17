@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { ArrowRight, Briefcase, CalendarClock, CheckCircle2, Clock, FileText, PlayCircle, Sparkles, UserRound } from "lucide-react";
+import { ArrowRight, Briefcase, CalendarClock, CheckCircle2, Clock, FileText, PlayCircle, RotateCcw, Sparkles, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { CandidateShell } from "@/components/candidate/shell";
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,7 @@ function Welcome() {
   const flow = useDemoStore((s) => s.flow);
   const setups = useDemoStore((s) => s.setups);
   const selectDemoCandidate = useDemoStore((s) => s.selectDemoCandidate);
+  const resetDemoInterview = useDemoStore((s) => s.resetDemoInterview);
   const settings = useDemoStore((s) => s.settings);
   const candidate = useCandidate(flow.candidateId);
   const interview = useInterview(candidate?.interviewId);
@@ -77,7 +78,7 @@ function Welcome() {
       </GlassCard>
 
       <div className="mt-6 grid gap-3 sm:grid-cols-3">
-        {["Find a quiet, well-lit space", "Allow camera and microphone access", "Answer naturally — there's a practice question first"].map((t, i) => (
+        {["Find a quiet, well-lit space", "Speak with a microphone or type; camera preview is optional", "Answer naturally — there's a practice question first"].map((t, i) => (
           <div key={t} className="flex items-center gap-3 rounded-xl border border-subtle bg-overlay/[0.02] px-4 py-3 text-sm text-fg-secondary">
             <span className="grid size-6 shrink-0 place-items-center rounded-full bg-brand/15 text-xs font-semibold text-brand-cyan">{i + 1}</span>
             {t}
@@ -87,21 +88,45 @@ function Welcome() {
 
       <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center" id="start">
         {submitted ? (
-          <Button size="lg" asChild>
-            <Link href="/candidate/status">View Interview Status<ArrowRight /></Link>
-          </Button>
+          <>
+            <Button
+              size="lg"
+              className="min-w-56"
+              onClick={() => {
+                resetDemoInterview();
+                toast.success("Demo reset. Ready to start a fresh interview.");
+              }}
+            >
+              <RotateCcw className="size-4" />
+              Start New Demo Interview
+            </Button>
+            <Button size="lg" variant="secondary" asChild>
+              <Link href="/candidate/status" prefetch={true}>View Interview Status<ArrowRight /></Link>
+            </Button>
+          </>
         ) : inProgress ? (
           <>
             <Button size="lg" asChild>
-              <Link href="/candidate/interview/resume"><PlayCircle />Resume Interview</Link>
+              <Link href="/candidate/interview/resume" prefetch={true}><PlayCircle />Resume Interview</Link>
             </Button>
-            <Button size="lg" variant="secondary" asChild>
-              <Link href="/candidate/interview/instructions">Review Instructions</Link>
+            <Button
+              size="lg"
+              variant="secondary"
+              onClick={() => {
+                resetDemoInterview();
+                toast.success("Demo reset. Starting a fresh interview.");
+              }}
+            >
+              <RotateCcw className="size-4" />
+              Start New Interview
+            </Button>
+            <Button size="lg" variant="ghost" asChild>
+              <Link href="/candidate/interview/instructions" prefetch={true}>Review Instructions</Link>
             </Button>
           </>
         ) : (
           <Button size="lg" asChild className="min-w-56">
-            <Link href="/candidate/interview/instructions">Start AI Interview<ArrowRight /></Link>
+            <Link href="/candidate/interview/instructions" prefetch={true}>Start New Interview<ArrowRight /></Link>
           </Button>
         )}
       </div>
@@ -157,7 +182,7 @@ function ApiWelcome() {
         </div>
         <span className="mt-4 inline-flex h-7 items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 text-xs font-medium text-emerald-700 dark:text-emerald-200"><CheckCircle2 className="size-3.5" aria-hidden />{app?.stage.label ?? "Application received"}</span>
         <p className="eyebrow mt-5">One more step · AI interview invitation</p>
-        <h1 className="mt-3 text-[30px] font-bold leading-tight sm:text-[40px]">Thank you for applying to {settings.organizationName}, {f.firstName}.</h1>
+        <h1 className="mt-3 text-[30px] font-bold leading-tight sm:text-[40px]">{inProgress ? "Continue Your Interview" : "Your AI Interview Is Ready"}</h1>
         <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-fg-muted sm:text-base">Your basic application has been submitted. {settings.welcomeText}</p>
       </div>
 
@@ -167,7 +192,7 @@ function ApiWelcome() {
             { icon: UserRound, label: "Candidate", value: f.candidateName },
             { icon: Briefcase, label: "Position", value: `${f.roleTitle}${app ? ` · ${TRACK_LABEL[app.jobRole.track]}` : ""}` },
             { icon: Sparkles, label: "Interview type", value: `AI-assisted interview · ${f.totalQuestions} questions` },
-            { icon: Clock, label: "Estimated duration", value: f.durationLabel },
+            { icon: Clock, label: "Questions remaining", value: `${Math.max(0, f.totalQuestions - f.answeredCount)} of ${f.totalQuestions}` },
             { icon: CalendarClock, label: "Complete by", value: formatDateTime(f.expiresAt) },
             { icon: FileText, label: "Status", value: <Badge tone={submitted ? "success" : inProgress || awaitingSubmit ? "cyan" : "warning"}>{label}</Badge> },
           ].map((x, i) => (
@@ -183,7 +208,7 @@ function ApiWelcome() {
       </GlassCard>
 
       <div className="mt-6 grid gap-3 sm:grid-cols-3">
-        {["Find a quiet, well-lit space", "Allow camera and microphone access", "Answer naturally — there's a practice question first"].map((t, i) => (
+        {["Find a quiet, well-lit space", "Speak with a microphone or type; camera preview is optional", "Answer naturally — there's a practice question first"].map((t, i) => (
           <div key={t} className="flex items-center gap-3 rounded-xl border border-subtle bg-overlay/[0.02] px-4 py-3 text-sm text-fg-secondary">
             <span className="grid size-6 shrink-0 place-items-center rounded-full bg-brand/15 text-xs font-semibold text-brand-cyan">{i + 1}</span>
             {t}
@@ -202,13 +227,13 @@ function ApiWelcome() {
             <Button size="lg" variant="secondary" asChild><Link href="/candidate/interview/instructions">Review Instructions</Link></Button>
           </>
         ) : (
-          <Button size="lg" asChild className="min-w-56"><Link href="/candidate/interview/instructions">Start AI Interview<ArrowRight /></Link></Button>
+          <Button size="lg" asChild className="min-w-56"><Link href="/candidate/interview/instructions">Start Interview<ArrowRight /></Link></Button>
         )}
       </div>
       {!submitted && (
         <p className="mt-4 text-center text-sm text-fg-muted">If you are unable to complete the interview right now, you can return using your application link.</p>
       )}
-      {my.count > 1 && <p className="mt-1 text-center text-xs text-fg-muted">Showing your most recent open interview.</p>}
+      {my.count > 1 && <p className="mt-1 text-center text-xs text-fg-muted">Showing your current interview.</p>}
     </div>
   );
 }

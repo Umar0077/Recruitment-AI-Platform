@@ -1,0 +1,9 @@
+# Pinned vendor security release, built from source because this release has no binary assets.
+# This service is loopback-only and for fictional local tests, never production.
+FROM golang:1.24.8-bookworm AS build
+RUN CGO_ENABLED=0 go install github.com/minio/minio@RELEASE.2025-10-15T17-29-55Z
+FROM debian:bookworm-slim
+RUN useradd --uid 10001 --create-home minio && mkdir /data && chown minio /data
+COPY --from=build /go/bin/minio /usr/local/bin/minio
+USER 10001
+ENTRYPOINT ["minio"]

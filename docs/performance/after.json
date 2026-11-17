@@ -1,0 +1,216 @@
+{
+  "label": "after",
+  "startedAt": "2026-11-17T14:56:32.420Z",
+  "conditions": {
+    "node": "v23.10.0",
+    "next": "15.5.29",
+    "react": "19.3.1",
+    "platform": "win32",
+    "arch": "x64",
+    "cpu": "12th Gen Intel(R) Core(TM) i5-12450H",
+    "logicalCpus": 12,
+    "memoryGb": 16,
+    "workspaceOnOneDrive": true,
+    "mode": "demo",
+    "bundler": "Turbopack",
+    "port": 3102,
+    "coldDefinition": "First request for each route in a new dev-server process; existing .next and filesystem caches retained",
+    "browser": false
+  },
+  "startupMs": 35990,
+  "readyReported": "✓ Ready in 17.1s",
+  "routes": [
+    {
+      "route": "/candidate/login",
+      "samples": [
+        {
+          "sample": "first",
+          "status": 200,
+          "headersMs": 13535,
+          "completeHtmlMs": 13574,
+          "htmlBytes": 84179
+        },
+        {
+          "sample": "warm-1",
+          "status": 200,
+          "headersMs": 236,
+          "completeHtmlMs": 260,
+          "htmlBytes": 84179
+        },
+        {
+          "sample": "warm-2",
+          "status": 200,
+          "headersMs": 269,
+          "completeHtmlMs": 289,
+          "htmlBytes": 84179
+        },
+        {
+          "sample": "warm-3",
+          "status": 200,
+          "headersMs": 398,
+          "completeHtmlMs": 421,
+          "htmlBytes": 84179
+        }
+      ]
+    },
+    {
+      "route": "/candidate/interview",
+      "samples": [
+        {
+          "sample": "first",
+          "status": 200,
+          "headersMs": 2496,
+          "completeHtmlMs": 2606,
+          "htmlBytes": 58206
+        },
+        {
+          "sample": "warm-1",
+          "status": 200,
+          "headersMs": 361,
+          "completeHtmlMs": 459,
+          "htmlBytes": 58206
+        },
+        {
+          "sample": "warm-2",
+          "status": 200,
+          "headersMs": 524,
+          "completeHtmlMs": 700,
+          "htmlBytes": 58206
+        },
+        {
+          "sample": "warm-3",
+          "status": 200,
+          "headersMs": 775,
+          "completeHtmlMs": 838,
+          "htmlBytes": 58206
+        }
+      ]
+    },
+    {
+      "route": "/admin",
+      "samples": [
+        {
+          "sample": "first",
+          "status": 200,
+          "headersMs": 4116,
+          "completeHtmlMs": 4216,
+          "htmlBytes": 74979
+        },
+        {
+          "sample": "warm-1",
+          "status": 200,
+          "headersMs": 603,
+          "completeHtmlMs": 640,
+          "htmlBytes": 74979
+        },
+        {
+          "sample": "warm-2",
+          "status": 200,
+          "headersMs": 426,
+          "completeHtmlMs": 505,
+          "htmlBytes": 74979
+        },
+        {
+          "sample": "warm-3",
+          "status": 200,
+          "headersMs": 497,
+          "completeHtmlMs": 590,
+          "htmlBytes": 74978
+        }
+      ]
+    },
+    {
+      "route": "/",
+      "samples": [
+        {
+          "sample": "first",
+          "status": 200,
+          "headersMs": 2391,
+          "completeHtmlMs": 2425,
+          "htmlBytes": 202967
+        },
+        {
+          "sample": "warm-1",
+          "status": 200,
+          "headersMs": 625,
+          "completeHtmlMs": 741,
+          "htmlBytes": 202967
+        },
+        {
+          "sample": "warm-2",
+          "status": 200,
+          "headersMs": 1069,
+          "completeHtmlMs": 1185,
+          "htmlBytes": 202967
+        },
+        {
+          "sample": "warm-3",
+          "status": 200,
+          "headersMs": 778,
+          "completeHtmlMs": 808,
+          "htmlBytes": 202966
+        }
+      ]
+    },
+    {
+      "route": "/admin/api-usage",
+      "samples": [
+        {
+          "sample": "first",
+          "status": 200,
+          "headersMs": 1925,
+          "completeHtmlMs": 2011,
+          "htmlBytes": 76466
+        },
+        {
+          "sample": "warm-1",
+          "status": 200,
+          "headersMs": 858,
+          "completeHtmlMs": 887,
+          "htmlBytes": 76467
+        },
+        {
+          "sample": "warm-2",
+          "status": 200,
+          "headersMs": 658,
+          "completeHtmlMs": 735,
+          "htmlBytes": 76467
+        },
+        {
+          "sample": "warm-3",
+          "status": 200,
+          "headersMs": 746,
+          "completeHtmlMs": 848,
+          "htmlBytes": 76467
+        }
+      ]
+    }
+  ],
+  "compileLog": [
+    "✓ Compiled /candidate/login in 11.8s",
+    "GET /candidate/login 200 in 13494ms",
+    "GET /candidate/login 200 in 256ms",
+    "GET /candidate/login 200 in 286ms",
+    "GET /candidate/login 200 in 419ms",
+    "✓ Compiled /candidate/interview in 2s",
+    "GET /candidate/interview 200 in 2602ms",
+    "GET /candidate/interview 200 in 457ms",
+    "GET /candidate/interview 200 in 698ms",
+    "GET /candidate/interview 200 in 831ms",
+    "✓ Compiled /admin in 3.6s",
+    "GET /admin 200 in 4209ms",
+    "GET /admin 200 in 629ms",
+    "GET /admin 200 in 503ms",
+    "GET /admin 200 in 585ms",
+    "✓ Compiled / in 1929ms",
+    "GET / 200 in 2421ms",
+    "GET / 200 in 740ms",
+    "GET / 200 in 1180ms",
+    "GET / 200 in 803ms",
+    "✓ Compiled /admin/api-usage in 1195ms",
+    "GET /admin/api-usage 200 in 2010ms",
+    "GET /admin/api-usage 200 in 884ms",
+    "GET /admin/api-usage 200 in 732ms",
+    "GET /admin/api-usage 200 in 845ms"
+  ]
+}

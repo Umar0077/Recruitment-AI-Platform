@@ -72,6 +72,7 @@ const axisProps = { stroke: CHART.axis, fontSize: 11, tickLine: false, axisLine:
 
 export function TrendChart({ data, series, height = 260, kind = "area", suffix }: { data: Record<string, string | number>[]; series: { key: string; label: string; color: string }[]; height?: number; kind?: "area" | "line"; suffix?: string }) {
   const reduce = usePrefersReducedMotion();
+  const gradientId = React.useId().replace(/:/g, "");
   const Chart = kind === "area" ? AreaChart : LineChart;
   return (
     <div style={{ height }} role="img" aria-label={`Chart of ${series.map((s) => s.label).join(", ")}`}>
@@ -79,7 +80,7 @@ export function TrendChart({ data, series, height = 260, kind = "area", suffix }
         <Chart data={data} margin={{ top: 6, right: 8, left: -18, bottom: 0 }}>
           <defs>
             {series.map((s) => (
-              <linearGradient key={s.key} id={`grad-${s.key}`} x1="0" x2="0" y1="0" y2="1">
+              <linearGradient key={s.key} id={`${gradientId}-${s.key}`} x1="0" x2="0" y1="0" y2="1">
                 <stop offset="0" stopColor={s.color} stopOpacity={0.35} />
                 <stop offset="1" stopColor={s.color} stopOpacity={0} />
               </linearGradient>
@@ -91,7 +92,7 @@ export function TrendChart({ data, series, height = 260, kind = "area", suffix }
           <Tooltip content={<ChartTooltip suffix={suffix} />} cursor={{ stroke: "rgba(148,163,184,0.25)" }} />
           {series.map((s) =>
             kind === "area" ? (
-              <Area key={s.key} type="monotone" dataKey={s.key} name={s.label} stroke={s.color} strokeWidth={2} fill={`url(#grad-${s.key})`} isAnimationActive={!reduce} animationDuration={900} />
+              <Area key={s.key} type="monotone" dataKey={s.key} name={s.label} stroke={s.color} strokeWidth={2} fill={`url(#${gradientId}-${s.key})`} isAnimationActive={!reduce} animationDuration={900} />
             ) : (
               <Line key={s.key} type="monotone" dataKey={s.key} name={s.label} stroke={s.color} strokeWidth={2} dot={false} activeDot={{ r: 4 }} isAnimationActive={!reduce} animationDuration={900} />
             ),

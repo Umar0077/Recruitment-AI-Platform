@@ -1,0 +1,21 @@
+name: interviewos-recording-lab
+services:
+  storage:
+    build:
+      context: .
+      dockerfile: Dockerfile.minio
+    image: interviewos-recording-lab-minio:2025-10-15
+    command: ["server", "/data", "--address", ":9000", "--console-address", ":9001", "--quiet"]
+    environment:
+      MINIO_ROOT_USER: ${RECORDING_LAB_ACCESS_KEY:?run setup first}
+      MINIO_ROOT_PASSWORD: ${RECORDING_LAB_SECRET_KEY:?run setup first}
+      MINIO_API_CORS_ALLOW_ORIGIN: http://127.0.0.1:3100
+      MINIO_BROWSER: "off"
+      MINIO_API_STALE_UPLOADS_EXPIRY: 24h
+    ports:
+      - "127.0.0.1:9100:9000"
+    volumes:
+      - media:/data
+    restart: unless-stopped
+volumes:
+  media:

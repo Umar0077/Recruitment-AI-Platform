@@ -12,11 +12,14 @@ export const useAudioSettings = create<AudioSettingsState>()(
   persist(
     (set) => ({
       voiceId: undefined,
-      rate: 0.97,
+      rate: 0.95,
+      pitch: 1,
       volume: 1,
       muted: false,
       micDeviceId: undefined,
       lang: "en-US",
+      maxAlternatives: 3,
+      maxRestarts: 3,
       set: (patch) => set(patch),
     }),
     { name: "interviewos-audio-settings", storage: createJSONStorage(() => localStorage) },
@@ -26,5 +29,5 @@ export const useAudioSettings = create<AudioSettingsState>()(
 export const RECOGNITION_LANGUAGES = [
   { value: "en-US", label: "English (US)" },
   { value: "en-GB", label: "English (UK)" },
-  { value: "en-IN", label: "English (India / South Asia)" },
+  { value: "en-IN", label: "English (India)" },
 ];

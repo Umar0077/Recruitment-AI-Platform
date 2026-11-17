@@ -5,6 +5,8 @@ import { Ctx, type RequestContext } from "../../common/http";
 import { isStaff } from "../../common/auth-user";
 import type { EnvironmentVariables } from "../../config/env.validation";
 import { FirebaseTokenVerifier, TestTokenVerifier, TokenVerifier } from "../../integrations/firebase/token-verifier";
+import { AdminAuthService } from "./admin-auth.service";
+import { AdminAuthController } from "./admin-auth.controller";
 import { AuthGuard } from "./auth.guard";
 import { AuthService } from "./auth.service";
 
@@ -30,9 +32,10 @@ class AuthController {
 
 @Global()
 @Module({
-  controllers: [AuthController],
+  controllers: [AuthController, AdminAuthController],
   providers: [
     AuthService,
+    AdminAuthService,
     {
       provide: TokenVerifier,
       inject: [ConfigService],

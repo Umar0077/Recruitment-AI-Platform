@@ -56,7 +56,7 @@ export function DemoLoginForm({ role, redirectTo, submitLabel }: { role: "candid
       <div className="flex items-start gap-2.5 rounded-xl border border-indigo-400/25 bg-indigo-400/[0.06] p-3 text-xs leading-relaxed text-indigo-700 dark:text-indigo-100">
         <FlaskConical className="mt-0.5 size-4 shrink-0" aria-hidden />
         <p>
-          <span className="font-semibold">UI Demo Mode.</span> Any email and password will work. Nothing is sent to a server and your password is not stored.
+          <span className="font-semibold">UI Demo Mode.</span> Any email and password will work. Nothing is sent to a server and your password is not stored. Every demo login starts a fresh fictional interview.
         </p>
       </div>
     </form>

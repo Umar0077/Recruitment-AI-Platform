@@ -1,4 +1,5 @@
 "use client";
+import { useUserProfile } from "@/lib/auth/user-profile";
 /** API mode: team (users & roles), interview setup (published question sets) and settings. */
 import { useState } from "react";
 import { BookOpenCheck, Lock, ShieldCheck, UserCog, UsersRound } from "lucide-react";
@@ -180,6 +181,7 @@ export function ApiInterviewSetup() {
 /** Only real, local preferences. Organisation settings have no server endpoint yet, so they are not offered. */
 export function ApiSettings() {
   const { profile, user } = useAuth();
+  const account = useUserProfile("admin");
   const settings = useDemoStore((s) => s.settings);
   const updateSettings = useDemoStore((s) => s.updateSettings);
   return (
@@ -189,10 +191,10 @@ export function ApiSettings() {
         <GlassCard className="p-6">
           <CardHeader title="Your account" icon={<ShieldCheck />} />
           <dl className="mt-5 grid gap-5 sm:grid-cols-2">
-            <Field label="Name" value={profile?.displayName ?? user?.displayName ?? "—"} />
+            <Field label="Name" value={account.fullName || "—"} />
             <Field label="Email" value={profile?.email ?? "—"} />
             <Field label="Roles" value={profile?.roles.map((r) => ROLE_LABEL[r]).join(", ") ?? "—"} />
-            <Field label="Sign-in" value="Google (Firebase Authentication)" />
+            <Field label="Sign-in" value={(user?.providers ?? []).map(p => p === "password" ? "Email / password" : p === "google.com" ? "Google" : p).join(", ") || "Firebase Authentication"} />
           </dl>
           <p className="mt-4 text-xs text-fg-muted">Roles are assigned by a Super Admin. Last checked {formatDateTime(new Date().toISOString())}.</p>
         </GlassCard>

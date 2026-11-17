@@ -4,7 +4,7 @@ import { Throttle } from "@nestjs/throttler";
 import { RequirePermissions } from "../../common/decorators";
 import { PERMISSIONS } from "../../common/constants/permissions";
 import { Ctx, Paged, type RequestContext } from "../../common/http";
-import { CreateInterviewDto, InterviewListQueryDto, SaveAnswerDto, StartInterviewDto } from "./interviews.dto";
+import { InitialInterviewDto, CreateInterviewDto, InterviewListQueryDto, SaveAnswerDto, StartInterviewDto } from "./interviews.dto";
 import { InterviewsService } from "./interviews.service";
 
 const P = PERMISSIONS;
@@ -30,6 +30,11 @@ class InterviewsController {
     const { rows, meta } = await this.svc.list(q, user);
     return new Paged(rows, meta);
   }
+
+  @Post("initial")
+  @HttpCode(200)
+  @RequirePermissions(P.INTERVIEWS_TAKE)
+  onboard(@Body() dto: InitialInterviewDto, @Ctx() ctx: RequestContext) { return this.svc.onboard(dto, ctx); }
 
   @Get("me")
   @RequirePermissions(P.INTERVIEWS_TAKE)

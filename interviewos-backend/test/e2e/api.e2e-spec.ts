@@ -4,6 +4,8 @@ import request from "supertest";
 import { AppModule } from "../../src/app.module";
 import { configureApp } from "../../src/bootstrap";
 import { PrismaService } from "../../src/database/prisma.service";
+import { AssessmentService } from "../../src/modules/assessment/assessment.service";
+import { OpenRouterService } from "../../src/modules/assessment/openrouter.service";
 
 const tok = (uid: string, email?: string) => ({ Authorization: `Bearer test:${uid}${email ? `:${email}` : ""}` });
 const ADMIN = tok("dev-super-admin");
@@ -249,6 +251,63 @@ describe("InterviewOS API (e2e)", () => {
       expect(res.body.data.reports[0].status).toBe("PENDING");
       const one = await http.get(`/api/v1/assessments/${res.body.data.reports[0].id}`).set(REV).expect(200);
       expect(one.body.data.criteria).toEqual([]);
+    });
+  });
+
+  describe("Phase 5 persisted assessment pipeline", () => {
+    let reportId: string;
+    it("blocks candidate access to rubrics, usage, and assessment actions", async () => {
+      await http.get("/api/v1/ai/rubrics").set(CAND).expect(403);
+      await http.get("/api/v1/ai/usage").set(REC).expect(403);
+      await http.post("/api/v1/ai/rubrics/prepare").set(REV).expect(403);
+    });
+    it("waits for approval, then persists NLP while blocking free-provider personal data", async () => {
+      const report = await prisma.assessmentReport.findFirstOrThrow({ where: { sessionId: interviewId } }); reportId = report.id;
+      await prisma.assessmentReport.update({ where: { id: reportId }, data: { status: "PROCESSING" } });
+      await app.get(AssessmentService).process(reportId);
+      expect((await prisma.assessmentReport.findUniqueOrThrow({ where: { id: reportId } })).phase).toBe("WAITING_FOR_APPROVED_RUBRIC");
+      await http.post("/api/v1/ai/rubrics/prepare").set(HRM).expect(201);
+      await http.post("/api/v1/ai/rubrics/prepare").set(HRM).expect(201);
+      const questions = (await http.get("/api/v1/ai/rubrics").set(HRM).expect(200)).body.data;
+      expect(questions).toHaveLength(8);
+      for (const q of questions) { expect(q.rubrics).toHaveLength(1); await http.post(`/api/v1/ai/rubrics/${q.rubrics[0].id}/approve`).set(HRM).expect(201); }
+      await http.put(`/api/v1/ai/rubrics/${questions[0].rubrics[0].id}`).set(HRM).send({ content: questions[0].rubrics[0].content }).expect(400);
+      const requestSpy = jest.spyOn(app.get(OpenRouterService), "request");
+      await prisma.assessmentReport.update({ where: { id: reportId }, data: { status: "PROCESSING" } });
+      await app.get(AssessmentService).process(reportId);
+      const persisted = await prisma.assessmentReport.findUniqueOrThrow({ where: { id: reportId } });
+      expect(persisted.phase).toBe("WAITING_FOR_APPROVED_PROVIDER"); expect(persisted.nlp).toHaveLength(4); expect(persisted.generatedAt).toBeNull(); expect(requestSpy).not.toHaveBeenCalled(); requestSpy.mockRestore();
+    });
+    it("saves grounded mocked LLM output and preserves it through HR corrections and reassessment", async () => {
+      const provider = app.get(OpenRouterService);
+      const allow = jest.spyOn(provider, "allowed").mockReturnValue(true);
+      const requestSpy = jest.spyOn(provider, "request").mockImplementation(async args => {
+        const questions = (args.input as { questions: { questionId: string; answer: string }[] }).questions;
+        const result = { questions: questions.map(q => ({ questionId: q.questionId, relevance: "insufficient_information", observedConcepts: [], strengths: [], reviewPoints: [{ observation: "Clarification required", evidence: q.answer }], limitations: ["Fictional mocked test"] })), summary: { observedStrengths: [], areasForHRReview: ["Clarification required"], limitations: ["Fictional mocked test"], requiresHumanReview: true } };
+        args.validate(result); return result;
+      });
+      await prisma.assessmentReport.update({ where: { id: reportId }, data: { status: "PROCESSING" } });
+      await app.get(AssessmentService).process(reportId);
+      const original = (await http.get(`/api/v1/assessments/${reportId}`).set(REV).expect(200)).body.data;
+      expect(original.status).toBe("COMPLETED"); expect(original.findings.questions).toHaveLength(4); expect(requestSpy).toHaveBeenCalledTimes(1);
+      await http.post(`/api/v1/ai/reports/${reportId}/corrections`).set(REV).send({ questionCode: "CSR-001", relevance: "partially_relevant", note: "Fictional review correction", reviewed: true }).expect(201);
+      const refreshed = (await http.get(`/api/v1/assessments/${reportId}`).set(REV).expect(200)).body.data;
+      expect(refreshed.findings).toEqual(original.findings); expect(refreshed.corrections).toHaveLength(1);
+      expect((await prisma.hrReview.findUniqueOrThrow({ where: { interviewSessionId: interviewId } })).status).toBe("REVIEWED");
+      const next = (await http.post(`/api/v1/ai/reports/${reportId}/reassess`).set(REV).expect(201)).body.data;
+      expect(next.version).toBe(2);
+      const repeated = (await http.post(`/api/v1/ai/reports/${reportId}/reassess`).set(REV).expect(201)).body.data; expect(repeated.id).toBe(next.id);
+      expect(await prisma.assessmentReport.count({ where: { sessionId: interviewId } })).toBe(2);
+      allow.mockRestore(); requestSpy.mockRestore();
+    });
+    it("does not retry beyond configured attempts and preserves NLP", async () => {
+      const latest = await prisma.assessmentReport.findFirstOrThrow({ where: { sessionId: interviewId }, orderBy: { version: "desc" } });
+      await prisma.lLMRequestUsage.createMany({ data: [0, 1, 2].map(attempt => ({ reportId: latest.id, model: "mock", purpose: "test", attempt, status: "PROVIDER_UNAVAILABLE" })) });
+      const allow = jest.spyOn(app.get(OpenRouterService), "allowed").mockReturnValue(true);
+      await prisma.assessmentReport.update({ where: { id: latest.id }, data: { status: "PROCESSING" } });
+      await app.get(AssessmentService).process(latest.id);
+      const result = await prisma.assessmentReport.findUniqueOrThrow({ where: { id: latest.id } });
+      expect(result.failureReason).toBe("RETRY_EXHAUSTED"); expect(result.nlp).toHaveLength(4); allow.mockRestore();
     });
   });
 

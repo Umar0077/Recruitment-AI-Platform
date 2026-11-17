@@ -84,6 +84,8 @@ interface DemoState {
   flow: CandidateFlow;
   candidateSession: DemoSession | null;
   adminSession: DemoSession | null;
+  /** Fictional demo progress per normalized email; never a substitute for real authentication. */
+  candidateProgress: Record<string, DemoCandidateProgress>;
 
   startSession: (role: DemoSession["role"], email: string) => void;
   endSession: (role: DemoSession["role"]) => void;
@@ -114,6 +116,14 @@ interface DemoState {
   inviteTeamMember: (name: string, email: string, role: TeamRole) => void;
 
   resetDemo: () => void;
+  /** Resets candidate-side demo interview progress, answers, timers, and completion state so a fresh presentation can begin. */
+  resetDemoInterview: (candidateId?: string) => void;
+}
+
+interface DemoCandidateProgress {
+  flow: CandidateFlow;
+  candidate?: Candidate;
+  interview?: InterviewSession;
 }
 
 const freshData = () => {
@@ -135,7 +145,7 @@ function toInterviewAnswers(captured: CapturedAnswer[]): InterviewAnswer[] {
   let t = 18;
   return captured.map((a) => {
     const q = questionById(a.questionId);
-    const out = { questionId: a.questionId, questionNumber: a.questionNumber ?? q?.number, questionText: a.questionText ?? q?.text, category: a.category ?? q?.category, startedAtSec: t, durationSec: Math.max(3, Math.round(a.durationSec)), transcript: a.transcript, inputMode: a.inputMode };
+    const out = { questionId: a.questionId, questionNumber: a.questionNumber ?? q?.number, questionText: a.questionText ?? q?.text, category: a.category ?? q?.category, startedAtSec: t, durationSec: Math.max(3, Math.round(a.durationSec)), transcript: a.transcript, inputMode: a.inputMode, originalTranscript: a.originalTranscript, cleanedTranscript: a.cleanedTranscript, hasUnfinalized: a.hasUnfinalized, language: a.language, cleanupVersion: a.cleanupVersion };
     t += out.durationSec + 14;
     return out;
   });
@@ -182,12 +192,24 @@ export const useDemoStore = create<DemoState>()(
       ...freshData(),
       candidateSession: null,
       adminSession: null,
+      candidateProgress: {},
 
       startSession: (role, email) => {
         const session: DemoSession = { role, email, startedAt: nowIso() };
-        set(role === "admin" ? { adminSession: session } : { candidateSession: session });
+        if (role === "admin") {
+          set({ adminSession: session });
+        } else {
+          get().resetDemoInterview(FEATURED.fresher);
+          set({ candidateSession: session, candidateProgress: {} });
+        }
       },
-      endSession: (role) => set(role === "admin" ? { adminSession: null } : { candidateSession: null }),
+      endSession: (role) => {
+        if (role === "admin") {
+          set({ adminSession: null });
+        } else {
+          set({ candidateSession: null, candidateProgress: {}, flow: emptyFlow() });
+        }
+      },
 
       updateStatus: (candidateId, status, note) =>
         set((s) => {
@@ -257,7 +279,9 @@ export const useDemoStore = create<DemoState>()(
       markAllRead: () => set((s) => ({ notifications: s.notifications.map((n) => ({ ...n, read: true })) })),
       pushNotification: (n) => set((s) => ({ notifications: [{ ...n, id: uid("ntf"), at: nowIso(), read: false }, ...s.notifications] })),
 
-      selectDemoCandidate: (candidateId) => set({ flow: emptyFlow(candidateId) }),
+      selectDemoCandidate: (candidateId) => {
+        get().resetDemoInterview(candidateId);
+      },
       updateFlow: (patch) => set((s) => ({ flow: { ...s.flow, ...patch } })),
 
       recordAnswer: (answer) =>
@@ -309,7 +333,69 @@ export const useDemoStore = create<DemoState>()(
       inviteTeamMember: (name, email, role) =>
         set((s) => ({ team: [...s.team, { id: uid("usr"), name, email, role, active: false, title: "Invitation pending", lastActive: nowIso() }] })),
 
-      resetDemo: () => set((s) => ({ ...freshData(), adminSession: s.adminSession, candidateSession: s.candidateSession })),
+      resetDemoInterview: (candidateId) => {
+        const s = get();
+        const targetId = candidateId ?? s.flow.candidateId ?? FEATURED.fresher;
+        const featuredIds = [FEATURED.fresher, FEATURED.experienced];
+        const targetCandidateIds = Array.from(new Set([targetId, ...featuredIds]));
+
+        const interviewIdsToReset = s.candidates
+          .filter((c) => targetCandidateIds.includes(c.id))
+          .map((c) => c.interviewId)
+          .filter((id): id is string => !!id);
+
+        if (typeof window !== "undefined") {
+          try {
+            interviewIdsToReset.forEach((id) => {
+              sessionStorage.removeItem(`interviewos-prechecks:${id}`);
+            });
+            for (let i = sessionStorage.length - 1; i >= 0; i--) {
+              const k = sessionStorage.key(i);
+              if (k && k.startsWith("interviewos-prechecks:")) {
+                sessionStorage.removeItem(k);
+              }
+            }
+          } catch {
+            // ignore storage errors
+          }
+        }
+
+        const at = nowIso();
+        set((state) => ({
+          flow: emptyFlow(targetId),
+          interviews: state.interviews.map((iv) =>
+            interviewIdsToReset.includes(iv.id)
+              ? {
+                  ...iv,
+                  status: "not_started" as const,
+                  reviewStatus: "not_applicable" as const,
+                  answeredCount: 0,
+                  answers: [],
+                  capturedLive: false,
+                  startedAt: undefined,
+                  completedAt: undefined,
+                  durationSec: undefined,
+                  reviewerId: undefined,
+                  reviewedAt: undefined,
+                }
+              : iv,
+          ),
+          candidates: state.candidates.map((cand) =>
+            targetCandidateIds.includes(cand.id)
+              ? {
+                  ...cand,
+                  status: "ai_interview_pending" as const,
+                  stageEnteredAt: at,
+                  lastUpdated: at,
+                  followUp: false,
+                  events: cand.events.filter((e) => e.type === "application" || e.type === "invite"),
+                }
+              : cand,
+          ),
+        }));
+      },
+
+      resetDemo: () => set((s) => ({ ...freshData(), candidateProgress: {}, adminSession: s.adminSession, candidateSession: s.candidateSession })),
     }),
     {
       name: "interviewos-demo-v3",
@@ -322,6 +408,7 @@ export const useDemoStore = create<DemoState>()(
         return {
           ...current,
           ...p,
+          candidateProgress: p.candidateProgress ?? {},
           settings: { ...current.settings, ...p.settings },
           flow: { ...current.flow, ...p.flow },
           setups: {

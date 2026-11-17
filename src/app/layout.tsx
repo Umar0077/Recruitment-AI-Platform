@@ -4,8 +4,21 @@ import "./globals.css";
 import { Providers } from "./providers";
 import { BRAND } from "@/lib/brand";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
-const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope", weight: ["500", "600", "700", "800"], display: "swap" });
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+  fallback: ["system-ui", "-apple-system", "sans-serif"],
+  adjustFontFallback: false,
+});
+const manrope = Manrope({
+  subsets: ["latin"],
+  variable: "--font-manrope",
+  weight: ["500", "600", "700", "800"],
+  display: "swap",
+  fallback: ["system-ui", "-apple-system", "sans-serif"],
+  adjustFontFallback: false,
+});
 
 const title = `${BRAND.name} — ${BRAND.descriptor}`;
 const description = "An invitation-based AI-assisted interview experience. Complete your structured assessment and take the next step in your recruitment journey.";
@@ -24,7 +37,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   themeColor: [
     { media: "(prefers-color-scheme: dark)", color: "#060B1D" },
-    { media: "(prefers-color-scheme: light)", color: "#F8FAFC" },
+    { media: "(prefers-color-scheme: light)", color: "#FFFFFF" },
   ],
   colorScheme: "dark light",
 };

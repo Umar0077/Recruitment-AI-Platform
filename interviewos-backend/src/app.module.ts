@@ -21,14 +21,17 @@ import { AnalyticsModule } from "./modules/analytics/analytics.module";
 import { HealthModule } from "./modules/health/health.module";
 import { UsersModule } from "./modules/users/users.module";
 import { CareersIntegrationModule } from "./modules/integrations/careers.module";
+import { RecordingsModule } from "./modules/recordings/recordings.module";
 import { StorageModule } from "./integrations/storage/storage.module";
 import { MaintenanceModule } from "./jobs/maintenance.service";
+import { AssessmentModule } from "./modules/assessment/assessment.module";
 
 const SAFE_REQUEST_ID = /^[A-Za-z0-9-]{8,64}$/;
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true, cache: true, validate: validateEnv }),
+    AssessmentModule,
+    ConfigModule.forRoot({ isGlobal: true, cache: true, ignoreEnvFile: process.env.RECORDING_MODE === "local_test", validate: validateEnv }),
     LoggerModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService<EnvironmentVariables, true>) => ({
@@ -59,6 +62,7 @@ const SAFE_REQUEST_ID = /^[A-Za-z0-9-]{8,64}$/;
     AuditModule,
     NotificationsModule,
     StorageModule,
+    RecordingsModule,
     MaintenanceModule,
     QuestionSetsModule,
     CandidatesModule,

@@ -1,0 +1,180 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-17T15:20:52.611Z",
+  "scope": "Final backend verification",
+  "finalChecks": {
+    "typescript": {
+      "status": "passed",
+      "command": "npm run typecheck",
+      "exitCode": 0
+    },
+    "lint": {
+      "status": "passed",
+      "command": "npm run lint",
+      "coverage": "All backend src, test, and prisma TypeScript files",
+      "exitCode": 0
+    },
+    "productionBuild": {
+      "status": "passed",
+      "command": "Nest CLI build (same command as npm run build)",
+      "durationMs": 27899,
+      "exitCode": 0,
+      "typescriptErrorCodes": []
+    }
+  },
+  "regressionEvidence": {
+    "rerunDuringFinalBuildPass": false,
+    "suites": [
+      {
+        "name": "Authentication",
+        "passed": 71,
+        "failed": 0,
+        "source": "Independently reported by root agent; not rerun in this final pass"
+      },
+      {
+        "name": "API usage, OpenRouter, and assessment",
+        "passed": 70,
+        "failed": 0,
+        "source": "Four isolated Jest suites verified earlier in this task; no database-reset setup"
+      },
+      {
+        "name": "Transcript handling",
+        "passed": 10,
+        "failed": 0,
+        "source": "Independently reported by root agent; not rerun in this final pass"
+      },
+      {
+        "name": "Performance regressions",
+        "passed": 9,
+        "failed": 0,
+        "source": "Independently reported by root agent; not rerun in this final pass"
+      },
+      {
+        "name": "Real Firebase SDK against isolated Auth Emulator",
+        "passed": 8,
+        "failed": 0,
+        "pending": 0,
+        "source": "Actual Firebase client/Admin SDK tests verified earlier in this task",
+        "projectId": "demo-interviewos-auth-tests",
+        "emulatorStartupMs": 11624,
+        "ownedProcessTreeStopped": true,
+        "port9199Released": true,
+        "databaseAccess": false,
+        "realFirebaseProjectAccess": false
+      }
+    ],
+    "equipmentLifecycle": {
+      "passed": 6,
+      "failed": 0,
+      "source": "Focused frontend React tests verified earlier in this task"
+    }
+  },
+  "productionApiSmoke": {
+    "verifiedEarlierInTask": true,
+    "status": "passed",
+    "mode": "production",
+    "bindAddress": "127.0.0.1",
+    "temporaryPort": 3197,
+    "startupMs": 7173,
+    "readiness": {
+      "httpStatus": 200,
+      "status": "ok",
+      "database": "up",
+      "redis": "disabled",
+      "elapsedMs": 12
+    },
+    "anonymousAuthorization": [
+      {
+        "endpoint": "api-usage/overview",
+        "httpStatus": 401,
+        "elapsedMs": 6
+      },
+      {
+        "endpoint": "api-usage/history",
+        "httpStatus": 401,
+        "elapsedMs": 3
+      },
+      {
+        "endpoint": "api-usage/provider",
+        "httpStatus": 401,
+        "elapsedMs": 6
+      },
+      {
+        "endpoint": "ai/usage",
+        "httpStatus": 401,
+        "elapsedMs": 3
+      }
+    ],
+    "jobsInProcess": false,
+    "ownedApiProcessStopped": true,
+    "applicationRecordWrites": 0,
+    "rawLogsSuppressed": true
+  },
+  "openRouterMetadata": {
+    "verifiedEarlierInTask": true,
+    "status": "available",
+    "keyStatus": "available",
+    "creditsStatus": "available",
+    "model": "nvidia/nemotron-3.5-super-vl:free",
+    "modelAvailability": "available",
+    "pricingCategory": "free",
+    "inputCostPerMillion": 0,
+    "outputCostPerMillion": 0,
+    "requestCostUsd": null,
+    "contextWindow": 1000000,
+    "quotaSource": "provider",
+    "quotaResetSource": "unavailable",
+    "candidateDataAllowed": false,
+    "elapsedMs": 701,
+    "errors": [],
+    "completionRequests": 0,
+    "databaseWrites": 0,
+    "method": "Read-only GET key, credits, and model metadata"
+  },
+  "firebaseReadiness": {
+    "verifiedEarlierInTask": true,
+    "productionEnvironmentValid": true,
+    "projectId": "ai-recruitment-4d3e4",
+    "adminInitialized": true,
+    "unsignedEmulatorTokenRejected": true,
+    "testTokenRejected": true,
+    "oauthCredentialAccepted": true,
+    "oauthElapsedMs": 2337,
+    "projectConfigHttpStatus": 200,
+    "projectConfigElapsedMs": 779,
+    "googleProviderHttpStatus": 200,
+    "googleProviderElapsedMs": 348,
+    "googleProviderEnabled": true,
+    "emailPasswordEnabled": true,
+    "emailEnumerationProtectionEnabled": true,
+    "localhostAuthorized": true,
+    "configuredFrontendOriginsAuthorized": true,
+    "writes": 0
+  },
+  "databaseEvidence": {
+    "migration": "202611170001_api_usage_telemetry",
+    "appliedEarlierTo": [
+      "local test",
+      "local development"
+    ],
+    "pendingMigrationsAfterInspection": {
+      "test": 0,
+      "development": 0
+    },
+    "migrationType": "Additive nullable telemetry columns and indexes",
+    "rollbackIntegration": "Passed SQL UTC aggregate, retry/429, cost/token coverage, filter/pagination and privacy checks; zero fictional usage rows remained",
+    "resets": false,
+    "seeds": false,
+    "applicationRecordsOrPermissionsChanged": false,
+    "schemaWritesDuringFinalPass": 0,
+    "databaseTestsRerunDuringFinalPass": false
+  },
+  "safety": {
+    "credentialsDisplayedOrRecorded": false,
+    "realCandidateDataSentToFreeModel": false,
+    "persistentEnvironmentChangedDuringFinalPass": false,
+    "serversStartedDuringFinalPass": 0,
+    "ownedApiAndEmulatorProcessesLeftRunning": 0,
+    "defaultDatabaseResettingJestSetupUsed": false
+  }
+}

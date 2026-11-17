@@ -8,7 +8,8 @@ import { PrismaClient } from "@prisma/client";
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   constructor() {
-    super({ log: ["warn", "error"] });
+    // Raw Prisma diagnostics may contain query arguments; the HTTP layer logs safe categories.
+    super({ log: [] });
   }
   async onModuleInit() {
     await this.$connect();
