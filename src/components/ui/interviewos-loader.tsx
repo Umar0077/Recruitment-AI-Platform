@@ -1,6 +1,15 @@
 import { BrandMark } from "./brand";
 import { cn } from "@/lib/utils";
 
+/** Small, CSS-animated official mark; occupies only its contextual slot. */
+export function InterviewOSInlineLoader({ variant = "inline", message = "Loading…", className }: {
+  variant?: "button" | "inline" | "section" | "table" | "route";
+  message?: string;
+  className?: string;
+}) {
+  return <InterviewOSLoader variant={variant === "button" ? "button" : "inline"} size="sm" message={message} className={className} />;
+}
+
 /** Only mount during a genuine pending operation. No timers, capture effects or artificial delay. */
 export function InterviewOSLoader({ variant = "page", size = "md", message = "Preparing your experience…", fullscreen = false, inline = false, className }: {
   variant?: "page" | "inline" | "button" | "modal";

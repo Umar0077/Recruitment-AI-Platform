@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link";
+import Link from "@/components/navigation/link";
 import dynamic from "next/dynamic";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import { PoweredByConnectivo } from "@/components/ui/powered-by";
@@ -7,6 +7,7 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { AppLogo } from "@/components/ui/brand";
 import { CoreFallback } from "@/components/visuals/core-fallback";
 import { PageTransition } from "@/components/motion";
+import { RouteFeedback } from "@/components/navigation/provider";
 import { INTERVIEW_CONFIG } from "@/lib/brand";
 const AICore = dynamic(() => import("@/components/visuals/ai-core").then(m => m.AICore), { ssr: false, loading: () => <CoreFallback /> });
 
@@ -24,6 +25,7 @@ export function AuthFrame({ title, description, eyebrow = "Candidate access", ch
       <div className="pointer-events-none absolute inset-x-0 top-0 h-80 bg-[radial-gradient(500px_260px_at_50%_0%,rgba(37,99,235,calc(0.18*var(--glow-k))),transparent_70%)] lg:hidden" aria-hidden />
       <div className="relative flex items-center justify-between"><span className="lg:hidden"><AppLogo size="sm" /></span><Link href="/" className="ml-auto inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm text-fg-muted transition-colors hover:text-fg"><ArrowLeft className="size-4" aria-hidden /><span className="hidden sm:inline">Back to interview home</span><span className="sm:hidden">Home</span></Link><ThemeToggle className="ml-1" /></div>
       <PageTransition className="relative mx-auto flex w-full max-w-[400px] flex-1 flex-col justify-center py-12">
+        <RouteFeedback />
         <p className="eyebrow mb-4">{eyebrow}</p><h1 className="text-[34px] font-bold leading-tight sm:text-[40px]">{title}</h1><p className="mt-2 text-[15px] text-fg-muted">{description}</p><div className="mt-8">{children}</div><div className="mt-8 flex justify-center border-t border-subtle pt-6"><PoweredByConnectivo size="md" /></div>
       </PageTransition>
     </main>

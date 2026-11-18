@@ -2,9 +2,10 @@
 import { SkeletonPage } from "@/components/ui/primitives";
 import { isApiMode } from "@/lib/config/environment";
 import { ApiCandidatesList } from "@/components/api/admin/candidates-list";
-import Link from "next/link";
+import Link from "@/components/navigation/link";
 import { Suspense, useEffect, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "@/components/navigation/provider";
 import {
   createColumnHelper,
   flexRender,

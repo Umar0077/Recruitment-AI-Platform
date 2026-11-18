@@ -1,7 +1,7 @@
 "use client";
 import { useUserProfile } from "@/lib/auth/user-profile";
 /** API mode: team (users & roles), interview setup (published question sets) and settings. */
-import Link from "next/link";
+import Link from "@/components/navigation/link";
 import { useState } from "react";
 import { BookOpenCheck, Lock, ShieldCheck, UserCog, UsersRound } from "lucide-react";
 import { toast } from "sonner";

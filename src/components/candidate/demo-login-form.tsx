@@ -6,7 +6,7 @@
  * authentication can replace this component without redesigning the screens.
  */
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/components/navigation/provider";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -34,7 +34,7 @@ export function DemoLoginForm({ role, redirectTo, submitLabel }: { role: "candid
     setPending(true);
     startSession(role, email);
     toast.success("Signed in to the demo.", { description: "UI Preview Mode — no real authentication took place." });
-    setTimeout(() => router.push(typeof redirectTo === "function" ? redirectTo() : redirectTo), 350);
+    router.push(typeof redirectTo === "function" ? redirectTo() : redirectTo);
   };
 
   return (

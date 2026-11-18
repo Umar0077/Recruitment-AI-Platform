@@ -1,7 +1,8 @@
 "use client";
 /** API mode: interview sessions with server-side tabs, search, role/date filters and pagination. */
 import { useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "@/components/navigation/provider";
 import { CheckCircle2, ClipboardCheck, Hourglass, PlayCircle, Video, VideoOff } from "lucide-react";
 import { CandidateAvatar, GlassCard, Pill, SearchInput, SkeletonTable } from "@/components/ui/primitives";
 import { Select, Tabs, TabsList, TabsTrigger } from "@/components/ui/overlays";

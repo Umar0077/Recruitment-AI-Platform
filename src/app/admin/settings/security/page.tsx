@@ -1,7 +1,7 @@
 "use client";
-import Link from "next/link";
+import Link from "@/components/navigation/link";
 import { useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/components/navigation/provider";
 import { useAuth } from "@/lib/auth/auth-provider";
 import { useAccessGate } from "@/lib/auth/use-access-gate";
 import { apiRequest } from "@/lib/api/client";

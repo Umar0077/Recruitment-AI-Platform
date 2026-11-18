@@ -1,6 +1,6 @@
 "use client";
 /** API mode: HR review of a persisted interview — historical question snapshots + confirmed answers. */
-import Link from "next/link";
+import Link from "@/components/navigation/link";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { MessageSquarePlus, RefreshCw, UserRound } from "lucide-react";

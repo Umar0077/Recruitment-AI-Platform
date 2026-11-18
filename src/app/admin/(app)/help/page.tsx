@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link";
+import Link from "@/components/navigation/link";
 import { BookOpen, ClipboardCheck, Command, FlaskConical, KanbanSquare, LifeBuoy, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { GlassCard, Kbd } from "@/components/ui/primitives";

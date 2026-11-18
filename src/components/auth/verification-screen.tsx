@@ -1,7 +1,8 @@
 "use client";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import Link from "@/components/navigation/link";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "@/components/navigation/provider";
 import { CheckCircle2, MailCheck } from "lucide-react";
 import { AuthFrame } from "./auth-frame";
 import { Button } from "@/components/ui/button";

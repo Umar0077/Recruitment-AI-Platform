@@ -4,7 +4,7 @@
  * recently updated matching applications. Every move is validated by the backend before the card moves.
  */
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/components/navigation/provider";
 import { ArrowRightLeft, Clock, GripVertical, Inbox, MoreHorizontal, RefreshCw, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";

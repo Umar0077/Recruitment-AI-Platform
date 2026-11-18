@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link";
+import Link from "@/components/navigation/link";
 import { isApiMode } from "@/lib/config/environment";
 import { ApiDashboard } from "@/components/api/admin/dashboard";
 import { DashboardView, PendingReviews } from "@/components/admin/dashboard-view";

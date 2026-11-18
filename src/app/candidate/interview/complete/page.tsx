@@ -1,6 +1,6 @@
 "use client";
 import { CompletionMediaStatus } from "@/components/candidate/completion-media-status";
-import Link from "next/link";
+import Link from "@/components/navigation/link";
 import { motion, useReducedMotion } from "motion/react";
 import { ArrowRight, CalendarCheck, Hash, Mail, UserRound, Briefcase, ShieldCheck } from "lucide-react";
 import { CandidateShell } from "@/components/candidate/shell";

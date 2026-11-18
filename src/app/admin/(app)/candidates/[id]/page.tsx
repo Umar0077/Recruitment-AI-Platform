@@ -1,9 +1,10 @@
 "use client";
 import { isApiMode } from "@/lib/config/environment";
 import { ApiCandidateProfile } from "@/components/api/admin/candidate-profile";
-import Link from "next/link";
+import Link from "@/components/navigation/link";
 import { Suspense, useState } from "react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
+import { useRouter } from "@/components/navigation/provider";
 import { ArrowRight, CalendarPlus, ClipboardCheck, Clock, History, Mail, MapPin, MessageSquarePlus, NotebookPen, Phone, RefreshCw, Sparkles, UserRound, UserX, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge, CandidateAvatar, Field, GlassCard, CardHeader, SkeletonPage } from "@/components/ui/primitives";

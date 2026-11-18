@@ -1,9 +1,10 @@
 "use client";
 /** API mode: one application (= candidate recruitment record) from PostgreSQL, with timeline, remarks and actions. */
-import Link from "next/link";
+import Link from "@/components/navigation/link";
 import { useState } from "react";
 import { useAuth } from "@/lib/auth/auth-provider";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
+import { useRouter } from "@/components/navigation/provider";
 import { Clock, History, Mail, MapPin, MessageSquarePlus, NotebookPen, Phone, RefreshCw, Sparkles, UserRound, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge, CandidateAvatar, CardHeader, Field, GlassCard, SkeletonPage } from "@/components/ui/primitives";

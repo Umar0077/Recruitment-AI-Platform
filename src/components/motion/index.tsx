@@ -29,7 +29,7 @@ export function Reveal({ children, delay = 0, y = 18, className, ...rest }: { ch
 export function PageTransition({ children, className }: { children: React.ReactNode; className?: string }) {
   const reduce = usePrefersReducedMotion();
   return (
-    <motion.div className={className} initial={reduce ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: DURATION.page, ease: EASE }}>
+    <motion.div className={className} initial={reduce ? false : { opacity: 0.96, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: DURATION.page, ease: EASE }}>
       {children}
     </motion.div>
   );

@@ -1,7 +1,7 @@
 "use client";
 import { isApiMode } from "@/lib/config/environment";
 import { ApiAssessmentsList } from "@/components/api/admin/assessments";
-import Link from "next/link";
+import Link from "@/components/navigation/link";
 import { useMemo, useState } from "react";
 import { ArrowRight, ClipboardCheck } from "lucide-react";
 import { CandidateAvatar, GlassCard, Pill } from "@/components/ui/primitives";

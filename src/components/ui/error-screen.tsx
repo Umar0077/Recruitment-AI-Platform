@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/navigation/link";
 import { AppLogo } from "./brand";
 import { Button } from "./button";
 import { ThemeToggle } from "./theme-toggle";

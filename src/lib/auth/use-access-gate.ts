@@ -6,7 +6,8 @@
  *  - API mode: Firebase sign-in + backend profile. Nothing renders until both are known.
  */
 import { useEffect } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { useRouter } from "@/components/navigation/provider";
 import { isApiMode } from "@/lib/config/environment";
 import { useHydrated } from "@/hooks/use-demo";
 import { useDemoStore } from "@/lib/demo/store";

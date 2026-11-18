@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link";
+import Link from "@/components/navigation/link";
 import { ArrowLeft, ArrowRight, Camera, Clock, FileText, LifeBuoy, ListOrdered, MessageSquareText, Mic } from "lucide-react";
 import { CandidateShell } from "@/components/candidate/shell";
 import { Button } from "@/components/ui/button";

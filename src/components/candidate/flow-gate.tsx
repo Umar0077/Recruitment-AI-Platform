@@ -1,7 +1,8 @@
 "use client";
 /** Common loading / error / unavailable handling for candidate pages, shared by demo and API mode. */
 import { useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { useRouter } from "@/components/navigation/provider";
 import { Skeleton } from "@/components/ui/primitives";
 import { ApiErrorPanel } from "@/components/api/query-state";
 import { useQueryClient } from "@tanstack/react-query";

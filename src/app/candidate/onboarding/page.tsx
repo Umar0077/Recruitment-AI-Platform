@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/components/navigation/provider";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CandidateShell } from "@/components/candidate/shell";
 import { Button } from "@/components/ui/button";

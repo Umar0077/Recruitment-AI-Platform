@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link";
+import Link from "@/components/navigation/link";
 import { ArrowLeft, KeyRound, ShieldCheck } from "lucide-react";
 import { PoweredByConnectivo } from "@/components/ui/powered-by";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -7,6 +7,7 @@ import { BrandMark } from "@/components/ui/brand";
 import { DemoLoginForm } from "@/components/candidate/demo-login-form";
 import { DemoBadge } from "@/components/ui/states";
 import { PageTransition } from "@/components/motion";
+import { RouteFeedback } from "@/components/navigation/provider";
 import { BRAND } from "@/lib/brand";
 import { isApiMode } from "@/lib/config/environment";
 import { AdminSignIn } from "@/components/auth/admin-sign-in";
@@ -30,6 +31,7 @@ export default function AdminLoginPage() {
       <div className="absolute right-4 top-4 flex items-center gap-2 sm:right-5 sm:top-5">{!isApiMode && <DemoBadge className="hidden sm:inline-flex" />}<ThemeToggle /></div>
 
       <PageTransition className="relative w-full max-w-[440px]">
+        <RouteFeedback />
         <div className="mb-8 flex flex-col items-center text-center">
           <div className="relative">
             <div className="absolute -inset-4 rounded-full bg-brand/30 blur-2xl" aria-hidden />

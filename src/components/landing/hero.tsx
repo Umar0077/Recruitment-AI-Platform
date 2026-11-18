@@ -1,6 +1,6 @@
 "use client";
 import { useLayoutEffect, useRef, useState } from "react";
-import Link from "next/link";
+import Link from "@/components/navigation/link";
 import { ArrowRight, Clock, Mail, PlayCircle } from "lucide-react";
 import { PoweredByConnectivo } from "@/components/ui/powered-by";
 import gsap from "gsap";

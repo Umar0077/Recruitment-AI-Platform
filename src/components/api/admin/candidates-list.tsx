@@ -1,8 +1,9 @@
 "use client";
 /** API mode: candidate/application list with server-side search, filters, sorting and pagination. */
-import Link from "next/link";
+import Link from "@/components/navigation/link";
 import { useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "@/components/navigation/provider";
 import { ArrowDown, ArrowUp, Eye, FilterX, SlidersHorizontal, UsersRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge, CandidateAvatar, GlassCard, SearchInput, SkeletonTable } from "@/components/ui/primitives";

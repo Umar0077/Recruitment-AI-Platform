@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link";
+import Link from "@/components/navigation/link";
 import dynamic from "next/dynamic";
 import { ArrowRight, Briefcase, CalendarClock, CheckCircle2, Clock, FileText, PlayCircle, RotateCcw, Sparkles, UserRound } from "lucide-react";
 import { toast } from "sonner";

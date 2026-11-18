@@ -10,6 +10,7 @@ import { useDemoStore } from "@/lib/demo/store";
 import { AuthProvider } from "@/lib/auth/auth-provider";
 import { QueryProvider } from "@/lib/query/provider";
 import { PointerSystem } from "@/components/motion/pointer-system";
+import { NavigationProvider } from "@/components/navigation/provider";
 
 function ThemedToaster() {
   const { resolvedTheme } = useTheme();
@@ -55,7 +56,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <PointerSystem />
         <TooltipProvider delayDuration={250}>
           <QueryProvider>
-            <AuthProvider>{children}</AuthProvider>
+            <AuthProvider><NavigationProvider>{children}</NavigationProvider></AuthProvider>
           </QueryProvider>
           <ThemedToaster />
         </TooltipProvider>

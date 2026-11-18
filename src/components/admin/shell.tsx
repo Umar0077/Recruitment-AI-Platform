@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import Link from "@/components/navigation/link";
+import { usePathname } from "next/navigation";
+import { useRouter } from "@/components/navigation/provider";
 import { Bell, CheckCheck, ChevronRight, ChevronsLeft, ChevronsRight, ClipboardCheck, LogOut, Menu, MessageSquarePlus, Search, Settings, Sparkles, Star, UserRound, Video } from "lucide-react";
 import { PoweredByConnectivo } from "@/components/ui/powered-by";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -12,6 +13,7 @@ import { Kbd, SkeletonPage } from "@/components/ui/primitives";
 import { DemoBadge, EmptyState } from "@/components/ui/states";
 import { Drawer, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, Popover, PopoverContent, PopoverTrigger, Tooltip } from "@/components/ui/overlays";
 import { PageTransition } from "@/components/motion";
+import { RouteFeedback } from "@/components/navigation/provider";
 import { NAV_GROUPS, isActive, isNavVisible, pageTitle } from "./nav";
 import { CommandPalette } from "./command-palette";
 import { useDemoStore } from "@/lib/demo/store";
@@ -28,7 +30,6 @@ import type { NotificationKind } from "@/types";
 
 function SidebarNav({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: () => void }) {
   const { profile } = useAuth();
-  const router = useRouter();
   const pathname = usePathname();
   const demoAwaiting = useDemoStore((s) => s.interviews.filter((i) => i.reviewStatus === "awaiting_review").length);
   const apiAwaiting = useOpenReviewCount();
@@ -48,7 +49,6 @@ function SidebarNav({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?
                   href={item.href}
                   aria-label={item.label}
                   prefetch={true}
-                  onMouseEnter={() => router.prefetch(item.href)}
                   onClick={onNavigate}
                   aria-current={active ? "page" : undefined}
                   className={cn(
@@ -304,7 +304,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        <main className="px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+        <main className="relative px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+          <RouteFeedback />
           <div className="mx-auto max-w-[1480px]">
             {ready ? <PageTransition>{children}</PageTransition> : <SkeletonPage />}
           </div>

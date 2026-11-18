@@ -1,6 +1,6 @@
 "use client";
 /** HR review controls shared by the interview review workspace and the assessment report. */
-import Link from "next/link";
+import Link from "@/components/navigation/link";
 import { useState } from "react";
 import { BadgeCheck, Flag, KanbanSquare, MessageSquarePlus, Star, UserX } from "lucide-react";
 import { toast } from "sonner";

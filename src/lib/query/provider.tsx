@@ -17,7 +17,8 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
             staleTime: 30_000,
             refetchOnWindowFocus: true,
             // Retry only transient failures; never retry auth/permission/validation errors.
-            retry: (count, err) => count < 2 && (!(err instanceof ApiError) || err.status === 0 || err.status >= 500),
+            // A 20s timeout must surface promptly, not silently restart two more 20s waits.
+            retry: (count, err) => count < 1 && err instanceof ApiError && err.status >= 500,
           },
           mutations: { retry: false },
         },

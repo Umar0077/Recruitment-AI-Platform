@@ -1,7 +1,7 @@
 "use client";
 import { isApiMode } from "@/lib/config/environment";
 import { ApiAssessmentDetail } from "@/components/api/admin/assessments";
-import Link from "next/link";
+import Link from "@/components/navigation/link";
 import { useParams } from "next/navigation";
 import { AlertTriangle, ArrowLeft, CheckCircle2, ClipboardX, FileText, Info, Printer, Quote, ScanSearch, ShieldAlert, Video } from "lucide-react";
 import { toast } from "sonner";

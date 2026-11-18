@@ -2,7 +2,7 @@
 /**
  * API mode: persisted evidence and diagnostics. Reading never triggers LLM generation.
  */
-import Link from "next/link";
+import Link from "@/components/navigation/link";
 import { useState } from "react";
 import { useParams } from "next/navigation";
 import { ClipboardCheck, Video } from "lucide-react";

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/components/navigation/link";
 import { ArrowLeft, FileText, Mail } from "lucide-react";
 import { AppLogo } from "@/components/ui/brand";
 import { Button } from "@/components/ui/button";

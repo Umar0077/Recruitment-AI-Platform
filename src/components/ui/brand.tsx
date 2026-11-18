@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link";
+import Link from "@/components/navigation/link";
 import { useId } from "react";
 import { BRAND } from "@/lib/brand";
 import { cn } from "@/lib/utils";

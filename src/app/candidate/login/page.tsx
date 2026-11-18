@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link";
+import Link from "@/components/navigation/link";
 import { AuthFrame } from "@/components/auth/auth-frame";
 import { DemoLoginForm } from "@/components/candidate/demo-login-form";
 import { isApiMode } from "@/lib/config/environment";

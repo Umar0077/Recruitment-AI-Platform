@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import Link from "@/components/navigation/link";
+import { usePathname } from "next/navigation";
+import { useRouter } from "@/components/navigation/provider";
 import { Check, HelpCircle, LifeBuoy, LogOut, Mail, RefreshCw, WifiOff } from "lucide-react";
 import { PoweredByConnectivo } from "@/components/ui/powered-by";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -11,6 +12,7 @@ import { DemoBadge } from "@/components/ui/states";
 import { Dialog, DialogContent, DialogFooter, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuItem } from "@/components/ui/overlays";
 import { Skeleton } from "@/components/ui/primitives";
 import { PageTransition } from "@/components/motion";
+import { RouteFeedback } from "@/components/navigation/provider";
 import { useDemoStore } from "@/lib/demo/store";
 import { useAuth } from "@/lib/auth/auth-provider";
 import { useUserProfile } from "@/lib/auth/user-profile";
@@ -110,8 +112,7 @@ export function usePageTitle(override?: string) {
   }, [title]);
 }
 
-export function CandidateShell({ children, step, wide, className }: { children: React.ReactNode; step?: number; wide?: boolean; className?: string }) {
-  const ready = useCandidateGate();
+function CandidateFrame({ children }: { children: React.ReactNode }) {
   usePageTitle();
   const [help, setHelp] = useState(false);
   const endSession = useDemoStore((s) => s.endSession);
@@ -151,24 +152,27 @@ export function CandidateShell({ children, step, wide, className }: { children: 
           </div>
         </div>
       </header>
-      <main className={cn("container relative z-10 py-8 sm:py-12", wide ? "max-w-6xl" : "max-w-3xl", className)}>
-        {step !== undefined && (
-          <div className="mb-8 sm:mb-10">
-            <FlowStepper current={step} />
-          </div>
-        )}
-        {ready ? (
-          <PageTransition>{children}</PageTransition>
-        ) : (
-          <div className="space-y-4" aria-busy="true">
-            <Skeleton className="h-8 w-2/3" />
-            <Skeleton className="h-4 w-1/2" />
-            <Skeleton className="h-64 w-full rounded-2xl" />
-          </div>
-        )}
-      </main>
+      <div className="relative"><RouteFeedback />{children}</div>
       <footer className="relative z-10 flex justify-center pb-8"><PoweredByConnectivo size="sm" /></footer>
       <HelpDialog open={help} onOpenChange={setHelp} />
     </div>
   );
+}
+
+/** Shared layout owns the header/help state. The focused session intentionally owns its own controls. */
+export function CandidateLayoutFrame({ children }: { children: React.ReactNode }) {
+  const path = usePathname();
+  const framed = path === "/candidate/onboarding" || path === "/candidate/status" ||
+    (path.startsWith("/candidate/interview") && !["/candidate/interview/session", "/candidate/interview/unavailable"].includes(path));
+  return framed ? <CandidateFrame>{children}</CandidateFrame> : <>{children}</>;
+}
+
+export function CandidateShell({ children, step, wide, className }: { children: React.ReactNode; step?: number; wide?: boolean; className?: string }) {
+  const ready = useCandidateGate();
+  return <main className={cn("container relative z-10 py-8 sm:py-12", wide ? "max-w-6xl" : "max-w-3xl", className)}>
+    {step !== undefined && <div className="mb-8 sm:mb-10"><FlowStepper current={step} /></div>}
+    {ready ? <PageTransition>{children}</PageTransition> : <div className="space-y-4" aria-busy="true">
+      <Skeleton className="h-8 w-2/3" /><Skeleton className="h-4 w-1/2" /><Skeleton className="h-64 w-full rounded-2xl" />
+    </div>}
+  </main>;
 }

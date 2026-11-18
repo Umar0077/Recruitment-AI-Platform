@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import Link from "next/link";
+import Link from "@/components/navigation/link";
 import { useParams } from "next/navigation";
 import { UserRound, VideoOff } from "lucide-react";
 import { isApiMode } from "@/lib/config/environment";

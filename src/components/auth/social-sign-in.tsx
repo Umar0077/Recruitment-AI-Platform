@@ -5,8 +5,9 @@
  * staff access or another candidate's interview by itself.
  */
 import { Suspense, useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import Link from "@/components/navigation/link";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "@/components/navigation/provider";
 import { AlertTriangle, Info, LogOut, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { safeNext, useAuth, type SocialProvider } from "@/lib/auth/auth-provider";

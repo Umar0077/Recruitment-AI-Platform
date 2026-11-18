@@ -1,7 +1,7 @@
 "use client";
 import { useUserProfile } from "@/lib/auth/user-profile";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import Link from "@/components/navigation/link";
+import { useRouter } from "@/components/navigation/provider";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CircleStop, RotateCcw } from "lucide-react";
 import { toast } from "sonner";

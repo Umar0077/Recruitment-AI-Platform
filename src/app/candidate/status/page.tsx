@@ -2,8 +2,8 @@
 import { CandidateProfileSummary } from "@/components/candidate/profile-summary";
 import { INTERVIEW_STATUS } from "@/lib/api/labels";
 import { useUserProfile } from "@/lib/auth/user-profile";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import Link from "@/components/navigation/link";
+import { useRouter } from "@/components/navigation/provider";
 import { Check, Circle, Clock, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { CandidateShell } from "@/components/candidate/shell";

@@ -3,7 +3,7 @@ import { isApiMode } from "@/lib/config/environment";
 import { ApiPipeline } from "@/components/api/admin/pipeline";
 
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/components/navigation/provider";
 import { motion, LayoutGroup } from "motion/react";
 import { Clock, GripVertical, MoreHorizontal, RefreshCw, Sparkles, UserRound, Video, ArrowRightLeft, Inbox } from "lucide-react";
 import { toast } from "sonner";

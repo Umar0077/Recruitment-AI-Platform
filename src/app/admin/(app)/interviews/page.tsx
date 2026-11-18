@@ -2,9 +2,10 @@
 import { SkeletonPage } from "@/components/ui/primitives";
 import { isApiMode } from "@/lib/config/environment";
 import { ApiInterviewsList } from "@/components/api/admin/interviews-list";
-import Link from "next/link";
+import Link from "@/components/navigation/link";
 import { Suspense, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "@/components/navigation/provider";
 import { CheckCircle2, ChevronLeft, ChevronRight, ClipboardCheck, FileText, Hourglass, MoreHorizontal, PlayCircle, UserRound, Video, VideoOff, Clock3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CandidateAvatar, GlassCard, Pill, SearchInput, SkeletonTable } from "@/components/ui/primitives";

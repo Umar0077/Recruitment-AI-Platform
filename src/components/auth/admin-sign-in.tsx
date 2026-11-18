@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/components/navigation/provider";
 import { useAuth } from "@/lib/auth/auth-provider";
 import { Button } from "@/components/ui/button";
 export function AdminSignIn() {

@@ -1,6 +1,6 @@
 "use client";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import Link from "@/components/navigation/link";
+import { useRouter } from "@/components/navigation/provider";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AlertTriangle, ArrowLeft, ArrowRight, Camera, CameraOff, CheckCircle2, CircleDashed, FlaskConical, Loader2, Mic, MicOff, Play, RotateCcw, Square, Trash2, Volume2, Wifi, XCircle } from "lucide-react";
 import { toast } from "sonner";

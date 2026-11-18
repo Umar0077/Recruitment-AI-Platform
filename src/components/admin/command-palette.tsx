@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/components/navigation/provider";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Briefcase, CornerDownLeft, Search, SearchX, Video } from "lucide-react";
 import { CandidateAvatar, Kbd } from "@/components/ui/primitives";

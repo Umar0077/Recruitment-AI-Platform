@@ -1,9 +1,9 @@
 "use client";
 import { isApiMode } from "@/lib/config/environment";
 import { ApiSettings } from "@/components/api/admin/management";
-import Link from "next/link";
+import Link from "@/components/navigation/link";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/components/navigation/provider";
 import { Bell, Building2, FlaskConical, Lock, Palette, RotateCcw, Save, Settings2, SlidersHorizontal, Sun, Users } from "lucide-react";
 import { toast } from "sonner";
 import type { PlatformSettings, RecruitmentStatus } from "@/types";

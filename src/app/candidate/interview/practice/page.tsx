@@ -1,6 +1,6 @@
 "use client";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import Link from "@/components/navigation/link";
+import { useRouter } from "@/components/navigation/provider";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, SkipForward } from "lucide-react";
 import { toast } from "sonner";
