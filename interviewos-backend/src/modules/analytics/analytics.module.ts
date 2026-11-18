@@ -65,7 +65,7 @@ export class AnalyticsController {
     const appWhere: Prisma.ApplicationWhereInput = { submittedAt: range, candidate: sample };
     const ivWhere: Prisma.InterviewSessionWhereInput = { createdAt: range, ...sample };
 
-    const [candidates, byStatus, byTrack, ivByStatus, reviewsPending, durations] = await Promise.all([
+    const [candidates, byStatus, byTrack, ivByStatus, reviewsPending, durations, selectedCandidates] = await Promise.all([
       this.prisma.candidate.count({ where: { ...sample, createdAt: range } }),
       this.prisma.application.groupBy({ by: ["status"], where: appWhere, _count: { _all: true } }),
       this.prisma.candidate.groupBy({ by: ["category"], where: { ...sample, createdAt: range }, _count: { _all: true } }),
@@ -79,6 +79,7 @@ export class AnalyticsController {
           AND (${includeSample} OR is_sample = false)
           AND (${range?.gte ?? null}::timestamptz IS NULL OR created_at >= ${range?.gte ?? null}::timestamptz)
           AND (${range?.lte ?? null}::timestamptz IS NULL OR created_at <= ${range?.lte ?? null}::timestamptz)`,
+      this.prisma.candidate.count({ where: { ...sample, applications: { some: { submittedAt: range, status: { in: ["SELECTED", "OFFER_RELEASED", "OFFER_ACCEPTED", "DOCUMENTATION_ONBOARDING", "PRODUCTION_ONBOARDING", "JOINED"] } } } } }),
     ]);
 
     const iv = Object.fromEntries(Object.values(InterviewStatus).map((s) => [s, 0])) as Record<InterviewStatus, number>;
@@ -90,7 +91,7 @@ export class AnalyticsController {
     return {
       includeSample,
       range: { from: q.from ?? null, to: q.to ?? null },
-      candidates: { total: candidates, byTrack: Object.fromEntries(byTrack.map((g) => [g.category, g._count._all])) },
+      candidates: { total: candidates, selected: selectedCandidates, byTrack: Object.fromEntries(byTrack.map((g) => [g.category, g._count._all])) },
       applications: {
         total: byStatus.reduce((n, g) => n + g._count._all, 0),
         byStatus: RECRUITMENT_STATUS_ORDER.map((s) => ({ status: s, label: RECRUITMENT_STATUS_LABELS[s], count: statusCounts.get(s) ?? 0 })),

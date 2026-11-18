@@ -139,9 +139,9 @@ export function usePipelineCounts() {
   const ready = useReady();
   return useQuery({ queryKey: qk.pipeline, queryFn: ({ signal }) => api.recruitment.pipeline({ signal }), enabled: ready });
 }
-export function useOverview(q: { from?: string; to?: string } = {}) {
+export function useOverview(q: { from?: string; to?: string } = {}, enabled = true) {
   const ready = useReady();
-  return useQuery({ queryKey: qk.overview(q), queryFn: ({ signal }) => api.analytics.overview(q, { signal }), enabled: ready, placeholderData: keepPreviousData });
+  return useQuery({ queryKey: qk.overview(q), queryFn: ({ signal }) => api.analytics.overview(q, { signal }), enabled: ready && enabled, placeholderData: keepPreviousData });
 }
 export function useActivity(weeks: number) {
   const ready = useReady();

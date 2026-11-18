@@ -21,6 +21,8 @@ export interface NotificationFeed {
   unread: number;
   loading: boolean;
   error: unknown;
+  retry: () => void;
+  marking: boolean;
   markRead: (id: string) => void;
   markAllRead: () => void;
 }
@@ -44,14 +46,16 @@ function useApiFeed(): NotificationFeed {
       unread,
       loading: q.isPending,
       error: q.error,
-      markRead: (id: string) => mark.mutate(id),
+      retry: () => { void q.refetch(); },
+      marking: mark.isPending,
+      markRead: (id: string) => { if (!mark.isPending) mark.mutate(id, { onError: e => toast.error("Could not mark notification as read.", { description: errorText(e) }) }); },
       markAllRead: () =>
         mark.mutate("all", {
           onSuccess: () => toast.success("All notifications marked as read."),
           onError: (e) => toast.error("Couldn't update notifications.", { description: errorText(e) }),
         }),
     };
-  }, [q.data, q.isPending, q.error, mark]);
+  }, [q, mark]);
 }
 
 function useDemoFeed(): NotificationFeed {
@@ -64,6 +68,8 @@ function useDemoFeed(): NotificationFeed {
       unread: notifications.filter((n) => !n.read).length,
       loading: false,
       error: null,
+      retry: () => {},
+      marking: false,
       markRead,
       markAllRead: () => { markAll(); toast.success("All notifications marked as read."); },
     }),

@@ -271,7 +271,7 @@ export interface AssessmentDetail extends AssessmentSummary {
 export interface AnalyticsOverview {
   includeSample: boolean;
   range: { from: string | null; to: string | null };
-  candidates: { total: number; byTrack: Partial<Record<CandidateTrack, number>> };
+  candidates: { total: number; selected?: number; byTrack: Partial<Record<CandidateTrack, number>> };
   applications: { total: number; byStatus: { status: RecruitmentStatus; label: string; count: number }[] };
   interviews: { issued: number; byStatus: Record<InterviewStatus, number>; completionRate: number | null; averageDurationSeconds: number | null; medianDurationSeconds: number | null };
   reviews: { pending: number };

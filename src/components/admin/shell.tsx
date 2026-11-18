@@ -35,9 +35,9 @@ function SidebarNav({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?
   const awaiting = isApiMode ? apiAwaiting : demoAwaiting;
   return (
     <nav aria-label="Admin" className="flex-1 overflow-y-auto px-3 py-2">
-      {NAV_GROUPS.map((g) => (
+      {NAV_GROUPS.filter(g => g.items.some(item => isNavVisible(item, profile?.permissions, isApiMode))).map((g) => (
         <div key={g.label} className="mb-5">
-          {!collapsed && <p className="mb-1.5 px-3 text-[11px] font-medium uppercase tracking-[0.14em] text-fg-disabled">{g.label}</p>}
+          {!collapsed && <p className="mb-1.5 px-3 text-[11px] font-medium uppercase tracking-[0.14em] text-fg-muted">{g.label}</p>}
           {collapsed && <div className="mx-auto mb-2 h-px w-6 bg-overlay/[0.06]" aria-hidden />}
           <ul className="space-y-0.5">
             {g.items.filter(item => isNavVisible(item, profile?.permissions, isApiMode)).map((item) => {
@@ -46,6 +46,7 @@ function SidebarNav({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?
               const link = (
                 <Link
                   href={item.href}
+                  aria-label={item.label}
                   prefetch={true}
                   onMouseEnter={() => router.prefetch(item.href)}
                   onClick={onNavigate}
@@ -129,14 +130,14 @@ export function NotificationCenter() {
         <div className="flex items-center justify-between border-b border-subtle px-4 py-3">
           <div>
             <p className="text-sm font-semibold">Notifications</p>
-            <p className="text-xs text-fg-muted">{unread ? `${unread} unread` : "You're all caught up"}</p>
+            <p className="text-xs text-fg-muted">{feed.loading ? "Checking notifications…" : feed.error ? "Unable to check notifications" : unread ? `${unread} unread` : "You're all caught up"}</p>
           </div>
-          <Button variant="ghost" size="sm" disabled={!unread} onClick={() => markAllRead()}>
+          <Button variant="ghost" size="sm" disabled={!unread || feed.marking} onClick={() => markAllRead()}>
             <CheckCheck />Mark all read
           </Button>
         </div>
         {feed.error ? (
-          <p role="alert" className="p-4 text-sm text-red-700 dark:text-red-200">Notifications couldn&apos;t be loaded. They&apos;ll refresh automatically.</p>
+          <div role="alert" className="p-4 text-sm text-red-700 dark:text-red-200"><p>Notifications couldn&apos;t be loaded.</p><Button variant="secondary" size="sm" className="mt-3" onClick={feed.retry}>Retry notifications</Button></div>
         ) : feed.loading ? (
           <div className="space-y-2 p-3" aria-busy="true"><div className="skeleton h-14 rounded-xl" /><div className="skeleton h-14 rounded-xl" /></div>
         ) : notifications.length === 0 ? (
@@ -258,7 +259,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                     {i < crumbs.length - 1 ? (
                       <Link href={`/admin/${crumbs.slice(0, i + 1).join("/")}`} className="capitalize hover:text-fg">{c.replace(/-/g, " ")}</Link>
                     ) : (
-                      <span className="truncate text-fg-secondary" aria-current="page">{/^(CND|INT|ASM)-/.test(c) ? c : c.replace(/-/g, " ").replace(/^\w/, (m) => m.toUpperCase())}</span>
+                      <span className="truncate text-fg-secondary" aria-current="page">{/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(c) ? "Details" : /^(CND|INT|ASM)-/.test(c) ? "Details" : c.replace(/-/g, " ").replace(/^\w/, (m) => m.toUpperCase())}</span>
                     )}
                   </span>
                 ))}
@@ -290,12 +291,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                   <span className="block truncate font-normal">{me?.email}</span>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={() => router.push("/admin/team")}><UserRound />My team</DropdownMenuItem>
+                {(!isApiMode || auth.profile?.permissions.includes("users:manage")) && <DropdownMenuItem onSelect={() => router.push("/admin/team")}><UserRound />My team</DropdownMenuItem>}
                 <DropdownMenuItem onSelect={() => router.push("/admin/settings")}><Settings />Settings</DropdownMenuItem>
                 {!isApiMode && <DropdownMenuItem onSelect={() => router.push("/candidate/interview")}><Sparkles />Switch to candidate view</DropdownMenuItem>}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem destructive onSelect={() => {
-                  if (isApiMode) { void auth.signOut().then(() => { toast.success("Signed out."); router.replace("/admin/login"); }); return; }
+                  if (isApiMode) { void auth.signOut().then(() => { toast.success("Signed out."); router.replace("/admin/login"); }).catch(() => toast.error("Sign-out could not finish. Please retry.")); return; }
                   endSession("admin"); toast.success("Signed out of the demo."); router.push("/admin/login");
                 }}><LogOut />Sign out</DropdownMenuItem>
               </DropdownMenuContent>

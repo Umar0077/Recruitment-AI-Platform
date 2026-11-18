@@ -1,6 +1,6 @@
 "use client";
 import { isApiMode } from "@/lib/config/environment";
-import { ApiAnalytics } from "@/components/api/admin/dashboard";
+import { ApiAnalytics } from "@/components/api/admin/analytics";
 import { useMemo, useState } from "react";
 import { BarChart3, CheckCircle2, Clock, Download, FileText, Hourglass, Printer, Star, Trophy, UserRoundSearch, Video } from "lucide-react";
 import { toast } from "sonner";
