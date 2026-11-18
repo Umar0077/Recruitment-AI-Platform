@@ -29,6 +29,21 @@ class ActivityQueryDto {
 export class AnalyticsController {
   constructor(private readonly prisma: PrismaService, private readonly config: ConfigService<EnvironmentVariables, true>) {}
 
+  /** The dashboard needs four counts, not track breakdowns or duration percentiles. Same authorization as overview. */
+  @Get("summary")
+  @RequirePermissions(PERMISSIONS.ANALYTICS_READ)
+  async summary() {
+    const includeSample = this.config.get("NODE_ENV", { infer: true }) !== "production";
+    const sample = includeSample ? {} : { isSample: false };
+    const [candidates, completed, pending, selected] = await Promise.all([
+      this.prisma.candidate.count({ where: sample }),
+      this.prisma.interviewSession.count({ where: { ...sample, status: "SUBMITTED" } }),
+      this.prisma.hrReview.count({ where: { status: { in: ["PENDING_REVIEW", "IN_REVIEW", "FURTHER_REVIEW_REQUIRED"] }, interviewSession: sample } }),
+      this.prisma.candidate.count({ where: { ...sample, applications: { some: { status: { in: ["SELECTED", "OFFER_RELEASED", "OFFER_ACCEPTED", "DOCUMENTATION_ONBOARDING", "PRODUCTION_ONBOARDING", "JOINED"] } } } } }),
+    ]);
+    return { includeSample, candidates: { total: candidates, selected }, interviews: { completed }, reviews: { pending } };
+  }
+
   /**
    * Weekly activity for the last N weeks (Monday-start weeks, UTC), computed in SQL:
    * applications submitted, interviews submitted, and HR reviews marked REVIEWED.

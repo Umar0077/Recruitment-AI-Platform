@@ -1,11 +1,11 @@
 "use client";
-import Link from "next/link";
+import Link from "@/components/navigation/link";
 import type { LucideIcon } from "lucide-react";
 import { ArrowUpRight, Briefcase, CircleCheck, ClipboardCheck, FileText, MessageSquarePlus, PlayCircle, Send, Star, UserX, Video } from "lucide-react";
 import type { RecruitmentEvent } from "@/types";
 import { cn, formatDateTime } from "@/lib/utils";
 
-export function MetricCard({ label, value, icon: Icon, hint, trend, href, spark }: { label: string; value: number | string; icon: LucideIcon; hint?: string; trend?: { value: string; up?: boolean }; href?: string; spark?: number[] }) {
+export function MetricCard({ label, value, icon: Icon, hint, trend, href, spark, loading }: { label: string; value: number | string; icon: LucideIcon; hint?: string; trend?: { value: string; up?: boolean }; href?: string; spark?: number[]; loading?: boolean }) {
   const body = (
     <>
       <div className="flex items-start justify-between gap-3">
@@ -14,7 +14,7 @@ export function MetricCard({ label, value, icon: Icon, hint, trend, href, spark 
         </span>
         {spark && <Sparkline values={spark} />}
       </div>
-      <p className="mt-4 font-display text-[28px] font-bold leading-none tabular-nums text-fg">{value}</p>
+      <p className="mt-4 font-display text-[28px] font-bold leading-none tabular-nums text-fg">{loading ? <span className="skeleton inline-block h-7 w-16 rounded align-top" aria-label={`Loading ${label}`} role="status" /> : value}</p>
       <p className="mt-2 text-[13px] font-medium text-fg-secondary">{label}</p>
       {(hint || trend) && (
         <p className="mt-1 flex items-center gap-1.5 text-xs text-fg-muted">

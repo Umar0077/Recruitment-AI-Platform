@@ -24,7 +24,7 @@ export function configureApp(app: NestExpressApplication): INestApplication {
     origin: (origin, cb) => cb(null, !origin || origins.includes(origin)),
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Authorization", "Content-Type", "X-Request-Id", "X-Admin-Request"],
-    exposedHeaders: ["X-Request-Id"],
+    exposedHeaders: ["X-Request-Id", "Server-Timing"],
     credentials: true,
     maxAge: 600,
   });

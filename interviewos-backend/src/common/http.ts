@@ -26,8 +26,13 @@ export class Paged<T> {
 export class ResponseEnvelopeInterceptor implements NestInterceptor {
   intercept(ctx: ExecutionContext, next: CallHandler): Observable<unknown> {
     const req = ctx.switchToHttp().getRequest<Request & { id?: string }>();
+    const res = ctx.switchToHttp().getResponse<Response>();
+    const started = performance.now();
     return next.handle().pipe(
       map((body) => {
+        // Numeric controller duration only: no SQL, parameters, identity or credentials.
+        // Existing pino responseTime measures the full request including guards/serialization.
+        res.setHeader("Server-Timing", `handler;dur=${(performance.now() - started).toFixed(1)}`);
         if (body instanceof Paged) return { success: true, data: body.data, meta: { ...body.meta, requestId: req.id } };
         return { success: true, data: body ?? null, meta: { requestId: req.id } };
       }),

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/navigation/link";
 import type { ReactNode } from "react";
 import { ArrowRight, CheckCircle2, ClipboardCheck, Trophy, Users } from "lucide-react";
 import { MetricCard } from "./widgets";
@@ -17,7 +17,7 @@ export function DashboardView({ values, pending, activity, demo = false, loading
         { label: "Interviews Completed", icon: CheckCircle2, href: "/admin/interviews?tab=completed" },
         { label: "Awaiting HR Review", icon: ClipboardCheck, href: "/admin/interviews?tab=review" },
         { label: "Selected Candidates", icon: Trophy, href: "/admin/pipeline", hint: "Selected through joined · unique candidates" },
-      ].map((item, index) => loading ? <div key={item.label} className="skeleton h-32 rounded-xl" role="status" aria-label={`Loading ${item.label}`} /> : <MetricCard key={item.label} {...item} value={values[index]} />)}
+      ].map((item, index) => <MetricCard key={item.label} {...item} loading={loading} value={values[index]} />)}
     </section>}
     <section aria-labelledby="quick-actions-title"><h2 id="quick-actions-title" className="mb-3 text-lg font-semibold">Quick Actions</h2><div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
       {[["View Candidates", "/admin/candidates"], ["Review Interviews", "/admin/interviews?tab=review"], ["Manage Recruitment Pipeline", "/admin/pipeline"], ["View Reports", "/admin/analytics" ]].filter(([,href]) => showMetrics || href !== "/admin/analytics").map(([label, href]) => <Link key={href} href={href} className="flex min-h-12 items-center justify-between gap-3 rounded-xl border border-subtle bg-panel px-4 py-3 text-sm font-medium transition-colors hover:border-brand/40 hover:bg-brand/5">{label}<ArrowRight className="size-4 shrink-0" aria-hidden /></Link>)}

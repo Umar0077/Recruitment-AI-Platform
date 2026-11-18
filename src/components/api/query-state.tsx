@@ -9,7 +9,7 @@ import { ApiError } from "@/lib/api/client";
 export function errorText(err: unknown): string {
   if (!(err instanceof ApiError)) return "Something went wrong. Please try again.";
   if (err.code === "NETWORK_ERROR") return "Can't reach the InterviewOS server. Check your connection and try again.";
-  if (err.code === "TIMEOUT") return "The server took too long to respond. Please try again.";
+  if (err.code === "TIMEOUT") return "The server took too long to confirm the result. Check the latest state before retrying a save.";
   if (err.status === 401) return "Your session has ended. Please sign in again.";
   if (err.status === 403) return err.code === "ACCOUNT_DISABLED" ? "This account is disabled." : "You don't have permission to do this.";
   if (err.status === 404) return "This record wasn't found, or you don't have access to it.";

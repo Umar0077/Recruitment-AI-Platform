@@ -112,6 +112,7 @@ export const api = {
   },
 
   analytics: {
+    summary: (o: Opt = {}) => data(apiRequest<{ includeSample: boolean; candidates: { total: number; selected: number }; interviews: { completed: number }; reviews: { pending: number } }>("/analytics/summary", o)),
     overview: (q: { from?: string; to?: string } = {}, o: Opt = {}) => data(apiRequest<AnalyticsOverview>("/analytics/overview", { query: q, ...o })),
     activity: (weeks = 12, o: Opt = {}) => data(apiRequest<Activity>("/analytics/activity", { query: { weeks }, ...o })),
   },

@@ -62,7 +62,8 @@ export function useInterviewDetail(interviewId?: string) {
 
 function refreshCandidate(qc: QueryClient, interviewId: string) {
   void qc.invalidateQueries({ queryKey: qk.portal });
-  void qc.invalidateQueries({ queryKey: qk.interview(interviewId) });
+  // Progress was just returned authoritatively by the mutation. Do not refetch its transcripts again.
+  void qc.invalidateQueries({ queryKey: qk.interview(interviewId), exact: true });
 }
 
 export function useStartInterview(interviewId?: string) {
@@ -142,6 +143,10 @@ export function usePipelineCounts() {
 export function useOverview(q: { from?: string; to?: string } = {}, enabled = true) {
   const ready = useReady();
   return useQuery({ queryKey: qk.overview(q), queryFn: ({ signal }) => api.analytics.overview(q, { signal }), enabled: ready && enabled, placeholderData: keepPreviousData });
+}
+export function useDashboardSummary(enabled = true) {
+  const ready = useReady();
+  return useQuery({ queryKey: ["analytics", "summary"], queryFn: ({ signal }) => api.analytics.summary({ signal }), enabled: ready && enabled });
 }
 export function useActivity(weeks: number) {
   const ready = useReady();

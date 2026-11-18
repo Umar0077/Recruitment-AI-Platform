@@ -7,7 +7,7 @@ vi.mock("recharts", () => {
   return { ResponsiveContainer: Container, AreaChart: Container, LineChart: Container, BarChart: Container, PieChart: Container, Area: ({ fill }) => <path fill={fill} />, Line: Empty, Bar: Empty, Cell: Empty, CartesianGrid: Empty, Pie: Empty, Tooltip: Empty, XAxis: Empty, YAxis: Empty };
 });
 import { MetricCard } from "@/components/admin/widgets";
-import { TrendChart } from "@/components/charts";
+import { TrendChart } from "@/components/charts/recharts";
 
 describe("shared dashboard chart edge cases", () => {
   it.each([{ spark: [] }, { spark: [0] }, { spark: [3] }, { spark: [1, 3] }])("renders finite sparkline coordinates for $spark", ({ spark }) => {
