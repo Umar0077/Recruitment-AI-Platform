@@ -1,0 +1,7 @@
+[
+  {"id":"short-quiet","condition":"normal pace, quiet room, default microphone","reference":"I listen carefully and ask clear questions.","recognized":null},
+  {"id":"long-quiet","condition":"normal pace, quiet room, default microphone","reference":"If a customer was upset about a delayed delivery, I would listen without interrupting. I would confirm the order details, explain what I could verify, and offer the available next steps. I would avoid promising a delivery time that I could not confirm.","recognized":null},
+  {"id":"natural-pauses","condition":"two natural pauses of two seconds; quiet room","reference":"First I would confirm the problem. Then I would check the available options. Finally I would explain the next step.","recognized":null},
+  {"id":"office-noise","condition":"normal pace, repeatable moderate office noise, default microphone","reference":"I would explain the available options and confirm which one the customer prefers.","recognized":null},
+  {"id":"alternate-microphone","condition":"normal pace, quiet room, second microphone if available","reference":"I listen carefully and ask clear questions.","recognized":null}
+]

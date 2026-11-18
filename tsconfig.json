@@ -39,9 +39,10 @@
   "include": [
     "**/*.ts",
     "**/*.tsx",
+    ".next-recording-lab/types/**/*.ts",
     ".next/types/**/*.ts",
     "next-env.d.ts",
-    ".next-recording-lab/types/**/*.ts"
+    ".next-ui-preview/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",

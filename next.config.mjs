@@ -1,12 +1,12 @@
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
-if (process.env.INTERVIEWOS_RECORDING_LAB === "1" && process.env.NODE_ENV === "production") throw new Error("The fictional recording lab cannot be built or served in production mode.");
+if ((process.env.INTERVIEWOS_RECORDING_LAB === "1" || process.env.INTERVIEWOS_UI_PREVIEW === "1") && process.env.NODE_ENV === "production") throw new Error("The fictional recording lab cannot be built or served in production mode.");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Separate output avoids dev/build cache collisions with the real-applicant frontend.
-  distDir: process.env.INTERVIEWOS_RECORDING_LAB === "1" && process.env.NODE_ENV !== "production" ? ".next-recording-lab" : ".next",
+  distDir: process.env.INTERVIEWOS_RECORDING_LAB === "1" && process.env.NODE_ENV !== "production" ? ".next-recording-lab" : process.env.INTERVIEWOS_UI_PREVIEW === "1" ? ".next-ui-preview" : ".next",
   reactStrictMode: true,
   poweredByHeader: false,
   // Hide the floating Next.js development indicator (the "N" badge).

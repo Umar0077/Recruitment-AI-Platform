@@ -7,6 +7,7 @@
  *  - Never falls back to demo data. In demo mode every call throws API_DISABLED.
  */
 import { API_BASE_URL, isApiMode } from "@/lib/config/environment";
+import { withDeadline } from "@/lib/async-deadline";
 import type { ApiEnvelope, ApiMeta } from "./types";
 
 export class ApiError extends Error {
@@ -62,7 +63,7 @@ async function send(url: URL, opts: RequestOptions, forceRefresh: boolean) {
   const admin = opts.admin ?? (typeof window !== "undefined" && window.location.pathname.startsWith("/admin"));
   if (admin) headers["X-Admin-Request"] = "1";
   if (!opts.anonymous && !admin) {
-    const token = await tokenProvider(forceRefresh);
+    const token = await withDeadline(tokenProvider(forceRefresh), opts.timeoutMs ?? 20000, new ApiError("TIMEOUT", "Sign-in verification took too long. Please retry.", 0));
     if (token) headers.Authorization = `Bearer ${token}`;
   }
   if (opts.body !== undefined) headers["Content-Type"] = "application/json";

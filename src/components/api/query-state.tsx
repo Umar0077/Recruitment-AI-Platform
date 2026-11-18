@@ -15,7 +15,7 @@ export function errorText(err: unknown): string {
   if (err.status === 404) return "This record wasn't found, or you don't have access to it.";
   if (err.status === 429) return "Too many requests. Please wait a moment and try again.";
   if (err.status === 503) return "The service is temporarily unavailable. Please try again shortly.";
-  if (err.status >= 500) return "The server had a problem. Nothing was changed — please try again.";
+  if (err.status >= 500) return "The server could not confirm the result. Refresh to check the latest state before retrying.";
   return err.message || "The request couldn't be completed.";
 }
 

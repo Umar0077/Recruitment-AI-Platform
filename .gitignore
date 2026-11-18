@@ -13,3 +13,5 @@ recording-artifacts/
 minio-data/
 *.webm
 *.mp4
+
+.next-ui-preview

@@ -153,6 +153,11 @@ function CandidateAuthProvider({ children }: { children: React.ReactNode }) {
     if (initial !== "loading") return;
     let unsub: (() => void) | undefined;
     let cancelled = false;
+    const initializationTimer = setTimeout(() => {
+      cancelled = true; unsub?.(); loadSeq.current++;
+      setNotice({ code: "auth/init-timeout", message: "Sign-in is taking too long. Check your connection and reload to try again." });
+      setStatus("error");
+    }, 20000);
     setTokenProvider(async (force) => {
       const u = currentFirebaseAuth()?.currentUser;
       if (!u || !u.emailVerified || needsFreshLogin(u.uid)) return null;
@@ -165,30 +170,36 @@ function CandidateAuthProvider({ children }: { children: React.ReactNode }) {
     });
     void getFirebaseAuth()
       .then(async (auth) => {
+        if (cancelled) return;
         // Finish a redirect sign-in started earlier (popup-blocked fallback or mobile).
         const startedRedirect = flag.take();
         try {
           const result = await getRedirectResult(auth);
+          if (cancelled) return;
           if (result?.user.emailVerified) clearFreshLogin(result.user.uid);
           if (startedRedirect && !result && !auth.currentUser) {
             // Typically third-party storage blocking when authDomain is not this site's own domain.
             setNotice({ code: "auth/redirect-lost", message: "Sign-in didn't complete in this browser. Allow pop-ups for this site and try again." });
           }
         } catch (e) {
+          if (cancelled) return;
           const code = authErrorCode(e);
           if (!CANCEL_CODES.has(code)) setNotice({ code, message: authErrorMessage(code) });
         }
         if (cancelled) return;
         // The NODE_ENV check lets production builds drop the fixture code entirely.
         if (process.env.NODE_ENV !== "production" && usingAuthEmulator) exposeEmulatorFixture();
-        unsub = onAuthStateChanged(auth, (u) => void loadProfile(u));
+        unsub = onAuthStateChanged(auth, (u) => { if (!cancelled) { clearTimeout(initializationTimer); void loadProfile(u); } });
       })
       .catch(() => {
+        clearTimeout(initializationTimer);
+        if (cancelled) return;
         setNotice({ code: "auth/init-failed", message: "Sign-in couldn't start. Check your connection and reload." });
         setStatus("error");
       });
     return () => {
       cancelled = true;
+      clearTimeout(initializationTimer);
       unsub?.();
       setTokenProvider(async () => null);
     };

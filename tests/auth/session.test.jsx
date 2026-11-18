@@ -26,8 +26,18 @@ beforeEach(() => {
   state.popup.mockResolvedValue({}); state.login.mockResolvedValue({ ok: true });
   state.logout.mockImplementation(async () => { state.auth.currentUser = null; state.observer?.(null); });
 });
-afterEach(cleanup);
+afterEach(() => { cleanup(); vi.useRealTimers(); });
 describe("Firebase session lifecycle", () => {
+  it("recovers from stalled initialization and ignores its late completion", async () => {
+    vi.useFakeTimers();
+    let resolveAuth;
+    state.getAuth.mockImplementationOnce(() => new Promise(resolve => { resolveAuth = resolve; }));
+    mount(); expect(current.status).toBe("loading");
+    await act(async () => vi.advanceTimersByTimeAsync(20000));
+    expect(current.status).toBe("error"); expect(current.notice.message).toMatch(/reload/i);
+    await act(async () => resolveAuth(state.auth));
+    expect(current.status).toBe("error"); expect(state.observer).toBeNull(); expect(state.me).not.toHaveBeenCalled();
+  });
   it("keeps a verified registration behind the fresh-login gate after page refresh", async () => {
     const u = user(); u.emailVerified = false; state.auth.currentUser = u; const view = mount();
     await screen.findByText("verificationRequired"); view.unmount(); u.emailVerified = true;

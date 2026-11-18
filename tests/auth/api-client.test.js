@@ -4,7 +4,16 @@ vi.mock("@/lib/config/environment", () => ({ get isApiMode() { return mode.api; 
 import { apiRequest, onAuthFailure, setTokenProvider } from "@/lib/api/client";
 const response = (status, success) => ({ status, json: async () => success ? { success: true, data: { id: "fictional" }, meta: {} } : { success: false, error: { code: "UNAUTHENTICATED", message: "Sign in again." }, meta: {} } });
 beforeEach(() => { mode.api = true; setTokenProvider(async () => null); });
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
+it("ends a stalled token lookup without sending a request or retrying", async () => {
+  vi.useFakeTimers();
+  const token = vi.fn(() => new Promise(() => {})); setTokenProvider(token);
+  const fetch = vi.fn(); vi.stubGlobal("fetch", fetch);
+  const outcome = expect(apiRequest("/auth/me", { timeoutMs: 100 })).rejects.toHaveProperty("code", "TIMEOUT");
+  await vi.advanceTimersByTimeAsync(100);
+  await outcome;
+  expect(token).toHaveBeenCalledTimes(1); expect(fetch).not.toHaveBeenCalled();
+});
 it("leaves an expected admin session 401 to its caller without notifying global auth listeners or retrying", async () => {
   const fetch = vi.fn().mockResolvedValue(response(401, false)); vi.stubGlobal("fetch", fetch);
   const listener = vi.fn(), off = onAuthFailure(listener);
