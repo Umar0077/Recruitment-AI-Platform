@@ -1,4 +1,6 @@
 "use client";
+import { CandidateProfileSummary } from "@/components/candidate/profile-summary";
+import { INTERVIEW_STATUS } from "@/lib/api/labels";
 import { useUserProfile } from "@/lib/auth/user-profile";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -126,7 +128,7 @@ function ApiStatus() {
     <div>
       <p className="eyebrow">Your application</p>
       <h1 className="mt-3 text-[30px] font-bold sm:text-[40px]">Interview Status</h1>
-      <p className="mt-2 text-[15px] text-fg-muted">{account.fullName} · {app.jobRole.title} · Reference {iv?.reference ?? app.reference}</p>
+      <CandidateProfileSummary name={my.candidate?.fullName || account.fullName} email={account.email} role={app.jobRole.title} appliedAt={app.submittedAt} completedAt={iv?.submittedAt} status={iv ? INTERVIEW_STATUS[iv.status].label : "Not assigned"} />
       <GlassCard className="mt-8 p-6 sm:p-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-fg-muted">Current status</p>

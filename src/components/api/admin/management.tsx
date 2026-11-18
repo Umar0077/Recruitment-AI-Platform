@@ -1,6 +1,7 @@
 "use client";
 import { useUserProfile } from "@/lib/auth/user-profile";
 /** API mode: team (users & roles), interview setup (published question sets) and settings. */
+import Link from "next/link";
 import { useState } from "react";
 import { BookOpenCheck, Lock, ShieldCheck, UserCog, UsersRound } from "lucide-react";
 import { toast } from "sonner";
@@ -15,7 +16,7 @@ import { useAuth } from "@/lib/auth/auth-provider";
 import { useDemoStore } from "@/lib/demo/store";
 import { TRACK_LABEL } from "@/lib/api/labels";
 import type { RoleCode, StaffUser } from "@/lib/api/types";
-import { formatDate, formatDateTime, timeAgo } from "@/lib/utils";
+import { formatDate, timeAgo } from "@/lib/utils";
 
 const ROLE_LABEL: Record<RoleCode, string> = { SUPER_ADMIN: "Super Admin", HR_MANAGER: "HR Manager", RECRUITER: "Recruiter", REVIEWER: "Reviewer", CANDIDATE: "Candidate" };
 const STAFF_ROLES: RoleCode[] = ["SUPER_ADMIN", "HR_MANAGER", "RECRUITER", "REVIEWER"];
@@ -180,7 +181,7 @@ export function ApiInterviewSetup() {
 
 /** Only real, local preferences. Organisation settings have no server endpoint yet, so they are not offered. */
 export function ApiSettings() {
-  const { profile, user } = useAuth();
+  const { profile } = useAuth();
   const account = useUserProfile("admin");
   const settings = useDemoStore((s) => s.settings);
   const updateSettings = useDemoStore((s) => s.updateSettings);
@@ -189,14 +190,14 @@ export function ApiSettings() {
       <PageHeader title="Settings" description="Your account and display preferences." />
       <div className="grid gap-6 xl:grid-cols-2">
         <GlassCard className="p-6">
-          <CardHeader title="Your account" icon={<ShieldCheck />} />
+          <CardHeader title="Profile" icon={<ShieldCheck />} />
           <dl className="mt-5 grid gap-5 sm:grid-cols-2">
             <Field label="Name" value={account.fullName || "—"} />
             <Field label="Email" value={profile?.email ?? "—"} />
             <Field label="Roles" value={profile?.roles.map((r) => ROLE_LABEL[r]).join(", ") ?? "—"} />
-            <Field label="Sign-in" value={(user?.providers ?? []).map(p => p === "password" ? "Email / password" : p === "google.com" ? "Google" : p).join(", ") || "Firebase Authentication"} />
+            <Field label="Sign-in" value="Administrator password" />
           </dl>
-          <p className="mt-4 text-xs text-fg-muted">Roles are assigned by a Super Admin. Last checked {formatDateTime(new Date().toISOString())}.</p>
+          <p className="mt-4 text-xs text-fg-muted">Roles are assigned by a Super Admin. Your verified account details are shown above.</p>
         </GlassCard>
         <GlassCard className="p-6">
           <CardHeader title="Display" description="Saved in this browser only." />
@@ -207,7 +208,12 @@ export function ApiSettings() {
           </div>
         </GlassCard>
       </div>
-      <Notice className="mt-6" title="Organisation settings">Organisation-wide settings (branding text, notification policy, reviewer defaults) are not stored on the server yet, so they aren&apos;t editable in API mode.</Notice>
+      <div className="mt-6 grid gap-4 sm:grid-cols-2">{[
+        {title:"Account Security",description:"Change your password or sign out other sessions.",href:"/admin/settings/security"},
+        {title:"Interview Configuration",description:"Review published questions and role settings.",href:"/admin/interview-setup",permission:"question_sets:read"},
+        {title:"Assessment Configuration",description:"Manage reference rubrics and approval before analysis.",href:"/admin/assessments/rubrics",permission:"question_sets:manage"},
+        {title:"System Administration",description:"Manage staff accounts and their access.",href:"/admin/settings/accounts",permission:"users:manage"},
+      ].filter(item=>!item.permission || profile?.permissions.includes(item.permission)).map(item=><GlassCard key={item.href} className="p-5"><h2 className="font-semibold">{item.title}</h2><p className="mt-2 text-sm text-fg-muted">{item.description}</p><Button className="mt-4" variant="secondary" asChild><Link href={item.href}>Open {item.title}</Link></Button></GlassCard>)}</div>
     </div>
   );
 }

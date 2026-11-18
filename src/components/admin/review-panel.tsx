@@ -28,7 +28,7 @@ export function ReviewPanel({ candidate, interview, compact }: { candidate: Cand
 
   return (
     <div className="space-y-5">
-      <dl className="grid grid-cols-2 gap-4 text-sm">
+      <dl className="grid gap-4 text-sm sm:grid-cols-2">
         <div><dt className="text-xs text-fg-muted">Review status</dt><dd className="mt-1.5"><ReviewStatusBadge review={interview.reviewStatus} /></dd></div>
         <div><dt className="text-xs text-fg-muted">Recruitment stage</dt><dd className="mt-1.5"><RecruitmentStatusBadge status={candidate.status} /></dd></div>
         <div><dt className="text-xs text-fg-muted">Reviewer</dt><dd className="mt-1 text-fg">{reviewer?.name ?? "Unassigned"}</dd></div>

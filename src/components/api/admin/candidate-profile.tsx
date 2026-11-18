@@ -2,8 +2,9 @@
 /** API mode: one application (= candidate recruitment record) from PostgreSQL, with timeline, remarks and actions. */
 import Link from "next/link";
 import { useState } from "react";
+import { useAuth } from "@/lib/auth/auth-provider";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { ClipboardCheck, Clock, FileText, History, Mail, MapPin, MessageSquarePlus, NotebookPen, Phone, RefreshCw, Sparkles, UserRound, Video } from "lucide-react";
+import { Clock, History, Mail, MapPin, MessageSquarePlus, NotebookPen, Phone, RefreshCw, Sparkles, UserRound, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge, CandidateAvatar, CardHeader, Field, GlassCard, SkeletonPage } from "@/components/ui/primitives";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/overlays";
@@ -55,11 +56,14 @@ export function ApiCandidateProfile() {
   const { id } = useParams<{ id: string }>();
   const params = useSearchParams();
   const router = useRouter();
+  const { profile } = useAuth();
+  const canChangeStage = !!profile?.permissions.includes("applications:update_status");
+  const canWriteNotes = !!profile?.permissions.includes("hr_remarks:write");
   const app = useApplication(id);
   const timeline = useTimeline(id);
   const latest = app.data?.interviews[0];
   const assessments = useAssessments(latest && latest.status === "SUBMITTED" ? latest.id : undefined);
-  const [tab, setTab] = useState(params.get("tab") ?? "overview");
+  const [tab, setTab] = useState(["overview", "interview", "assessment", "history", "notes"].includes(params.get("tab") ?? "") ? params.get("tab")! : "overview");
   const [statusOpen, setStatusOpen] = useState(false);
   const [remarkOpen, setRemarkOpen] = useState(false);
   const invite = useInviteInterview(id);
@@ -108,9 +112,7 @@ export function ApiCandidateProfile() {
             ) : (
               <Button variant="secondary" disabled={!latest || latest.status === "PENDING"} onClick={() => latest && router.push(`/admin/interviews/${latest.id}`)}><Video />View Interview</Button>
             )}
-            <Button variant="secondary" disabled={!report} onClick={() => report && router.push(`/admin/assessments/${latest!.id}`)}><ClipboardCheck />View Assessment</Button>
-            <Button variant="secondary" onClick={() => setRemarkOpen(true)}><MessageSquarePlus />Add HR Remark</Button>
-            <Button onClick={() => setStatusOpen(true)} disabled={a.allowedTransitions.length === 0}><RefreshCw />Update Status</Button>
+            {canChangeStage && <Button onClick={() => setStatusOpen(true)} disabled={a.allowedTransitions.length === 0}><RefreshCw />Update Status</Button>}
           </div>
         </div>
       </GlassCard>
@@ -118,10 +120,9 @@ export function ApiCandidateProfile() {
       <Tabs value={tab} onValueChange={setTab} className="mt-6">
         <TabsList aria-label="Candidate sections">
           <TabsTrigger value="overview"><UserRound />Overview</TabsTrigger>
-          <TabsTrigger value="application"><FileText />Application Details</TabsTrigger>
-          <TabsTrigger value="interview"><Video />AI Interview</TabsTrigger>
-          <TabsTrigger value="assessment"><Sparkles />AI Assessment</TabsTrigger>
-          <TabsTrigger value="history"><History />Recruitment History</TabsTrigger>
+          <TabsTrigger value="interview"><Video />Interview</TabsTrigger>
+          <TabsTrigger value="assessment"><Sparkles />Assessment</TabsTrigger>
+          <TabsTrigger value="history"><History />Activity</TabsTrigger>
           <TabsTrigger value="notes"><NotebookPen />HR Notes{remarks.length > 0 && <span className="rounded-full bg-overlay/10 px-1.5 text-[11px]">{remarks.length}</span>}</TabsTrigger>
         </TabsList>
 
@@ -130,7 +131,7 @@ export function ApiCandidateProfile() {
             <GlassCard className="p-6 lg:col-span-2">
               <CardHeader title="Summary" />
               <dl className="mt-5 grid gap-5 sm:grid-cols-2">
-                <Field label="Recruitment stage" value={<ApiRecruitmentBadge status={a.status} />} />
+                <Field label="Full name" value={c.fullName} /><Field label="Email" value={c.email || "Not provided"} /><Field label="Applied role" value={a.jobRole.title} /><Field label="Application date" value={formatDate(a.submittedAt)} /><Field label="Recruitment stage" value={<ApiRecruitmentBadge status={a.status} />} />
                 <Field label="Stage since" value={`${formatDateTime(a.statusChangedAt)} (${timeAgo(a.statusChangedAt)})`} />
                 <Field label="Interview track" value={TRACK_LABEL[a.jobRole.track]} />
                 <Field label="Assigned recruiter" value={a.assignedRecruiter?.displayName ?? "—"} />
@@ -143,9 +144,7 @@ export function ApiCandidateProfile() {
               {timeline.isError ? <ApiErrorPanel compact error={timeline.error} onRetry={() => void timeline.refetch()} className="mt-4" /> : <Timeline className="mt-5" events={toTimeline((timeline.data?.events ?? []).slice(-4))} />}
             </GlassCard>
           </div>
-        </TabsContent>
-
-        <TabsContent value="application" className="mt-6">
+        <details className="mt-5 rounded-xl border border-subtle p-4"><summary className="cursor-pointer text-sm font-medium">Additional application details</summary>
           <GlassCard className="p-6">
             <CardHeader title="Application answers" description="As submitted by the candidate." />
             {details.length + availability.length === 0 ? (
@@ -156,6 +155,8 @@ export function ApiCandidateProfile() {
               </dl>
             )}
           </GlassCard>
+        </details>
+
         </TabsContent>
 
         <TabsContent value="interview" className="mt-6">
@@ -178,7 +179,7 @@ export function ApiCandidateProfile() {
 
         <TabsContent value="assessment" className="mt-6">
           <GlassCard className="p-6">
-            <CardHeader title="AI assessment" />
+            <CardHeader title="AI assessment" action={report && <Button size="sm" asChild><Link href={`/admin/assessments/${latest!.id}`}>Open assessment report</Link></Button>} />
             {(() => {
               const s = ASSESSMENT_STATUS[report?.status ?? "NOT_AVAILABLE"];
               return (
@@ -200,7 +201,7 @@ export function ApiCandidateProfile() {
 
         <TabsContent value="notes" className="mt-6">
           <GlassCard className="p-6">
-            <CardHeader title="HR notes" description="Internal remarks. Never shown to the candidate." action={<Button size="sm" onClick={() => setRemarkOpen(true)}><MessageSquarePlus />Add Remark</Button>} />
+            <CardHeader title="HR notes" description="Internal remarks. Never shown to the candidate." action={canWriteNotes && <Button size="sm" onClick={() => setRemarkOpen(true)}><MessageSquarePlus />Add Remark</Button>} />
             {timeline.isError ? (
               <ApiErrorPanel compact error={timeline.error} onRetry={() => void timeline.refetch()} className="mt-5" />
             ) : remarks.length === 0 ? (

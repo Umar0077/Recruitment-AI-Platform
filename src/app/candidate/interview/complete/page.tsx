@@ -1,8 +1,8 @@
 "use client";
+import { CompletionMediaStatus } from "@/components/candidate/completion-media-status";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "motion/react";
-import { ArrowRight, CalendarCheck, Hash, Mail, UserRound, Briefcase, RotateCcw, ShieldCheck } from "lucide-react";
+import { ArrowRight, CalendarCheck, Hash, Mail, UserRound, Briefcase, ShieldCheck } from "lucide-react";
 import { CandidateShell } from "@/components/candidate/shell";
 import { Button } from "@/components/ui/button";
 import { Badge, GlassCard } from "@/components/ui/primitives";
@@ -12,7 +12,6 @@ import { formatDateTime } from "@/lib/utils";
 import { EASE } from "@/components/motion";
 import { useEffect, useRef } from "react";
 import { RefreshCw } from "lucide-react";
-import { toast } from "sonner";
 import { isApiMode } from "@/lib/config/environment";
 import { useCandidateFlow, clearPreChecks } from "@/lib/data/candidate-flow";
 import { useMyInterview, useProgress, useSubmitInterview } from "@/lib/data/queries";
@@ -28,10 +27,8 @@ export default function CompletePage() {
 }
 
 function Complete() {
-  const router = useRouter();
   const reduce = useReducedMotion();
   const flow = useDemoStore((s) => s.flow);
-  const resetDemoInterview = useDemoStore((s) => s.resetDemoInterview);
   const candidate = useCandidate(flow.candidateId);
   if (!candidate) return null;
   const submitted = flow.stage === "submitted";
@@ -49,15 +46,15 @@ function Complete() {
   return (
     <div className="text-center">
       <motion.div initial={reduce ? false : { scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.7, ease: EASE }} className="relative mx-auto grid size-24 place-items-center">
-        <div className="absolute inset-0 rounded-full bg-success/20 blur-2xl" aria-hidden />
-        <div className="relative grid size-20 place-items-center rounded-full border border-success/40 bg-gradient-to-b from-success/20 to-success/5">
+        <div className="absolute inset-0 rounded-full bg-brand/20 blur-2xl" aria-hidden />
+        <div className="relative grid size-20 place-items-center rounded-full border border-brand/40 bg-gradient-to-b from-brand/20 to-brand/5 text-brand">
           <svg viewBox="0 0 40 40" className="size-10" aria-hidden>
-            <path d="M11 21l6 6 12-14" fill="none" stroke="#34D399" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" className="success-draw" />
+            <path d="M11 21l6 6 12-14" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" className="success-draw" />
           </svg>
         </div>
       </motion.div>
       <motion.div initial={reduce ? false : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2, ease: EASE }}>
-        <h1 className="mt-8 text-[30px] font-bold leading-tight sm:text-[40px]">Your Interview Has Been Successfully Completed</h1>
+        <h1 className="mt-8 text-[30px] font-bold leading-tight sm:text-[40px]">Your Interview Has Been Successfully Submitted</h1>
         <p className="mx-auto mt-3 max-w-xl text-[15px] leading-relaxed text-fg-muted sm:text-base">
           Thank you for completing your AI-assisted interview. Your responses have been submitted for recruiter review.
         </p>
@@ -76,10 +73,10 @@ function Complete() {
               { icon: ShieldCheck, k: "Submission status", v: <Badge tone="success">Submitted for review</Badge> },
               { icon: CalendarCheck, k: "Completed", v: formatDateTime(flow.submittedAt) },
             ].map((r) => (
-              <div key={r.k} className="flex items-center gap-4 px-6 py-4">
+              <div key={r.k} className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-x-3 gap-y-1 px-5 py-4 sm:grid-cols-[auto_140px_minmax(0,1fr)]">
                 <r.icon className="size-4 shrink-0 text-brand-cyan" aria-hidden />
-                <dt className="w-40 shrink-0 text-sm text-fg-muted">{r.k}</dt>
-                <dd className="min-w-0 truncate text-sm font-medium text-fg">{r.v}</dd>
+                <dt className="text-sm text-fg-muted">{r.k}</dt>
+                <dd className="col-start-2 min-w-0 break-words text-sm font-medium text-fg sm:col-start-3">{r.v}</dd>
               </div>
             ))}
           </dl>
@@ -95,19 +92,8 @@ function Complete() {
         </div>
 
         <div className="mt-10 flex flex-col justify-center gap-3 sm:flex-row">
-          <Button
-            size="lg"
-            className="min-w-64"
-            onClick={() => {
-              resetDemoInterview();
-              toast.success("Demo interview reset. Ready for a new presentation.");
-              router.push("/candidate/interview");
-            }}
-          >
-            <RotateCcw className="size-4" />
-            Start New Demo Interview
-          </Button>
-          <Button size="lg" variant="secondary" asChild>
+
+          <Button size="lg" asChild>
             <Link href="/candidate/status">Return to Interview Portal<ArrowRight /></Link>
           </Button>
         </div>
@@ -163,30 +149,31 @@ function ApiComplete() {
   return (
     <div className="text-center">
       <motion.div initial={reduce ? false : { scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.7, ease: EASE }} className="relative mx-auto grid size-24 place-items-center">
-        <div className="absolute inset-0 rounded-full bg-success/20 blur-2xl" aria-hidden />
-        <div className="relative grid size-20 place-items-center rounded-full border border-success/40 bg-gradient-to-b from-success/20 to-success/5">
+        <div className="absolute inset-0 rounded-full bg-brand/20 blur-2xl" aria-hidden />
+        <div className="relative grid size-20 place-items-center rounded-full border border-brand/40 bg-gradient-to-b from-brand/20 to-brand/5 text-brand">
           <svg viewBox="0 0 40 40" className="size-10" aria-hidden>
-            <path d="M11 21l6 6 12-14" fill="none" stroke="#34D399" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" className="success-draw" />
+            <path d="M11 21l6 6 12-14" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" className="success-draw" />
           </svg>
         </div>
       </motion.div>
-      <h1 className="mt-8 text-[30px] font-bold leading-tight sm:text-[40px]">Your Interview Has Been Successfully Completed</h1>
+      <h1 className="mt-8 text-[30px] font-bold leading-tight sm:text-[40px]">Your Interview Has Been Successfully Submitted</h1>
       <p className="mx-auto mt-3 max-w-xl text-[15px] leading-relaxed text-fg-muted sm:text-base">
-        Thank you for completing your AI-assisted interview. Your responses have been submitted successfully and are now awaiting review by our recruitment team.
+        Thank you for completing your interview with BaliTech. Your responses have been submitted for HR review. Our recruitment team will contact you regarding the next steps.
       </p>
+      <CompletionMediaStatus sessionId={p.interviewId} />
       <GlassCard className="mx-auto mt-10 max-w-xl text-left" glow>
         <dl className="divide-y divide-[rgba(148,163,184,0.12)]">
           {[
-            { icon: UserRound, k: "Candidate", v: f.candidateName },
+            { icon: UserRound, k: "Candidate", v: my.candidate?.fullName?.trim() || f.candidateName || "Not provided" },
             { icon: Briefcase, k: "Applied role", v: p.jobRole.title },
-            { icon: Hash, k: "Interview reference", v: <span className="font-mono text-[13px]">{p.reference}</span> },
-            { icon: ShieldCheck, k: "Recruitment status", v: my.current?.application.stage.label ?? "Unavailable" },
+            ...(p.reference ? [{ icon: Hash, k: "Interview reference", v: <span className="font-mono text-[13px]">{p.reference}</span> }] : []),
+            { icon: ShieldCheck, k: "Recruitment status", v: my.current?.application.stage.key === "ai_interview_completed" ? "Awaiting HR Review" : my.current?.application.stage.label ?? "Awaiting HR Review" },
             { icon: CalendarCheck, k: "Submitted", v: formatDateTime(p.submittedAt ?? undefined) },
           ].map((r) => (
-            <div key={r.k} className="flex items-center gap-4 px-6 py-4">
+            <div key={r.k} className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-x-3 gap-y-1 px-5 py-4 sm:grid-cols-[auto_140px_minmax(0,1fr)]">
               <r.icon className="size-4 shrink-0 text-brand-cyan" aria-hidden />
-              <dt className="w-40 shrink-0 text-sm text-fg-muted">{r.k}</dt>
-              <dd className="min-w-0 truncate text-sm font-medium text-fg">{r.v}</dd>
+              <dt className="text-sm text-fg-muted">{r.k}</dt>
+              <dd className="col-start-2 min-w-0 break-words text-sm font-medium text-fg sm:col-start-3">{r.v}</dd>
             </div>
           ))}
         </dl>

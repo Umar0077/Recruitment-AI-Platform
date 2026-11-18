@@ -4,7 +4,7 @@ import { ApiCandidateProfile } from "@/components/api/admin/candidate-profile";
 import Link from "next/link";
 import { Suspense, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { ArrowRight, CalendarPlus, ClipboardCheck, Clock, FileText, History, Mail, MapPin, MessageSquarePlus, NotebookPen, Phone, RefreshCw, Sparkles, UserRound, UserX, Video } from "lucide-react";
+import { ArrowRight, CalendarPlus, ClipboardCheck, Clock, History, Mail, MapPin, MessageSquarePlus, NotebookPen, Phone, RefreshCw, Sparkles, UserRound, UserX, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge, CandidateAvatar, Field, GlassCard, CardHeader, SkeletonPage } from "@/components/ui/primitives";
 import { QUESTION_SET_META, QUESTION_SETS } from "@/lib/demo/questions";
@@ -34,7 +34,7 @@ function Profile() {
   const assessment = useAssessment(candidate?.interviewId);
   const recruiter = useRecruiter(candidate?.recruiterId);
   const team = useDemoStore((s) => s.team);
-  const [tab, setTab] = useState(params.get("tab") ?? "overview");
+  const [tab, setTab] = useState(["overview","interview","assessment","history","notes"].includes(params.get("tab") ?? "") ? params.get("tab")! : "overview");
   const [statusOpen, setStatusOpen] = useState(false);
   const [remarkOpen, setRemarkOpen] = useState(false);
   const [scheduleOpen, setScheduleOpen] = useState(false);
@@ -42,7 +42,6 @@ function Profile() {
   if (!candidate) {
     return <EmptyState icon={<UserX />} title="Candidate not found" description={`No candidate with ID ${id} exists in the demo dataset.`} action={<Button asChild><Link href="/admin/candidates">Back to Candidates</Link></Button>} />;
   }
-  const completed = interview?.status === "completed";
 
   return (
     <div>
@@ -69,9 +68,6 @@ function Profile() {
           </div>
           <div className="flex flex-wrap gap-2">
             <Button variant="secondary" disabled={!interview || interview.status === "not_started"} onClick={() => interview && router.push(`/admin/interviews/${interview.id}`)}><Video />View Interview</Button>
-            <Button variant="secondary" disabled={!completed} onClick={() => interview && router.push(`/admin/assessments/${interview.id}`)}><ClipboardCheck />View Assessment</Button>
-            <Button variant="secondary" onClick={() => setRemarkOpen(true)}><MessageSquarePlus />Add HR Remark</Button>
-            <Button variant="secondary" onClick={() => setScheduleOpen(true)}><CalendarPlus />Schedule HR Interview</Button>
             <Button onClick={() => setStatusOpen(true)}><RefreshCw />Update Status</Button>
           </div>
         </div>
@@ -80,10 +76,9 @@ function Profile() {
       <Tabs value={tab} onValueChange={setTab} className="mt-6">
         <TabsList aria-label="Candidate sections">
           <TabsTrigger value="overview"><UserRound />Overview</TabsTrigger>
-          <TabsTrigger value="application"><FileText />Application Details</TabsTrigger>
-          <TabsTrigger value="interview"><Video />AI Interview</TabsTrigger>
-          <TabsTrigger value="assessment"><Sparkles />AI Assessment</TabsTrigger>
-          <TabsTrigger value="history"><History />Recruitment History</TabsTrigger>
+          <TabsTrigger value="interview"><Video />Interview</TabsTrigger>
+          <TabsTrigger value="assessment"><Sparkles />Assessment</TabsTrigger>
+          <TabsTrigger value="history"><History />Activity</TabsTrigger>
           <TabsTrigger value="notes"><NotebookPen />HR Notes{candidate.remarks.length > 0 && <span className="rounded-full bg-overlay/10 px-1.5 text-[11px]">{candidate.remarks.length}</span>}</TabsTrigger>
         </TabsList>
 
@@ -96,7 +91,7 @@ function Profile() {
               <GlassCard className="p-5 sm:col-span-3">
                 <CardHeader title="Summary" description="Key facts from the application" />
                 <dl className="mt-5 grid gap-5 sm:grid-cols-3">
-                  <Field label="Interview track" value={QUESTION_SET_META[candidate.track].title} />
+                  <Field label="Full name" value={candidate.name} /><Field label="Email" value={candidate.email} /><Field label="Applied role" value={roleTitle(candidate)} /><Field label="Application date" value={formatDate(candidate.appliedAt)} /><Field label="Interview track" value={QUESTION_SET_META[candidate.track].title} />
                   <Field label="Assigned recruiter" value={recruiter?.name ?? "—"} />
                   <Field label="Location" value={candidate.location} />
                   {candidate.profile.kind === "experienced" ? (
@@ -120,13 +115,10 @@ function Profile() {
               <Timeline className="mt-5" events={candidate.events.slice(-4)} />
             </GlassCard>
           </div>
+        <details className="mt-5 rounded-xl border border-subtle p-4"><summary className="mb-4 cursor-pointer font-medium">Additional application details</summary><ApplicationDetails candidate={candidate} /></details>
         </TabsContent>
 
-        <TabsContent value="application" className="mt-6">
-          <ApplicationDetails candidate={candidate} />
-        </TabsContent>
-
-        <TabsContent value="interview" className="mt-6">
+        <TabsContent value="interview" className="mt-6"><Button className="mb-4" variant="secondary" onClick={() => setScheduleOpen(true)}><CalendarPlus />Schedule HR Interview</Button>
           {!interview ? (
             <GlassCard><EmptyState icon={<Video />} title="No interview yet" description="This candidate hasn't been invited to an AI interview." /></GlassCard>
           ) : (
@@ -144,7 +136,7 @@ function Profile() {
               </dl>
               <div className="mt-6 flex flex-wrap gap-2">
                 <Button disabled={interview.status === "not_started"} onClick={() => router.push(`/admin/interviews/${interview.id}`)}><Video />Open Interview Review</Button>
-                {interview.status === "not_started" && <p className="self-center text-sm text-fg-muted">The candidate hasn&apos;t started yet. A recording will be available after submission.</p>}
+                {interview.status === "not_started" && <p className="self-center text-sm text-fg-muted">The candidate hasn&apos;t started yet. Confirmed answers will appear here after submission.</p>}
               </div>
             </GlassCard>
           )}

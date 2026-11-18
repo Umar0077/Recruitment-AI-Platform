@@ -136,7 +136,7 @@ function DemoPipelinePage() {
 
       <LayoutGroup>
         <div className="relative -mx-4 overflow-x-auto px-4 pb-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
-          <div className={cn("flex gap-3", view !== "active" && "max-w-3xl")}>
+          <div className={cn("flex flex-col gap-3 sm:flex-row", view !== "active" && "max-w-3xl")}>
             {columns.map((col) => {
               const items = visible.filter((c) => col.statuses.includes(c.status)).sort((a, b) => b.lastUpdated.localeCompare(a.lastUpdated));
               const isOver = overCol === col.id && dragId;
@@ -153,7 +153,7 @@ function DemoPipelinePage() {
                     setOverCol(null);
                     if (c) attemptMove(c, col);
                   }}
-                  className={cn("flex w-[272px] shrink-0 flex-col rounded-xl border bg-overlay/[0.02] transition-colors duration-200", isOver ? "border-brand-cyan/50 bg-brand/[0.07]" : "border-subtle")}
+                  className={cn("flex w-full sm:w-[272px] shrink-0 flex-col rounded-xl border bg-overlay/[0.02] transition-colors duration-200", isOver ? "border-brand-cyan/50 bg-brand/[0.07]" : "border-subtle")}
                 >
                   <header className="flex items-center justify-between gap-2 px-3.5 pb-2 pt-3.5">
                     <div className="min-w-0">

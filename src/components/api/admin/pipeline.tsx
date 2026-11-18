@@ -128,7 +128,7 @@ export function ApiPipeline() {
         <ApiErrorPanel error={list.error ?? counts.error} onRetry={() => { void list.refetch(); void counts.refetch(); }} />
       ) : (
         <div className="relative -mx-4 overflow-x-auto px-4 pb-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
-          <div className={cn("flex gap-3", view !== "active" && "max-w-3xl", move.isPending && "pointer-events-none opacity-80")} aria-busy={move.isPending}>
+          <div className={cn("flex flex-col gap-3 sm:flex-row", view !== "active" && "max-w-3xl", move.isPending && "pointer-events-none opacity-80")} aria-busy={move.isPending}>
             {columns.map((col) => {
               const items = apps.filter((a) => col.statuses.includes(toUiStatus(a.status)));
               const isOver = overCol === col.id && dragId;
@@ -145,7 +145,7 @@ export function ApiPipeline() {
                     setOverCol(null);
                     if (a) attemptMove(a, col);
                   }}
-                  className={cn("flex w-[272px] shrink-0 flex-col rounded-xl border bg-overlay/[0.02] transition-colors duration-200", isOver ? "border-brand-cyan/50 bg-brand/[0.07]" : "border-subtle")}
+                  className={cn("flex w-full shrink-0 flex-col sm:w-[272px] rounded-xl border bg-overlay/[0.02] transition-colors duration-200", isOver ? "border-brand-cyan/50 bg-brand/[0.07]" : "border-subtle")}
                 >
                   <header className="flex items-center justify-between gap-2 px-3.5 pb-2 pt-3.5">
                     <div className="min-w-0">
