@@ -249,11 +249,22 @@
 /* ---------------------------------------------------------------- */
 /* Print: assessment report and analytics                            */
 /* ---------------------------------------------------------------- */
+@page {
+  size: A4;
+  margin: 14mm 12mm;
+}
 @media print {
-  body { background: #fff !important; color: #0f172a !important; }
+  html, body, .app-backdrop { background: #ffffff !important; color: #0f172a !important; }
   .no-print { display: none !important; }
-  .print-area, .print-area * { color: #0f172a !important; background: transparent !important; box-shadow: none !important; border-color: #cbd5e1 !important; }
-  .print-area { padding: 0 !important; }
+  .print-area, .print-area * {
+    color: #0f172a !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    border-color: #cbd5e1 !important;
+  }
+  .print-area { padding: 0 !important; width: 100% !important; max-width: 100% !important; }
+  .print-break-avoid { break-inside: avoid; page-break-inside: avoid; }
 }
 
 /* Settings → Appearance */

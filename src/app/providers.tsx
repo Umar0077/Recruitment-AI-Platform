@@ -17,12 +17,12 @@ function ThemedToaster() {
   const interviewControls = usePathname().startsWith("/candidate/interview");
   return (
     <Toaster
-      position="bottom-right"
+      position={interviewControls ? "top-right" : "bottom-right"}
       closeButton
       theme={resolvedTheme === "light" ? "light" : "dark"}
       duration={3200}
-      offset={interviewControls ? { bottom: 84 } : undefined}
-      mobileOffset={interviewControls ? { bottom: 84 } : undefined}
+      offset={interviewControls ? { top: 72 } : undefined}
+      mobileOffset={interviewControls ? { top: 72 } : undefined}
       toastOptions={{
         classNames: {
           toast: "!rounded-xl !border !border-[color:var(--border-subtle)] !bg-[var(--toast-bg)] !backdrop-blur-md !text-fg !shadow-float !font-sans",

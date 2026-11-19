@@ -35,7 +35,7 @@ export function ReviewPanel({ candidate, interview, compact }: { candidate: Cand
         <div><dt className="text-xs text-fg-muted">Review date</dt><dd className="mt-1 text-fg">{formatDateTime(interview.reviewedAt)}</dd></div>
       </dl>
 
-      <div>
+      <div data-report-draft-dirty={remark.trim().length > 0 ? "true" : "false"}>
         <Label htmlFor={`remark-${interview.id}`}>HR remarks</Label>
         <Textarea id={`remark-${interview.id}`} value={remark} onChange={(e) => setRemark(e.target.value)} placeholder="Add an internal remark about this interview…" className={compact ? "min-h-[80px]" : undefined} />
         <Button

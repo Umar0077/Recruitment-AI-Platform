@@ -243,7 +243,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </div>
       </Drawer>
 
-      <div className={cn(animated && "transition-[padding] duration-300 ease-premium", collapsed ? "lg:pl-[76px]" : "lg:pl-[264px]")}>
+      <div className={cn("print:!pl-0", animated && "transition-[padding] duration-300 ease-premium", collapsed ? "lg:pl-[76px]" : "lg:pl-[264px]")}>
         {/* Topbar */}
         <header className="no-print sticky top-0 z-20 border-b border-subtle bg-ink-950/75 backdrop-blur-xl">
           <div className="flex h-16 items-center gap-3 px-4 sm:px-6 lg:px-8">
@@ -304,7 +304,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        <main className="relative px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+        <main className="relative px-4 py-6 print:!p-0 sm:px-6 sm:py-8 lg:px-8">
           <RouteFeedback />
           <div className="mx-auto max-w-[1480px]">
             {ready ? <PageTransition>{children}</PageTransition> : <SkeletonPage />}
