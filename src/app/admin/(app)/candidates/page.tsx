@@ -3,7 +3,7 @@ import { SkeletonPage } from "@/components/ui/primitives";
 import { isApiMode } from "@/lib/config/environment";
 import { ApiCandidatesList } from "@/components/api/admin/candidates-list";
 import Link from "@/components/navigation/link";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "@/components/navigation/provider";
 import {
@@ -65,14 +65,6 @@ function Candidates() {
   const [visibility, setVisibility] = useState<VisibilityState>({});
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [statusFor, setStatusFor] = useState<Candidate | null>(null);
-  const [busy, setBusy] = useState(false);
-
-  // A brief skeleton when filters change keeps feedback visible without blocking the page.
-  useEffect(() => {
-    setBusy(true);
-    const t = setTimeout(() => setBusy(false), 180);
-    return () => clearTimeout(t);
-  }, [role, ivStatus, stage, dateRange]);
 
   const rows = useMemo<Row[]>(() => {
     const ivMap = new Map(interviews.map((i) => [i.id, i]));
@@ -228,9 +220,7 @@ function Candidates() {
           </div>
         )}
 
-        {busy ? (
-          <SkeletonTable rows={8} />
-        ) : filtered.length === 0 ? (
+        {filtered.length === 0 ? (
           <EmptyState icon={<UsersRound />} title="No candidates found" description="No candidates match your search and filters. Try a different name or ID, or clear the filters." action={<Button variant="secondary" onClick={clear}><FilterX />Clear filters</Button>} />
         ) : (
           <>

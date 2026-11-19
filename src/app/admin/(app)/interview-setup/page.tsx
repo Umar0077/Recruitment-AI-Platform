@@ -34,7 +34,6 @@ function Setup() {
   const [editing, setEditing] = useState<InterviewQuestion | null>(null);
   const [preview, setPreview] = useState<InterviewQuestion | null>(null);
   const [confirm, setConfirm] = useState<"reset" | "cancel" | null>(null);
-  const [saving, setSaving] = useState(false);
 
   useEffect(() => setDraft(setups[track]), [track, setups]);
   const dirty = JSON.stringify(draft) !== JSON.stringify(setups[track]);
@@ -52,11 +51,10 @@ function Setup() {
             {dirty && <Badge tone="warning">Unsaved changes</Badge>}
             <Button variant="ghost" disabled={!dirty} onClick={() => setConfirm("cancel")}><Undo2 />Cancel Changes</Button>
             <Button
-              loading={saving}
               disabled={!dirty}
               onClick={() => {
-                setSaving(true);
-                setTimeout(() => { updateSetup(track, draft); setSaving(false); toast.success("Interview settings updated."); }, 500);
+                updateSetup(track, draft);
+                toast.success("Interview settings updated.");
               }}
             >
               <Save />Save Changes

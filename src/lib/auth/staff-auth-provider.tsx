@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { apiRequest, ApiError, onAuthFailure } from "@/lib/api/client";
 import type { Me } from "@/lib/api/types";
@@ -37,7 +37,8 @@ export function StaffAuthProvider({ children }: { children: React.ReactNode }) {
     const off = onAuthFailure(() => { generation.current++; inFlight.current = null; setProfile(null); setStatus("signedOut"); setNotice(null); qc.clear(); });
     return () => { session.current++; off(); qc.clear(); };
   }, [refresh, qc]);
-  const signInWithEmail: AuthContextValue["signInWithEmail"] = async (email, password) => {
+  const clearNotice = useCallback(() => setNotice(null), []);
+  const signInWithEmail: AuthContextValue["signInWithEmail"] = useCallback(async (email, password) => {
     try {
       generation.current++; setNotice(null);
       await apiRequest("/admin-auth/login", { admin: true, method: "POST", body: { email, password }, notifyAuthFailure: false });
@@ -47,7 +48,29 @@ export function StaffAuthProvider({ children }: { children: React.ReactNode }) {
       return { ok: true };
     }
     catch (e) { return { ok: false, code: "ADMIN_LOGIN_FAILED", message: e instanceof ApiError ? e.message : "Administrator sign-in failed." }; }
-  };
-  const disabled = async () => ({ ok: false as const, code: "ADMIN_PASSWORD_ONLY", message: "Use administrator password sign-in." });
-  return <AuthContext.Provider value={{ status, profile, user: profile ? { uid: profile.id, email: profile.email, displayName: profile.displayName, photoURL: null, providers: ["admin-password"] } : null, roles: profile?.roles ?? [], isStaff: !!profile?.isStaff, notice, clearNotice: () => setNotice(null), refresh, signInWithEmail, signInWith: disabled, register: disabled, completeProfile: disabled, checkVerification: async () => false, signOut: async () => { await apiRequest("/admin-auth/logout", { admin: true, method: "POST" }); generation.current++; setProfile(null); setStatus("signedOut"); qc.clear(); } }}>{children}</AuthContext.Provider>;
+  }, [qc, loadSession]);
+  const signOut = useCallback(async () => {
+    await apiRequest("/admin-auth/logout", { admin: true, method: "POST" });
+    generation.current++; setProfile(null); setStatus("signedOut"); qc.clear();
+  }, [qc]);
+  const value = useMemo<AuthContextValue>(() => {
+    const disabled = async () => ({ ok: false as const, code: "ADMIN_PASSWORD_ONLY", message: "Use administrator password sign-in." });
+    return {
+      status,
+      profile,
+      user: profile ? { uid: profile.id, email: profile.email, displayName: profile.displayName, photoURL: null, providers: ["admin-password"] } : null,
+      roles: profile?.roles ?? [],
+      isStaff: !!profile?.isStaff,
+      notice,
+      clearNotice,
+      refresh,
+      signInWithEmail,
+      signInWith: disabled,
+      register: disabled,
+      completeProfile: disabled,
+      checkVerification: async () => false,
+      signOut,
+    };
+  }, [status, profile, notice, clearNotice, refresh, signInWithEmail, signOut]);
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

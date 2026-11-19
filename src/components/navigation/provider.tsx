@@ -13,18 +13,29 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
   const router = useNextRouter();
   const [pending, startTransition] = useTransition();
   const [delayed, setDelayed] = useState(false);
-  const [attempt, setAttempt] = useState(0);
   const latest = useRef<(() => void) | null>(null);
-  const run = useCallback((action: () => void) => { latest.current = action; setAttempt(a => a + 1); setDelayed(false); startTransition(action); }, []);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const armTimer = useCallback(() => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => setDelayed(true), 20000);
+  }, []);
+  const run = useCallback((action: () => void) => {
+    latest.current = action;
+    setDelayed(false);
+    armTimer();
+    startTransition(action);
+  }, [armTimer]);
   const retry = useCallback(() => { if (latest.current) run(latest.current); }, [run]);
   const navigate = useCallback((href: string, replace?: boolean, scroll?: boolean) => run(() => {
     if (replace) router.replace(href, { scroll }); else router.push(href, { scroll });
   }), [router, run]);
   useEffect(() => {
-    if (!pending) { setDelayed(false); return; }
-    const timeout = setTimeout(() => setDelayed(true), 20000);
-    return () => clearTimeout(timeout);
-  }, [pending, attempt]);
+    if (!pending) {
+      if (timer.current) { clearTimeout(timer.current); timer.current = null; }
+      setDelayed(false);
+    }
+  }, [pending]);
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
   // Link consumers receive stable actions, so a pending change doesn't rerender every table link.
   const value = useMemo(() => ({ run, navigate }), [run, navigate]);
   const status = useMemo(() => ({ pending, delayed, retry }), [pending, delayed, retry]);

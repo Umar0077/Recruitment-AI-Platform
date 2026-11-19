@@ -2,9 +2,8 @@
 import { isApiMode } from "@/lib/config/environment";
 import { ApiPipeline } from "@/components/api/admin/pipeline";
 
-import { useMemo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 import { useRouter } from "@/components/navigation/provider";
-import { motion, LayoutGroup } from "motion/react";
 import { Clock, GripVertical, MoreHorizontal, RefreshCw, Sparkles, UserRound, Video, ArrowRightLeft, Inbox } from "lucide-react";
 import { toast } from "sonner";
 import type { Candidate, RecruitmentStatus } from "@/types";
@@ -22,10 +21,9 @@ import { cn, daysBetween, timeAgo } from "@/lib/utils";
 
 const VIEWS = { active: PIPELINE_COLUMNS, pre: [PRE_COLUMN], closed: CLOSED_COLUMNS } as const;
 
-function KanbanCard({ c, score, onMove, onDragStart, dragging }: { c: Candidate; score?: number; onMove: (c: Candidate) => void; onDragStart: (id: string) => void; dragging: boolean }) {
+const KanbanCard = memo(function KanbanCard({ c, score, onMove, onDragStart, dragging }: { c: Candidate; score?: number; onMove: (c: Candidate) => void; onDragStart: (id: string) => void; dragging: boolean }) {
   const router = useRouter();
   return (
-    <motion.div layout="position" layoutId={c.id} transition={{ type: "spring", stiffness: 420, damping: 36 }}>
     <article
       draggable
       onDragStart={(e) => { e.dataTransfer.setData("text/plain", c.id); e.dataTransfer.effectAllowed = "move"; onDragStart(c.id); }}
@@ -72,9 +70,8 @@ function KanbanCard({ c, score, onMove, onDragStart, dragging }: { c: Candidate;
         <span>{timeAgo(c.lastUpdated)}</span>
       </div>
     </article>
-    </motion.div>
   );
-}
+});
 
 function DemoPipelinePage() {
   const candidates = useDemoStore((s) => s.candidates);
@@ -99,7 +96,10 @@ function DemoPipelinePage() {
     return m;
   }, [candidates, ivMap]);
 
-  const visible = candidates.filter((c) => (role === "all" || c.roleId === role) && (!q || c.name.toLowerCase().includes(q.toLowerCase()) || c.id.toLowerCase().includes(q.toLowerCase())));
+  const visible = useMemo(
+    () => candidates.filter((c) => (role === "all" || c.roleId === role) && (!q || c.name.toLowerCase().includes(q.toLowerCase()) || c.id.toLowerCase().includes(q.toLowerCase()))),
+    [candidates, role, q],
+  );
   const columns = VIEWS[view] as readonly PipelineColumn[];
 
   const attemptMove = (c: Candidate, col: PipelineColumn) => {
@@ -114,7 +114,14 @@ function DemoPipelinePage() {
     else change(c, to);
   };
 
-  const counts = { active: candidates.filter((c) => PIPELINE_COLUMNS.some((col) => col.statuses.includes(c.status))).length, pre: candidates.filter((c) => PRE_COLUMN.statuses.includes(c.status)).length, closed: candidates.filter((c) => c.status === "not_selected" || c.status === "withdrawn").length };
+  const counts = useMemo(
+    () => ({
+      active: candidates.filter((c) => PIPELINE_COLUMNS.some((col) => col.statuses.includes(c.status))).length,
+      pre: candidates.filter((c) => PRE_COLUMN.statuses.includes(c.status)).length,
+      closed: candidates.filter((c) => c.status === "not_selected" || c.status === "withdrawn").length,
+    }),
+    [candidates],
+  );
 
   return (
     <div>
@@ -134,48 +141,46 @@ function DemoPipelinePage() {
       </div>
       <p className="mb-3 flex items-center gap-2 text-xs text-fg-muted"><ArrowRightLeft className="size-3.5" aria-hidden />Drag cards between stages, or use the card menu to move a candidate with the keyboard.</p>
 
-      <LayoutGroup>
-        <div className="relative -mx-4 overflow-x-auto px-4 pb-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
-          <div className={cn("flex flex-col gap-3 sm:flex-row", view !== "active" && "max-w-3xl")}>
-            {columns.map((col) => {
-              const items = visible.filter((c) => col.statuses.includes(c.status)).sort((a, b) => b.lastUpdated.localeCompare(a.lastUpdated));
-              const isOver = overCol === col.id && dragId;
-              return (
-                <section
-                  key={col.id}
-                  aria-label={`${col.label}, ${items.length} candidates`}
-                  onDragOver={(e) => { e.preventDefault(); setOverCol(col.id); }}
-                  onDragLeave={() => setOverCol((o) => (o === col.id ? null : o))}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    const c = candidates.find((x) => x.id === (e.dataTransfer.getData("text/plain") || dragId));
-                    setDragId(null);
-                    setOverCol(null);
-                    if (c) attemptMove(c, col);
-                  }}
-                  className={cn("flex w-full sm:w-[272px] shrink-0 flex-col rounded-xl border bg-overlay/[0.02] transition-colors duration-200", isOver ? "border-brand-cyan/50 bg-brand/[0.07]" : "border-subtle")}
-                >
-                  <header className="flex items-center justify-between gap-2 px-3.5 pb-2 pt-3.5">
-                    <div className="min-w-0">
-                      <h2 className="flex items-center gap-2 text-sm font-semibold">{col.label}<span className="rounded-full bg-overlay/[0.07] px-2 py-0.5 text-[11px] font-medium tabular-nums text-fg-secondary">{items.length}</span></h2>
-                      <p className="mt-0.5 truncate text-[11px] text-fg-muted">{col.hint}</p>
-                    </div>
-                  </header>
-                  <div className="flex min-h-[160px] flex-1 flex-col gap-2 overflow-y-auto p-2.5 lg:max-h-[calc(100dvh-330px)]" onDragEnd={() => { setDragId(null); setOverCol(null); }}>
-                    {items.length === 0 ? (
-                      <div className="grid flex-1 place-items-center rounded-lg border border-dashed border-subtle py-8 text-center text-xs text-fg-disabled">
-                        <span className="flex flex-col items-center gap-2"><Inbox className="size-4" aria-hidden />No candidates</span>
-                      </div>
-                    ) : (
-                      items.map((c) => <KanbanCard key={c.id} c={c} score={scores.get(c.id)} dragging={dragId === c.id} onDragStart={setDragId} onMove={setMoveFor} />)
-                    )}
+      <div className="relative -mx-4 overflow-x-auto px-4 pb-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+        <div className={cn("flex flex-col gap-3 sm:flex-row", view !== "active" && "max-w-3xl")}>
+          {columns.map((col) => {
+            const items = visible.filter((c) => col.statuses.includes(c.status)).sort((a, b) => b.lastUpdated.localeCompare(a.lastUpdated));
+            const isOver = overCol === col.id && dragId;
+            return (
+              <section
+                key={col.id}
+                aria-label={`${col.label}, ${items.length} candidates`}
+                onDragOver={(e) => { e.preventDefault(); setOverCol(col.id); }}
+                onDragLeave={() => setOverCol((o) => (o === col.id ? null : o))}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const c = candidates.find((x) => x.id === (e.dataTransfer.getData("text/plain") || dragId));
+                  setDragId(null);
+                  setOverCol(null);
+                  if (c) attemptMove(c, col);
+                }}
+                className={cn("flex w-full sm:w-[272px] shrink-0 flex-col rounded-xl border bg-overlay/[0.02] transition-colors duration-200", isOver ? "border-brand-cyan/50 bg-brand/[0.07]" : "border-subtle")}
+              >
+                <header className="flex items-center justify-between gap-2 px-3.5 pb-2 pt-3.5">
+                  <div className="min-w-0">
+                    <h2 className="flex items-center gap-2 text-sm font-semibold">{col.label}<span className="rounded-full bg-overlay/[0.07] px-2 py-0.5 text-[11px] font-medium tabular-nums text-fg-secondary">{items.length}</span></h2>
+                    <p className="mt-0.5 truncate text-[11px] text-fg-muted">{col.hint}</p>
                   </div>
-                </section>
-              );
-            })}
-          </div>
+                </header>
+                <div className="flex min-h-[160px] flex-1 flex-col gap-2 overflow-y-auto p-2.5 lg:max-h-[calc(100dvh-330px)]" onDragEnd={() => { setDragId(null); setOverCol(null); }}>
+                  {items.length === 0 ? (
+                    <div className="grid flex-1 place-items-center rounded-lg border border-dashed border-subtle py-8 text-center text-xs text-fg-disabled">
+                      <span className="flex flex-col items-center gap-2"><Inbox className="size-4" aria-hidden />No candidates</span>
+                    </div>
+                  ) : (
+                    items.map((c) => <KanbanCard key={c.id} c={c} score={scores.get(c.id)} dragging={dragId === c.id} onDragStart={setDragId} onMove={setMoveFor} />)
+                  )}
+                </div>
+              </section>
+            );
+          })}
         </div>
-      </LayoutGroup>
+      </div>
 
       <ConfirmationDialog
         open={!!pending}
