@@ -14,10 +14,11 @@ import { NavigationProvider } from "@/components/navigation/provider";
 
 function ThemedToaster() {
   const { resolvedTheme } = useTheme();
-  const interviewControls = usePathname() === "/candidate/interview/session";
+  const interviewControls = usePathname().startsWith("/candidate/interview");
   return (
     <Toaster
       position="bottom-right"
+      closeButton
       theme={resolvedTheme === "light" ? "light" : "dark"}
       duration={3200}
       offset={interviewControls ? { bottom: 84 } : undefined}
