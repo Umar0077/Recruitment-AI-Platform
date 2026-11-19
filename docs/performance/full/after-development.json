@@ -1,0 +1,622 @@
+{
+  "at": "2026-11-18T23:52:34.827Z",
+  "base": "http://127.0.0.1:3200",
+  "label": "after-development",
+  "browser": "136.0.7103.114",
+  "method": "Headless installed Chrome, Demo Mode, no CPU/network throttling; click-to-first-frame with destination heading. Event Timing samples are lab interaction durations, not field INP.",
+  "rows": [
+    {
+      "name": "admin cold login",
+      "ms": 48772.932,
+      "cls": 0,
+      "lcp": 45036,
+      "interactions": [],
+      "shifts": [],
+      "longTasks": [
+        85,
+        370,
+        57,
+        149
+      ],
+      "scripts": {
+        "count": 33,
+        "bytes": 1285373
+      }
+    },
+    {
+      "name": "admin sign in",
+      "ms": 18101.089099999997
+    },
+    {
+      "name": "first /admin/candidates",
+      "path": "/admin/candidates",
+      "ms": 8615.600000023842,
+      "feedbackMs": 26,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 1046,
+      "ready": true
+    },
+    {
+      "name": "first /admin/interviews",
+      "path": "/admin/interviews",
+      "ms": 7063.5,
+      "feedbackMs": 12.599999964237213,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 956,
+      "ready": true
+    },
+    {
+      "name": "first /admin/assessments",
+      "path": "/admin/assessments",
+      "ms": 6576.699999988079,
+      "feedbackMs": 20.19999998807907,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 903,
+      "ready": true
+    },
+    {
+      "name": "first /admin/analytics",
+      "path": "/admin/analytics",
+      "ms": 13218.900000035763,
+      "feedbackMs": 19.100000023841858,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 1731,
+      "ready": true,
+      "chartReadyMs": 14105.300000011921
+    },
+    {
+      "name": "first /admin/pipeline",
+      "path": "/admin/pipeline",
+      "ms": 9182.799999952316,
+      "feedbackMs": 71.39999997615814,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 1042,
+      "ready": true
+    },
+    {
+      "name": "first /admin/interview-setup",
+      "path": "/admin/interview-setup",
+      "ms": 6161.5,
+      "feedbackMs": 27.69999998807907,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 708,
+      "ready": true
+    },
+    {
+      "name": "first /admin/settings",
+      "path": "/admin/settings",
+      "ms": 7020.300000011921,
+      "feedbackMs": 22.5,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 950,
+      "ready": true
+    },
+    {
+      "name": "first /admin/api-usage",
+      "path": "/admin/api-usage",
+      "ms": 8638.300000011921,
+      "feedbackMs": 17.099999964237213,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 1115,
+      "ready": true
+    },
+    {
+      "name": "first /admin/assessments/rubrics",
+      "path": "/admin/assessments/rubrics",
+      "ms": 7703.5,
+      "feedbackMs": 26.400000035762787,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 1039,
+      "ready": true
+    },
+    {
+      "name": "first /admin/settings/accounts",
+      "path": "/admin/settings/accounts",
+      "ms": 5985.200000047684,
+      "feedbackMs": 20.700000047683716,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 830,
+      "ready": true
+    },
+    {
+      "name": "first /admin/team",
+      "path": "/admin/team",
+      "ms": 6420.599999964237,
+      "feedbackMs": 26.399999976158142,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 854,
+      "ready": true
+    },
+    {
+      "name": "first /admin",
+      "path": "/admin",
+      "ms": 2360,
+      "feedbackMs": 18.69999998807907,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 282,
+      "ready": true
+    },
+    {
+      "name": "warm /admin/candidates",
+      "path": "/admin/candidates",
+      "ms": 3566.199999988079,
+      "feedbackMs": 18.80000001192093,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 371,
+      "ready": true
+    },
+    {
+      "name": "warm /admin/interviews",
+      "path": "/admin/interviews",
+      "ms": 3576.300000011921,
+      "feedbackMs": 17.5,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 408,
+      "ready": true
+    },
+    {
+      "name": "warm /admin/assessments",
+      "path": "/admin/assessments",
+      "ms": 1891.800000011921,
+      "feedbackMs": 20.899999976158142,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 232,
+      "ready": true
+    },
+    {
+      "name": "warm /admin/analytics",
+      "path": "/admin/analytics",
+      "ms": 853.3000000119209,
+      "feedbackMs": 12.400000035762787,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 77,
+      "ready": true,
+      "chartReadyMs": 872.2000000476837
+    },
+    {
+      "name": "warm /admin/pipeline",
+      "path": "/admin/pipeline",
+      "ms": 2001.6000000238419,
+      "feedbackMs": 30.400000035762787,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 116,
+      "ready": true
+    },
+    {
+      "name": "warm /admin/interview-setup",
+      "path": "/admin/interview-setup",
+      "ms": 820.5,
+      "feedbackMs": 11.899999976158142,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 99,
+      "ready": true
+    },
+    {
+      "name": "warm /admin/settings",
+      "path": "/admin/settings",
+      "ms": 667.5,
+      "feedbackMs": 7.300000011920929,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 70,
+      "ready": true
+    },
+    {
+      "name": "warm /admin/api-usage",
+      "path": "/admin/api-usage",
+      "ms": 994.4000000357628,
+      "feedbackMs": 8.600000023841858,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 99,
+      "ready": true
+    },
+    {
+      "name": "warm /admin/assessments/rubrics",
+      "path": "/admin/assessments/rubrics",
+      "ms": 830.5999999642372,
+      "feedbackMs": 10.199999988079071,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 108,
+      "ready": true
+    },
+    {
+      "name": "warm /admin/settings/accounts",
+      "path": "/admin/settings/accounts",
+      "ms": 873.3000000119209,
+      "feedbackMs": 11.600000023841858,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 100,
+      "ready": true
+    },
+    {
+      "name": "warm /admin/team",
+      "path": "/admin/team",
+      "ms": 962.1000000238419,
+      "feedbackMs": 11.400000035762787,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 103,
+      "ready": true
+    },
+    {
+      "name": "warm /admin",
+      "path": "/admin",
+      "ms": 574.6999999880791,
+      "feedbackMs": 10.099999964237213,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 75,
+      "ready": true
+    },
+    {
+      "name": "candidate detail",
+      "path": "/admin/candidates/CND-1016",
+      "ms": 3289.699999988079,
+      "feedbackMs": 4.399999976158142,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 458,
+      "ready": true
+    },
+    {
+      "name": "interview review",
+      "path": "/admin/interviews/INT-1026",
+      "ms": 3408,
+      "feedbackMs": 11.600000023841858,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 483,
+      "ready": true
+    },
+    {
+      "name": "candidate cold login",
+      "ms": 3867.1416999999783,
+      "cls": 0,
+      "lcp": 2432,
+      "interactions": [],
+      "shifts": [],
+      "longTasks": [
+        55,
+        73
+      ],
+      "scripts": {
+        "count": 34,
+        "bytes": 1314424
+      }
+    },
+    {
+      "name": "candidate sign in",
+      "ms": 2178.0515000000014
+    },
+    {
+      "name": "candidate instructions",
+      "path": "/candidate/interview/instructions",
+      "ms": 1647.699999988079,
+      "feedbackMs": 29.600000023841858,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 148,
+      "ready": true
+    },
+    {
+      "name": "candidate consent",
+      "path": "/candidate/interview/consent",
+      "ms": 2289.400000035763,
+      "feedbackMs": 28.200000047683716,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 313,
+      "ready": true
+    },
+    {
+      "name": "candidate equipment",
+      "path": "/candidate/interview/equipment",
+      "ms": 1951.199999988079,
+      "feedbackMs": 30,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 238,
+      "ready": true
+    },
+    {
+      "name": "candidate practice",
+      "path": "/candidate/interview/practice",
+      "ms": 1814.3999999761581,
+      "feedbackMs": 63.39999997615814,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 229,
+      "ready": true
+    },
+    {
+      "name": "admin and candidate lab interactions",
+      "interactionSamples": [
+        64,
+        64,
+        64,
+        256,
+        256,
+        256,
+        48,
+        48,
+        48,
+        56,
+        56,
+        56,
+        56,
+        48,
+        48,
+        384,
+        384,
+        384,
+        88,
+        88,
+        88
+      ],
+      "longTasks": [
+        55,
+        73,
+        100,
+        65,
+        141,
+        50,
+        81,
+        52,
+        69,
+        81,
+        50
+      ]
+    },
+    {
+      "name": "fictional typed interview completion",
+      "confirmed": 4,
+      "timerVisible": true,
+      "ms": 10731.658999999985,
+      "completed": true,
+      "physicalDevicesTested": false
+    },
+    {
+      "name": "candidate status",
+      "path": "/candidate/status",
+      "ms": 1610.6000000238419,
+      "feedbackMs": 8.600000023841858,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 181,
+      "ready": true
+    },
+    {
+      "name": "viewport",
+      "path": "/admin",
+      "width": 360,
+      "overflow": false,
+      "cls": 0,
+      "lcp": 1344
+    },
+    {
+      "name": "viewport",
+      "path": "/admin/candidates",
+      "width": 360,
+      "overflow": false,
+      "cls": 0,
+      "lcp": 1628
+    },
+    {
+      "name": "viewport",
+      "path": "/candidate/status",
+      "width": 360,
+      "overflow": false,
+      "cls": 0.0524965,
+      "lcp": 1160
+    },
+    {
+      "name": "viewport",
+      "path": "/admin",
+      "width": 390,
+      "overflow": false,
+      "cls": 0,
+      "lcp": 1128
+    },
+    {
+      "name": "viewport",
+      "path": "/admin/candidates",
+      "width": 390,
+      "overflow": false,
+      "cls": 0,
+      "lcp": 1388
+    },
+    {
+      "name": "viewport",
+      "path": "/candidate/status",
+      "width": 390,
+      "overflow": false,
+      "cls": 0.0524965,
+      "lcp": 848
+    },
+    {
+      "name": "viewport",
+      "path": "/admin",
+      "width": 430,
+      "overflow": false,
+      "cls": 0,
+      "lcp": 1552
+    },
+    {
+      "name": "viewport",
+      "path": "/admin/candidates",
+      "width": 430,
+      "overflow": false,
+      "cls": 0,
+      "lcp": 2028
+    },
+    {
+      "name": "viewport",
+      "path": "/candidate/status",
+      "width": 430,
+      "overflow": false,
+      "cls": 0.0524965,
+      "lcp": 1628
+    },
+    {
+      "name": "viewport",
+      "path": "/admin",
+      "width": 768,
+      "overflow": false,
+      "cls": 0,
+      "lcp": 1336
+    },
+    {
+      "name": "viewport",
+      "path": "/admin/candidates",
+      "width": 768,
+      "overflow": false,
+      "cls": 0,
+      "lcp": 5996
+    },
+    {
+      "name": "viewport",
+      "path": "/candidate/status",
+      "width": 768,
+      "overflow": false,
+      "cls": 0.05577,
+      "lcp": 2824
+    },
+    {
+      "name": "viewport",
+      "path": "/admin",
+      "width": 1024,
+      "overflow": false,
+      "cls": 0,
+      "lcp": 2752
+    },
+    {
+      "name": "viewport",
+      "path": "/admin/candidates",
+      "width": 1024,
+      "overflow": false,
+      "cls": 0,
+      "lcp": 2868
+    },
+    {
+      "name": "viewport",
+      "path": "/candidate/status",
+      "width": 1024,
+      "overflow": false,
+      "cls": 0.054462890625,
+      "lcp": 6172
+    },
+    {
+      "name": "viewport",
+      "path": "/admin",
+      "width": 1440,
+      "overflow": false,
+      "cls": 0,
+      "lcp": 10596
+    },
+    {
+      "name": "viewport",
+      "path": "/admin/candidates",
+      "width": 1440,
+      "overflow": false,
+      "cls": 0,
+      "lcp": 14736
+    },
+    {
+      "name": "viewport",
+      "path": "/candidate/status",
+      "width": 1440,
+      "overflow": false,
+      "cls": 0.03872916666666667,
+      "lcp": 4296
+    },
+    {
+      "name": "viewport",
+      "path": "/admin",
+      "width": 1920,
+      "overflow": false,
+      "cls": 0,
+      "lcp": 6204
+    },
+    {
+      "name": "viewport",
+      "path": "/admin/candidates",
+      "width": 1920,
+      "overflow": false,
+      "cls": 0,
+      "lcp": 5308
+    },
+    {
+      "name": "viewport",
+      "path": "/candidate/status",
+      "width": 1920,
+      "overflow": false,
+      "cls": 0.029046875000000003,
+      "lcp": 8044
+    },
+    {
+      "name": "appearance",
+      "theme": "light",
+      "width": 390,
+      "reducedMotion": true,
+      "overflow": false,
+      "cls": 0
+    },
+    {
+      "name": "mobile drawer navigation",
+      "theme": "light",
+      "passed": true
+    },
+    {
+      "name": "appearance",
+      "theme": "light",
+      "width": 1440,
+      "reducedMotion": true,
+      "overflow": false,
+      "cls": 0
+    },
+    {
+      "name": "appearance",
+      "theme": "dark",
+      "width": 390,
+      "reducedMotion": true,
+      "overflow": false,
+      "cls": 0
+    },
+    {
+      "name": "mobile drawer navigation",
+      "theme": "dark",
+      "passed": true
+    },
+    {
+      "name": "appearance",
+      "theme": "dark",
+      "width": 1440,
+      "reducedMotion": true,
+      "overflow": false,
+      "cls": 0
+    }
+  ],
+  "requests": [],
+  "errors": []
+}

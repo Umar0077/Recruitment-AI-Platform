@@ -1,0 +1,585 @@
+{
+  "at": "2026-11-18T23:11:27.685Z",
+  "writes": 0,
+  "rows": [
+    {
+      "name": "overview",
+      "run": 0,
+      "elapsedMs": 26.65,
+      "queries": 7,
+      "sqlMs": 10,
+      "bytes": 1719
+    },
+    {
+      "name": "overview",
+      "run": 1,
+      "elapsedMs": 23.59,
+      "queries": 7,
+      "sqlMs": 8,
+      "bytes": 1719
+    },
+    {
+      "name": "overview",
+      "run": 2,
+      "elapsedMs": 19.27,
+      "queries": 7,
+      "sqlMs": 7,
+      "bytes": 1719
+    },
+    {
+      "name": "overview",
+      "run": 3,
+      "elapsedMs": 19.84,
+      "queries": 7,
+      "sqlMs": 6,
+      "bytes": 1719
+    },
+    {
+      "name": "overview",
+      "run": 4,
+      "elapsedMs": 19.98,
+      "queries": 7,
+      "sqlMs": 5,
+      "bytes": 1719
+    },
+    {
+      "name": "overview",
+      "run": 5,
+      "elapsedMs": 19.22,
+      "queries": 7,
+      "sqlMs": 4,
+      "bytes": 1719
+    },
+    {
+      "name": "overview",
+      "run": 6,
+      "elapsedMs": 17.24,
+      "queries": 7,
+      "sqlMs": 3,
+      "bytes": 1719
+    },
+    {
+      "name": "overview",
+      "run": 7,
+      "elapsedMs": 14.98,
+      "queries": 7,
+      "sqlMs": 2,
+      "bytes": 1719
+    },
+    {
+      "name": "overview",
+      "run": 8,
+      "elapsedMs": 15.35,
+      "queries": 7,
+      "sqlMs": 1,
+      "bytes": 1719
+    },
+    {
+      "name": "overview",
+      "run": 9,
+      "elapsedMs": 19.44,
+      "queries": 7,
+      "sqlMs": 6,
+      "bytes": 1719
+    },
+    {
+      "name": "activity",
+      "run": 0,
+      "elapsedMs": 6.33,
+      "queries": 1,
+      "sqlMs": 3,
+      "bytes": 1052
+    },
+    {
+      "name": "activity",
+      "run": 1,
+      "elapsedMs": 15.23,
+      "queries": 1,
+      "sqlMs": 3,
+      "bytes": 1052
+    },
+    {
+      "name": "activity",
+      "run": 2,
+      "elapsedMs": 16.45,
+      "queries": 1,
+      "sqlMs": 3,
+      "bytes": 1052
+    },
+    {
+      "name": "activity",
+      "run": 3,
+      "elapsedMs": 6.65,
+      "queries": 1,
+      "sqlMs": 4,
+      "bytes": 1052
+    },
+    {
+      "name": "activity",
+      "run": 4,
+      "elapsedMs": 23.14,
+      "queries": 1,
+      "sqlMs": 6,
+      "bytes": 1052
+    },
+    {
+      "name": "activity",
+      "run": 5,
+      "elapsedMs": 6.82,
+      "queries": 1,
+      "sqlMs": 4,
+      "bytes": 1052
+    },
+    {
+      "name": "activity",
+      "run": 6,
+      "elapsedMs": 10.6,
+      "queries": 1,
+      "sqlMs": 6,
+      "bytes": 1052
+    },
+    {
+      "name": "activity",
+      "run": 7,
+      "elapsedMs": 7.07,
+      "queries": 1,
+      "sqlMs": 3,
+      "bytes": 1052
+    },
+    {
+      "name": "activity",
+      "run": 8,
+      "elapsedMs": 8.79,
+      "queries": 1,
+      "sqlMs": 5,
+      "bytes": 1052
+    },
+    {
+      "name": "activity",
+      "run": 9,
+      "elapsedMs": 6.33,
+      "queries": 1,
+      "sqlMs": 4,
+      "bytes": 1052
+    },
+    {
+      "name": "candidateList",
+      "run": 0,
+      "elapsedMs": 5.61,
+      "queries": 1,
+      "sqlMs": 1,
+      "bytes": 325
+    },
+    {
+      "name": "candidateList",
+      "run": 1,
+      "elapsedMs": 4.94,
+      "queries": 1,
+      "sqlMs": 1,
+      "bytes": 325
+    },
+    {
+      "name": "candidateList",
+      "run": 2,
+      "elapsedMs": 5.77,
+      "queries": 1,
+      "sqlMs": 2,
+      "bytes": 325
+    },
+    {
+      "name": "candidateList",
+      "run": 3,
+      "elapsedMs": 5.64,
+      "queries": 1,
+      "sqlMs": 1,
+      "bytes": 325
+    },
+    {
+      "name": "candidateList",
+      "run": 4,
+      "elapsedMs": 5.96,
+      "queries": 1,
+      "sqlMs": 1,
+      "bytes": 325
+    },
+    {
+      "name": "candidateList",
+      "run": 5,
+      "elapsedMs": 3.79,
+      "queries": 1,
+      "sqlMs": 1,
+      "bytes": 325
+    },
+    {
+      "name": "candidateList",
+      "run": 6,
+      "elapsedMs": 6.72,
+      "queries": 1,
+      "sqlMs": 1,
+      "bytes": 325
+    },
+    {
+      "name": "candidateList",
+      "run": 7,
+      "elapsedMs": 4.09,
+      "queries": 1,
+      "sqlMs": 0,
+      "bytes": 325
+    },
+    {
+      "name": "candidateList",
+      "run": 8,
+      "elapsedMs": 6.13,
+      "queries": 1,
+      "sqlMs": 1,
+      "bytes": 325
+    },
+    {
+      "name": "candidateList",
+      "run": 9,
+      "elapsedMs": 4.62,
+      "queries": 1,
+      "sqlMs": 0,
+      "bytes": 325
+    },
+    {
+      "name": "interviewList",
+      "run": 0,
+      "elapsedMs": 5.87,
+      "queries": 1,
+      "sqlMs": 2,
+      "bytes": 2
+    },
+    {
+      "name": "interviewList",
+      "run": 1,
+      "elapsedMs": 3.89,
+      "queries": 1,
+      "sqlMs": 1,
+      "bytes": 2
+    },
+    {
+      "name": "interviewList",
+      "run": 2,
+      "elapsedMs": 3.94,
+      "queries": 1,
+      "sqlMs": 1,
+      "bytes": 2
+    },
+    {
+      "name": "interviewList",
+      "run": 3,
+      "elapsedMs": 5.84,
+      "queries": 1,
+      "sqlMs": 1,
+      "bytes": 2
+    },
+    {
+      "name": "interviewList",
+      "run": 4,
+      "elapsedMs": 5.91,
+      "queries": 1,
+      "sqlMs": 1,
+      "bytes": 2
+    },
+    {
+      "name": "interviewList",
+      "run": 5,
+      "elapsedMs": 5.19,
+      "queries": 1,
+      "sqlMs": 1,
+      "bytes": 2
+    },
+    {
+      "name": "interviewList",
+      "run": 6,
+      "elapsedMs": 4.07,
+      "queries": 1,
+      "sqlMs": 0,
+      "bytes": 2
+    },
+    {
+      "name": "interviewList",
+      "run": 7,
+      "elapsedMs": 5.46,
+      "queries": 1,
+      "sqlMs": 1,
+      "bytes": 2
+    },
+    {
+      "name": "interviewList",
+      "run": 8,
+      "elapsedMs": 3.53,
+      "queries": 1,
+      "sqlMs": 0,
+      "bytes": 2
+    },
+    {
+      "name": "interviewList",
+      "run": 9,
+      "elapsedMs": 4.45,
+      "queries": 1,
+      "sqlMs": 0,
+      "bytes": 2
+    },
+    {
+      "name": "summary",
+      "run": 0,
+      "elapsedMs": 16.85,
+      "queries": 4,
+      "sqlMs": 6,
+      "bytes": 114
+    },
+    {
+      "name": "summary",
+      "run": 1,
+      "elapsedMs": 15.22,
+      "queries": 4,
+      "sqlMs": 6,
+      "bytes": 114
+    },
+    {
+      "name": "summary",
+      "run": 2,
+      "elapsedMs": 15.75,
+      "queries": 4,
+      "sqlMs": 6,
+      "bytes": 114
+    },
+    {
+      "name": "summary",
+      "run": 3,
+      "elapsedMs": 18.45,
+      "queries": 4,
+      "sqlMs": 7,
+      "bytes": 114
+    },
+    {
+      "name": "summary",
+      "run": 4,
+      "elapsedMs": 16.62,
+      "queries": 4,
+      "sqlMs": 5,
+      "bytes": 114
+    },
+    {
+      "name": "summary",
+      "run": 5,
+      "elapsedMs": 13.32,
+      "queries": 4,
+      "sqlMs": 4,
+      "bytes": 114
+    },
+    {
+      "name": "summary",
+      "run": 6,
+      "elapsedMs": 10.48,
+      "queries": 4,
+      "sqlMs": 1,
+      "bytes": 114
+    },
+    {
+      "name": "summary",
+      "run": 7,
+      "elapsedMs": 11.6,
+      "queries": 4,
+      "sqlMs": 2,
+      "bytes": 114
+    },
+    {
+      "name": "summary",
+      "run": 8,
+      "elapsedMs": 12.12,
+      "queries": 4,
+      "sqlMs": 2,
+      "bytes": 114
+    },
+    {
+      "name": "summary",
+      "run": 9,
+      "elapsedMs": 7.71,
+      "queries": 4,
+      "sqlMs": 1,
+      "bytes": 114
+    },
+    {
+      "name": "summaryParity",
+      "passed": true
+    },
+    {
+      "name": "pairedOverview",
+      "run": 0,
+      "elapsedMs": 19.55,
+      "queries": 7,
+      "sqlMs": 3,
+      "bytes": 1720
+    },
+    {
+      "name": "pairedSummary",
+      "run": 0,
+      "elapsedMs": 11.51,
+      "queries": 4,
+      "sqlMs": 4,
+      "bytes": 114
+    },
+    {
+      "name": "pairedOverview",
+      "run": 1,
+      "elapsedMs": 18.38,
+      "queries": 7,
+      "sqlMs": 5,
+      "bytes": 1720
+    },
+    {
+      "name": "pairedSummary",
+      "run": 1,
+      "elapsedMs": 12.98,
+      "queries": 4,
+      "sqlMs": 3,
+      "bytes": 114
+    },
+    {
+      "name": "pairedOverview",
+      "run": 2,
+      "elapsedMs": 18.45,
+      "queries": 7,
+      "sqlMs": 6,
+      "bytes": 1720
+    },
+    {
+      "name": "pairedSummary",
+      "run": 2,
+      "elapsedMs": 9.18,
+      "queries": 4,
+      "sqlMs": 2,
+      "bytes": 114
+    },
+    {
+      "name": "pairedOverview",
+      "run": 3,
+      "elapsedMs": 18.77,
+      "queries": 7,
+      "sqlMs": 5,
+      "bytes": 1720
+    },
+    {
+      "name": "pairedSummary",
+      "run": 3,
+      "elapsedMs": 11.77,
+      "queries": 4,
+      "sqlMs": 2,
+      "bytes": 114
+    },
+    {
+      "name": "pairedOverview",
+      "run": 4,
+      "elapsedMs": 21.03,
+      "queries": 7,
+      "sqlMs": 7,
+      "bytes": 1720
+    },
+    {
+      "name": "pairedSummary",
+      "run": 4,
+      "elapsedMs": 11.19,
+      "queries": 4,
+      "sqlMs": 2,
+      "bytes": 114
+    },
+    {
+      "name": "pairedOverview",
+      "run": 5,
+      "elapsedMs": 16.21,
+      "queries": 7,
+      "sqlMs": 2,
+      "bytes": 1720
+    },
+    {
+      "name": "pairedSummary",
+      "run": 5,
+      "elapsedMs": 13.27,
+      "queries": 4,
+      "sqlMs": 3,
+      "bytes": 114
+    },
+    {
+      "name": "pairedOverview",
+      "run": 6,
+      "elapsedMs": 15.39,
+      "queries": 7,
+      "sqlMs": 2,
+      "bytes": 1720
+    },
+    {
+      "name": "pairedSummary",
+      "run": 6,
+      "elapsedMs": 9.77,
+      "queries": 4,
+      "sqlMs": 2,
+      "bytes": 114
+    },
+    {
+      "name": "pairedOverview",
+      "run": 7,
+      "elapsedMs": 20.17,
+      "queries": 7,
+      "sqlMs": 3,
+      "bytes": 1720
+    },
+    {
+      "name": "pairedSummary",
+      "run": 7,
+      "elapsedMs": 13.58,
+      "queries": 4,
+      "sqlMs": 4,
+      "bytes": 114
+    },
+    {
+      "name": "pairedOverview",
+      "run": 8,
+      "elapsedMs": 15.46,
+      "queries": 7,
+      "sqlMs": 2,
+      "bytes": 1720
+    },
+    {
+      "name": "pairedSummary",
+      "run": 8,
+      "elapsedMs": 10.91,
+      "queries": 4,
+      "sqlMs": 3,
+      "bytes": 114
+    },
+    {
+      "name": "pairedOverview",
+      "run": 9,
+      "elapsedMs": 14.53,
+      "queries": 7,
+      "sqlMs": 0,
+      "bytes": 1720
+    },
+    {
+      "name": "pairedSummary",
+      "run": 9,
+      "elapsedMs": 15.05,
+      "queries": 4,
+      "sqlMs": 7,
+      "bytes": 114
+    },
+    {
+      "name": "aggregateExplain",
+      "plan": [
+        "HashAggregate  (cost=1.02..1.03 rows=1 width=12) (actual time=0.136..0.137 rows=0 loops=1)",
+        "  Group Key: status",
+        "  Batches: 1  Memory Usage: 24kB",
+        "  Buffers: shared hit=1",
+        "  ->  Seq Scan on interview_sessions  (cost=0.00..1.02 rows=1 width=4) (actual time=0.127..0.127 rows=0 loops=1)",
+        "        Filter: is_sample",
+        "        Rows Removed by Filter: 2",
+        "        Buffers: shared hit=1",
+        "Planning Time: 0.455 ms",
+        "Execution Time: 0.401 ms"
+      ]
+    }
+  ]
+}

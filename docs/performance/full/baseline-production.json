@@ -1,0 +1,269 @@
+{
+  "at": "2026-11-18T22:18:12.520Z",
+  "base": "http://127.0.0.1:3300",
+  "label": "baseline-production",
+  "browser": "136.0.7103.114",
+  "method": "Headless installed Chrome, Demo Mode, no CPU/network throttling; click-to-first-frame with destination heading. Event Timing samples are lab interaction durations, not field INP.",
+  "rows": [
+    {
+      "name": "admin cold login",
+      "ms": 3106.0115000000005,
+      "cls": 0,
+      "lcp": 0,
+      "interactions": [],
+      "shifts": [],
+      "scripts": {
+        "count": 30,
+        "bytes": 415831
+      }
+    },
+    {
+      "name": "admin sign in",
+      "ms": 2350.5194
+    },
+    {
+      "name": "first /admin/candidates",
+      "path": "/admin/candidates",
+      "ms": 567.1000000238419,
+      "feedbackMs": 143.4000000357628,
+      "oldContentRetained": false,
+      "headerRetained": true,
+      "frames": 34,
+      "ready": true
+    },
+    {
+      "name": "first /admin/interviews",
+      "path": "/admin/interviews",
+      "ms": 94.60000002384186,
+      "feedbackMs": 94.60000002384186,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 3,
+      "ready": true
+    },
+    {
+      "name": "first /admin/assessments",
+      "path": "/admin/assessments",
+      "ms": 118,
+      "feedbackMs": 118,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 10,
+      "ready": true
+    },
+    {
+      "name": "first /admin/analytics",
+      "path": "/admin/analytics",
+      "ms": 1674.8999999761581,
+      "feedbackMs": 40.89999997615814,
+      "oldContentRetained": false,
+      "headerRetained": true,
+      "frames": 208,
+      "ready": true
+    },
+    {
+      "name": "first /admin/pipeline",
+      "path": "/admin/pipeline",
+      "ms": 246.5999999642372,
+      "feedbackMs": 246.5999999642372,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 9,
+      "ready": true
+    },
+    {
+      "name": "first /admin/interview-setup",
+      "path": "/admin/interview-setup",
+      "ms": 140.39999997615814,
+      "feedbackMs": 140.39999997615814,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 8,
+      "ready": true
+    },
+    {
+      "name": "first /admin/settings",
+      "path": "/admin/settings",
+      "ms": 141.5999999642372,
+      "feedbackMs": 141.5999999642372,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 12,
+      "ready": true
+    },
+    {
+      "name": "first /admin/api-usage",
+      "path": "/admin/api-usage",
+      "ms": 220.5,
+      "feedbackMs": 220.5,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 12,
+      "ready": true
+    },
+    {
+      "name": "first /admin/assessments/rubrics",
+      "path": "/admin/assessments/rubrics",
+      "ms": 106.30000001192093,
+      "feedbackMs": 106.30000001192093,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 9,
+      "ready": true
+    },
+    {
+      "name": "first /admin/settings/accounts",
+      "path": "/admin/settings/accounts",
+      "ms": 43.10000002384186,
+      "feedbackMs": 43.10000002384186,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 4,
+      "ready": true
+    },
+    {
+      "name": "first /admin/team",
+      "path": "/admin/team",
+      "ms": 92.69999998807907,
+      "feedbackMs": 92.69999998807907,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 7,
+      "ready": true
+    },
+    {
+      "name": "first /admin",
+      "path": "/admin",
+      "ms": 83.60000002384186,
+      "feedbackMs": 83.60000002384186,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 6,
+      "ready": true
+    },
+    {
+      "name": "warm /admin/candidates",
+      "path": "/admin/candidates",
+      "ms": 163.19999998807907,
+      "feedbackMs": 163.19999998807907,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 11,
+      "ready": true
+    },
+    {
+      "name": "warm /admin/interviews",
+      "path": "/admin/interviews",
+      "ms": 178.29999995231628,
+      "feedbackMs": 10.5,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 7,
+      "ready": true
+    },
+    {
+      "name": "warm /admin/assessments",
+      "path": "/admin/assessments",
+      "ms": 97.5,
+      "feedbackMs": 97.5,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 6,
+      "ready": true
+    },
+    {
+      "name": "warm /admin/analytics",
+      "path": "/admin/analytics",
+      "ms": 178.70000004768372,
+      "feedbackMs": 178.70000004768372,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 6,
+      "ready": true
+    },
+    {
+      "name": "warm /admin/pipeline",
+      "path": "/admin/pipeline",
+      "ms": 405.30000001192093,
+      "feedbackMs": 405.30000001192093,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 27,
+      "ready": true
+    },
+    {
+      "name": "warm /admin/interview-setup",
+      "path": "/admin/interview-setup",
+      "ms": 179.70000004768372,
+      "feedbackMs": 179.70000004768372,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 12,
+      "ready": true
+    },
+    {
+      "name": "warm /admin/settings",
+      "path": "/admin/settings",
+      "ms": 78.60000002384186,
+      "feedbackMs": 78.60000002384186,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 3,
+      "ready": true
+    },
+    {
+      "name": "warm /admin/api-usage",
+      "path": "/admin/api-usage",
+      "ms": 207.69999998807907,
+      "feedbackMs": 207.69999998807907,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 5,
+      "ready": true
+    },
+    {
+      "name": "warm /admin/assessments/rubrics",
+      "path": "/admin/assessments/rubrics",
+      "ms": 36.40000003576279,
+      "feedbackMs": 36.40000003576279,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 3,
+      "ready": true
+    },
+    {
+      "name": "warm /admin/settings/accounts",
+      "path": "/admin/settings/accounts",
+      "ms": 29.799999952316284,
+      "feedbackMs": 29.799999952316284,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 2,
+      "ready": true
+    },
+    {
+      "name": "warm /admin/team",
+      "path": "/admin/team",
+      "ms": 64.30000001192093,
+      "feedbackMs": 64.19999998807907,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 5,
+      "ready": true
+    },
+    {
+      "name": "warm /admin",
+      "path": "/admin",
+      "ms": 58.90000003576279,
+      "feedbackMs": 58.90000003576279,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 3,
+      "ready": true
+    }
+  ],
+  "requests": [],
+  "errors": [
+    "locator.click: Timeout 90000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('main a[href^=\"/admin/candidates/\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <a href=\"/admin/candidates/CND-1016\" class=\"flex flex-wrap justify-between gap-2 py-3 text-sm\">…</a>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m  - element was detached from the DOM, retrying\u001b[22m\n\u001b[2m    - locator resolved to <a class=\"block px-4 py-4\" href=\"/admin/candidates/CND-1016\">…</a>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    174 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m        - element is not visible\u001b[22m\n\u001b[2m      - retrying click action\u001b[22m\n\u001b[2m        - waiting 500ms\u001b[22m\n"
+  ]
+}

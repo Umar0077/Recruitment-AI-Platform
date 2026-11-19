@@ -1,0 +1,12 @@
+{
+  "at": "2026-11-19T15:28:42.171Z",
+  "base": "http://127.0.0.1:3300",
+  "label": "after-production-final",
+  "browser": "136.0.7103.114",
+  "method": "Headless installed Chrome, Demo Mode, no CPU/network throttling; click-to-first-frame with destination heading. Event Timing samples are lab interaction durations, not field INP.",
+  "rows": [],
+  "requests": [],
+  "errors": [
+    "page.goto: net::ERR_CONNECTION_TIMED_OUT at http://127.0.0.1:3300/admin/login\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:3300/admin/login\", waiting until \"networkidle\"\u001b[22m\n"
+  ]
+}

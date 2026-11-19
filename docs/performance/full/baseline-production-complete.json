@@ -1,0 +1,276 @@
+{
+  "at": "2026-11-18T22:30:22.367Z",
+  "base": "http://127.0.0.1:3300",
+  "label": "baseline-production-complete",
+  "browser": "136.0.7103.114",
+  "method": "Headless installed Chrome, Demo Mode, no CPU/network throttling; click-to-first-frame with destination heading. Event Timing samples are lab interaction durations, not field INP.",
+  "rows": [
+    {
+      "name": "admin cold login",
+      "ms": 3096.7396,
+      "cls": 0.00001289454330632716,
+      "lcp": 2064,
+      "interactions": [],
+      "shifts": [
+        {
+          "value": 0.00001289454330632716,
+          "tags": [
+            "DIV"
+          ]
+        }
+      ],
+      "scripts": {
+        "count": 30,
+        "bytes": 415831
+      }
+    },
+    {
+      "name": "admin sign in",
+      "ms": 1424.7581
+    },
+    {
+      "name": "first /admin/candidates",
+      "path": "/admin/candidates",
+      "ms": 489.89999997615814,
+      "feedbackMs": 489.80000001192093,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 20,
+      "ready": true
+    },
+    {
+      "name": "first /admin/interviews",
+      "path": "/admin/interviews",
+      "ms": 128.0999999642372,
+      "feedbackMs": 128.0999999642372,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 2,
+      "ready": true
+    },
+    {
+      "name": "first /admin/assessments",
+      "path": "/admin/assessments",
+      "ms": 194.9000000357628,
+      "feedbackMs": 194.9000000357628,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 13,
+      "ready": true
+    },
+    {
+      "name": "first /admin/analytics",
+      "path": "/admin/analytics",
+      "ms": 782.3999999761581,
+      "feedbackMs": 782.3999999761581,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 19,
+      "ready": true
+    },
+    {
+      "name": "first /admin/pipeline",
+      "path": "/admin/pipeline",
+      "ms": 964.2999999523163,
+      "feedbackMs": 964.2999999523163,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 39,
+      "ready": true
+    },
+    {
+      "name": "first /admin/interview-setup",
+      "path": "/admin/interview-setup",
+      "ms": 257.39999997615814,
+      "feedbackMs": 257.39999997615814,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 19,
+      "ready": true
+    },
+    {
+      "name": "first /admin/settings",
+      "path": "/admin/settings",
+      "ms": 90.30000001192093,
+      "feedbackMs": 90.30000001192093,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 6,
+      "ready": true
+    },
+    {
+      "name": "first /admin/api-usage",
+      "path": "/admin/api-usage",
+      "ms": 313.69999998807907,
+      "feedbackMs": 313.69999998807907,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 15,
+      "ready": true
+    },
+    {
+      "name": "first /admin/assessments/rubrics",
+      "path": "/admin/assessments/rubrics",
+      "ms": 76.40000003576279,
+      "feedbackMs": 76.40000003576279,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 7,
+      "ready": true
+    },
+    {
+      "name": "first /admin/settings/accounts",
+      "path": "/admin/settings/accounts",
+      "ms": 37.89999997615814,
+      "feedbackMs": 37.89999997615814,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 3,
+      "ready": true
+    },
+    {
+      "name": "first /admin/team",
+      "path": "/admin/team",
+      "ms": 82.80000001192093,
+      "feedbackMs": 82.80000001192093,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 6,
+      "ready": true
+    },
+    {
+      "name": "first /admin",
+      "path": "/admin",
+      "ms": 82,
+      "feedbackMs": 82,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 5,
+      "ready": true
+    },
+    {
+      "name": "warm /admin/candidates",
+      "path": "/admin/candidates",
+      "ms": 158.39999997615814,
+      "feedbackMs": 158.29999995231628,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 10,
+      "ready": true
+    },
+    {
+      "name": "warm /admin/interviews",
+      "path": "/admin/interviews",
+      "ms": 158.30000001192093,
+      "feedbackMs": 158.30000001192093,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 3,
+      "ready": true
+    },
+    {
+      "name": "warm /admin/assessments",
+      "path": "/admin/assessments",
+      "ms": 183.30000001192093,
+      "feedbackMs": 183.30000001192093,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 11,
+      "ready": true
+    },
+    {
+      "name": "warm /admin/analytics",
+      "path": "/admin/analytics",
+      "ms": 178.4000000357628,
+      "feedbackMs": 178.4000000357628,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 5,
+      "ready": true
+    },
+    {
+      "name": "warm /admin/pipeline",
+      "path": "/admin/pipeline",
+      "ms": 168.80000001192093,
+      "feedbackMs": 168.80000001192093,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 3,
+      "ready": true
+    },
+    {
+      "name": "warm /admin/interview-setup",
+      "path": "/admin/interview-setup",
+      "ms": 386.80000001192093,
+      "feedbackMs": 386.80000001192093,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 15,
+      "ready": true
+    },
+    {
+      "name": "warm /admin/settings",
+      "path": "/admin/settings",
+      "ms": 205.5,
+      "feedbackMs": 205.5,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 12,
+      "ready": true
+    },
+    {
+      "name": "warm /admin/api-usage",
+      "path": "/admin/api-usage",
+      "ms": 133.19999998807907,
+      "feedbackMs": 133.19999998807907,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 4,
+      "ready": true
+    },
+    {
+      "name": "warm /admin/assessments/rubrics",
+      "path": "/admin/assessments/rubrics",
+      "ms": 32.60000002384186,
+      "feedbackMs": 32.60000002384186,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 3,
+      "ready": true
+    },
+    {
+      "name": "warm /admin/settings/accounts",
+      "path": "/admin/settings/accounts",
+      "ms": 29.100000023841858,
+      "feedbackMs": 29.100000023841858,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 2,
+      "ready": true
+    },
+    {
+      "name": "warm /admin/team",
+      "path": "/admin/team",
+      "ms": 71.39999997615814,
+      "feedbackMs": 71.39999997615814,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 5,
+      "ready": true
+    },
+    {
+      "name": "warm /admin",
+      "path": "/admin",
+      "ms": 84,
+      "feedbackMs": 84,
+      "oldContentRetained": true,
+      "headerRetained": true,
+      "frames": 3,
+      "ready": true
+    }
+  ],
+  "requests": [],
+  "errors": [
+    "locator.click: Error: strict mode violation: locator('aside a[href=\"/admin\"]') resolved to 2 elements:\n    1) <a href=\"/admin\" aria-label=\"InterviewOS home\" class=\"group inline-flex items-center gap-2.5 rounded-lg\">…</a> aka getByRole('link', { name: 'InterviewOS home' })\n    2) <a href=\"/admin\" aria-label=\"Dashboard\" class=\"group relative flex h-10 items-center gap-3 rounded-xl text-sm font-medium transition-colors duration-micro px-3 text-fg-muted hover:bg-overlay/[0.04] hover:text-fg\">…</a> aka getByRole('link', { name: 'Dashboard' })\n\nCall log:\n\u001b[2m  - waiting for locator('aside a[href=\"/admin\"]')\u001b[22m\n"
+  ]
+}
