@@ -61,7 +61,7 @@ class UpdateReviewDto {
 }
 
 @Injectable()
-class HrReviewsService {
+export class HrReviewsService {
   constructor(private readonly prisma: PrismaService, private readonly audit: AuditService, private readonly scope: AccessScope) {}
 
   async list(q: ReviewQueryDto, user: AuthUser) {
