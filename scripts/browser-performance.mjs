@@ -122,7 +122,7 @@ try {
   await navigate('candidate status', '/candidate/status', page.locator('header a[href="/candidate/status"]'));
   for (const width of [360,390,430,768,1024,1440,1920]) {
     await page.setViewportSize({width,height:1000});
-    for (const path of ['/admin','/admin/candidates','/candidate/status']) {
+    for (const path of ['/admin','/admin/candidates','/admin/assessments/INT-1026','/candidate/status']) {
       await page.goto(`${base}${path}`, {waitUntil:'networkidle'});
       await page.locator('main h1').waitFor();
       rows.push({ name:'viewport',path,width,...await page.evaluate(() => ({overflow:document.documentElement.scrollWidth>innerWidth,cls:window.__perf.cls,lcp:window.__perf.lcp})) });
@@ -130,6 +130,30 @@ try {
   }
   if (label.startsWith('after')) {
     await mkdir('.next-ui-preview/performance', {recursive:true});
+    for (const theme of ['light','dark']) {
+      await page.setViewportSize({width:1440,height:1000});
+      await page.evaluate(theme => localStorage.setItem('interviewos-theme',theme),theme);
+      await page.goto(`${base}/admin/assessments/INT-1026`,{waitUntil:'networkidle'});
+      await page.getByRole('heading',{name:/Section A — Candidate Overview/i}).waitFor();
+      await page.getByPlaceholder(/Add an internal remark/i).fill('UNSAVED_DRAFT_EXCLUDED_FROM_PDF');
+      await page.emulateMedia({media:'print'});
+      const printCheck = await page.evaluate(() => {
+        const area = document.querySelector('.print-area');
+        return {
+          sectionsPresent: ['Section A','Section B','Section C','Section D','Section E','Section F'].every(s => area?.textContent?.includes(s)),
+          draftExcluded: !area?.textContent?.includes('UNSAVED_DRAFT_EXCLUDED_FROM_PDF'),
+          asideHidden: getComputedStyle(document.querySelector('aside.no-print')).display === 'none',
+          overflow: document.documentElement.scrollWidth > innerWidth,
+        };
+      });
+      const pdfBuf = await page.pdf({format:'A4',printBackground:true});
+      await page.emulateMedia({media:'screen'});
+      const pdfHeader = pdfBuf.subarray(0,5).toString('ascii');
+      rows.push({name:'hr report pdf export',theme,bytes:pdfBuf.length,validPdf:pdfHeader==='%PDF-',...printCheck});
+      if (pdfHeader !== '%PDF-' || !printCheck.sectionsPresent || !printCheck.draftExcluded || !printCheck.asideHidden) {
+        errors.push(`HR Report PDF export validation failed in ${theme} mode`);
+      }
+    }
     for (const theme of ['light','dark']) {
       for (const width of [390,1440]) {
         await page.setViewportSize({width,height:1000});
