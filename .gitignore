@@ -1,17 +1,38 @@
-node_modules
-.next
-.next-recording-lab
-out
+# Dependencies & Build Outputs
+node_modules/
+**/node_modules/
+.next/
+.next-recording-lab/
+.next-ui-preview/
+frontend/.next/
+frontend/.next-recording-lab/
+frontend/.next-ui-preview/
+frontend/out/
+frontend/next-env.d.ts
+backend/dist/
+backend/coverage/
 *.tsbuildinfo
-next-env.d.ts
-.env*
+
+# Environment & Private Credentials (never commit secrets)
+.env
+.env.*
 !.env.example
+**/.env
+**/.env.*
+!**/.env.example
+backend/secrets/
+*service-account*.json
+
+# Logs
+*.log
 firebase-debug*.log
-# Never commit captured interview media or local object-store data.
+
+# Private Recordings, Local Object Storage & Database Backups
 /recordings/
 recording-artifacts/
 minio-data/
 *.webm
 *.mp4
-
-.next-ui-preview
+infrastructure/recording-lab/runtime/
+database/backups/*
+!database/backups/.gitkeep

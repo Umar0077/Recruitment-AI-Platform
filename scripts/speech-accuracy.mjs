@@ -1,5 +1,13 @@
 import { readFileSync } from "node:fs";
-import { pathToFileURL } from "node:url";
+import { resolve } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+function getDefaultFixture() {
+  try {
+    return resolve(fileURLToPath(new URL("../frontend/tests/fixtures/speech-accuracy.json", import.meta.url)));
+  } catch {
+    return resolve(process.cwd(), "frontend/tests/fixtures/speech-accuracy.json");
+  }
+}
 const words = text => text.toLowerCase().replaceAll("’", "'").match(/[\p{L}\p{N}]+(?:'[\p{L}\p{N}]+)*/gu) ?? [];
 /** Word-level Levenshtein distance. Formatting normalization never edits stored answers. */
 export function wordErrorRate(reference, recognized) {
@@ -19,6 +27,6 @@ export function evaluateSpeech(rows) {
   return { source: "operator-supplied transcripts; device conditions are not independently verified", measured, pending: rows.length - measured.length, aggregateWER: total.words ? total.errors / total.words : null };
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  try { console.log(JSON.stringify(evaluateSpeech(JSON.parse(readFileSync(process.argv[2] ?? "tests/fixtures/speech-accuracy.json", "utf8"))), null, 2)); }
+  try { console.log(JSON.stringify(evaluateSpeech(JSON.parse(readFileSync(process.argv[2] ?? getDefaultFixture(), "utf8"))), null, 2)); }
   catch { console.error("Could not evaluate the transcript file. Check the JSON format and reference text; transcript contents withheld."); process.exitCode = 1; }
 }

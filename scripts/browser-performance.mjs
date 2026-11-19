@@ -1,6 +1,10 @@
 /** Isolated, fictional Demo Mode only. Never signs in to the real API or edits a database. */
-import { chromium } from 'playwright-core';
+import { createRequire } from 'node:module';
 import { mkdir, writeFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+const rootDir = resolve(fileURLToPath(new URL('..', import.meta.url)));
+const { chromium } = createRequire(resolve(rootDir, 'frontend/package.json'))('playwright-core');
 const base = process.env.PERF_BASE_URL ?? 'http://127.0.0.1:3300';
 const label = process.env.PERF_LABEL ?? 'manual-production';
 if (!/^http:\/\/127\.0\.0\.1:(3200|3300)$/.test(base) || !/^[a-z-]+$/.test(label)) throw Error('Local performance servers only');
@@ -129,7 +133,8 @@ try {
     }
   }
   if (label.startsWith('after')) {
-    await mkdir('.next-ui-preview/performance', {recursive:true});
+    const previewDir = resolve(rootDir, 'frontend/.next-ui-preview/performance');
+    await mkdir(previewDir, {recursive:true});
     for (const theme of ['light','dark']) {
       await page.setViewportSize({width:1440,height:1000});
       await page.evaluate(theme => localStorage.setItem('interviewos-theme',theme),theme);
@@ -161,7 +166,7 @@ try {
         await page.evaluate(theme => localStorage.setItem('interviewos-theme',theme),theme);
         await page.goto(`${base}/admin`,{waitUntil:'networkidle'});
         await page.getByRole('heading',{name:'HR Dashboard',exact:true}).waitFor();
-        await page.screenshot({path:`.next-ui-preview/performance/${label}-${theme}-${width}.png`,fullPage:true});
+        await page.screenshot({path:resolve(previewDir, `${label}-${theme}-${width}.png`),fullPage:true});
         rows.push({name:'appearance',theme,width,reducedMotion:true,...await page.evaluate(() => ({overflow:document.documentElement.scrollWidth>innerWidth,cls:window.__perf.cls}))});
         if (width===390) {
           await page.getByRole('button',{name:'Open navigation'}).click();
@@ -190,8 +195,9 @@ try {
   }
 } catch (e) { errors.push(e.message); console.error(e.message); }
 finally {
-  await mkdir('docs/performance/full', {recursive:true});
-  await writeFile(`docs/performance/full/${label}.json`, JSON.stringify({at:new Date().toISOString(),base,label,browser:browser.version(),method:'Headless installed Chrome, Demo Mode, no CPU/network throttling; click-to-first-frame with destination heading. Event Timing samples are lab interaction durations, not field INP.',rows,requests,errors},null,2));
+  const perfDir = resolve(rootDir, 'docs/performance/full');
+  await mkdir(perfDir, {recursive:true});
+  await writeFile(resolve(perfDir, `${label}.json`), JSON.stringify({at:new Date().toISOString(),base,label,browser:browser.version(),method:'Headless installed Chrome, Demo Mode, no CPU/network throttling; click-to-first-frame with destination heading. Event Timing samples are lab interaction durations, not field INP.',rows,requests,errors},null,2));
   await browser.close();
 }
 if (errors.length) process.exitCode=1;

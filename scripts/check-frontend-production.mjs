@@ -3,7 +3,11 @@ import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { createServer } from 'node:net';
 import { writeFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { performance } from 'node:perf_hooks';
+const rootDir = resolve(fileURLToPath(new URL('..', import.meta.url)));
+const frontendDir = resolve(rootDir, 'frontend');
 const port = 3103, base = `http://127.0.0.1:${port}`;
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 let phase = 'port availability', child, exited = false;
@@ -11,7 +15,7 @@ const evidence = { mode: 'api', production: true, apiUrl: 'https://api.example.i
 try {
   await new Promise((resolve, reject) => { const server = createServer(); server.once('error', reject); server.listen(port, '127.0.0.1', () => server.close(error => error ? reject(error) : resolve())); });
   phase = 'startup'; const began = performance.now();
-  child = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '--port', String(port), '--hostname', '127.0.0.1'], { windowsHide: true, stdio: 'ignore', env: { ...process.env, NEXT_PUBLIC_APP_MODE: 'api', NEXT_PUBLIC_API_BASE_URL: evidence.apiUrl, NEXT_TELEMETRY_DISABLED: '1' } });
+  child = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '--port', String(port), '--hostname', '127.0.0.1'], { cwd: frontendDir, windowsHide: true, stdio: 'ignore', env: { ...process.env, NEXT_PUBLIC_APP_MODE: 'api', NEXT_PUBLIC_API_BASE_URL: evidence.apiUrl, NEXT_TELEMETRY_DISABLED: '1' } });
   child.on('error', () => { exited = true; }); child.on('exit', () => { exited = true; });
   let ready = false;
   while (!exited && performance.now() - began < 45000) {
@@ -35,6 +39,6 @@ try {
 finally {
   if(child&&!exited){ child.kill(); for(let i=0;i<30&&!exited;i++) await pause(100); if(!exited)child.kill('SIGKILL'); }
   evidence.processStopped = !child || exited;
-  await writeFile('docs/performance/frontend-production.json',JSON.stringify(evidence,null,2)+'\n');
+  await writeFile(resolve(rootDir, 'docs/performance/frontend-production.json'),JSON.stringify(evidence,null,2)+'\n');
   process.stdout.write(JSON.stringify(evidence,null,2)+'\n');
 }

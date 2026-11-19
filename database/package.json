@@ -1,0 +1,20 @@
+{
+  "name": "interviewos-database",
+  "version": "1.0.0",
+  "private": true,
+  "description": "InterviewOS PostgreSQL 17 database manager, authoritative Prisma schema, migrations, seeds, and backup utilities.",
+  "scripts": {
+    "start": "node local/pg.mjs start",
+    "serve": "node local/pg.mjs serve",
+    "stop": "node local/pg.mjs stop",
+    "status": "node local/pg.mjs status",
+    "ensure": "node local/pg.mjs ensure",
+    "backup:cold": "node local/pg.mjs backup:cold",
+    "generate": "npm --prefix ../backend run prisma:generate",
+    "migrate:status": "npm --prefix ../backend run db:migrate:status",
+    "migrate:deploy": "npm --prefix ../backend run db:migrate:deploy",
+    "migrate:dev": "npm --prefix ../backend run db:migrate:dev",
+    "seed": "npm --prefix ../backend run db:seed",
+    "verify": "node --env-file=../backend/.env scripts/verify-db-state.mjs"
+  }
+}

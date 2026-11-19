@@ -7,7 +7,7 @@
     {
       "route": "/candidate/login",
       "status": 200,
-      "htmlResponseMs": 12,
+      "htmlResponseMs": 42,
       "cacheControl": "s-maxage=31536000",
       "poweredBy": null,
       "nosniff": null,
@@ -17,7 +17,7 @@
     {
       "route": "/admin/login",
       "status": 200,
-      "htmlResponseMs": 20,
+      "htmlResponseMs": 1159,
       "cacheControl": "s-maxage=31536000",
       "poweredBy": null,
       "nosniff": null,
@@ -27,7 +27,7 @@
     {
       "route": "/admin/api-usage",
       "status": 200,
-      "htmlResponseMs": 37,
+      "htmlResponseMs": 49,
       "cacheControl": "s-maxage=31536000",
       "poweredBy": null,
       "nosniff": null,
@@ -37,7 +37,7 @@
     {
       "route": "/privacy",
       "status": 200,
-      "htmlResponseMs": 22,
+      "htmlResponseMs": 42,
       "cacheControl": "s-maxage=31536000",
       "poweredBy": null,
       "nosniff": null,
@@ -46,7 +46,7 @@
     }
   ],
   "applicationWrites": 0,
-  "startupAndFirstResponseMs": 1266,
+  "startupAndFirstResponseMs": 2342,
   "staticAsset": {
     "status": 200,
     "cacheControl": "public, max-age=31536000, immutable"

@@ -4,8 +4,11 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { performance } from "node:perf_hooks";
-const require = createRequire(import.meta.url);
+const rootDir = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
+const frontendDir = path.resolve(rootDir, "frontend");
+const require = createRequire(path.resolve(frontendDir, "package.json"));
 const label = process.argv[2] ?? "baseline";
 const includeApiUsage = process.argv.includes("--include-api-usage");
 if (!/^[a-z0-9-]+$/.test(label)) throw new Error("Use a simple measurement label.");
@@ -13,7 +16,7 @@ const port = 3102;
 const startedAt = new Date().toISOString();
 const started = performance.now();
 const child = spawn(process.execPath, ["node_modules/next/dist/bin/next", "dev", "--turbo", "--port", String(port)], {
-  cwd: process.cwd(), windowsHide: true, stdio: ["ignore", "pipe", "pipe"],
+  cwd: frontendDir, windowsHide: true, stdio: ["ignore", "pipe", "pipe"],
   env: { ...process.env, NEXT_PUBLIC_APP_MODE: "demo", NEXT_TELEMETRY_DISABLED: "1" },
 });
 const evidence = {
@@ -48,8 +51,8 @@ try {
     evidence.routes.push({ route, samples });
     process.stdout.write(JSON.stringify({ route, samples }) + "\n");
   }
-  await mkdir("docs/performance", { recursive: true });
-  await writeFile(path.join("docs/performance", `${label}.json`), JSON.stringify(evidence, null, 2) + "\n");
+  await mkdir(path.join(rootDir, "docs/performance"), { recursive: true });
+  await writeFile(path.join(rootDir, "docs/performance", `${label}.json`), JSON.stringify(evidence, null, 2) + "\n");
   process.stdout.write(JSON.stringify({ label, startupMs: evidence.startupMs, readyReported: evidence.readyReported, result: "recorded", processId: child.pid }) + "\n");
 } finally {
   clearTimeout(timer);
