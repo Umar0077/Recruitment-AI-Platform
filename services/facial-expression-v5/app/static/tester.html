@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="v5-csrf-token" content="__V5_CSRF_TOKEN__" />
+  <title>InterviewOS — Facial Expression V5 Local Developer Tester</title>
+  <style>
+    :root {
+      --bg: #0b101b;
+      --panel: #131b2c;
+      --panel-alt: #192338;
+      --border: #283652;
+      --text: #e8eef8;
+      --muted: #93a4c3;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --ok: #10b981;
+      --warn: #f59e0b;
+      --err: #ef4444;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    h1 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-top: 2px;
+    }
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .badge {
+      font-size: 0.78rem;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      font-family: var(--mono);
+    }
+    .badge.ok { border-color: rgba(16, 185, 129, 0.5); color: #6ee7b7; }
+    .badge.err { border-color: rgba(239, 68, 68, 0.5); color: #fca5a5; }
+    .badge.warn { border-color: rgba(245, 158, 11, 0.5); color: #fcd34d; }
+    .notice {
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.35);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.84rem;
+      color: #cbd5e1;
+      margin-bottom: 18px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 18px;
+    }
+    @media (max-width: 920px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+    }
+    .card h2 {
+      margin: 0 0 12px 0;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+    .viewport-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      background: #060911;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    video, #previewImage, #overlayCanvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    #overlayCanvas {
+      pointer-events: none;
+    }
+    .placeholder {
+      color: var(--muted);
+      font-size: 0.9rem;
+      text-align: center;
+      padding: 20px;
+      z-index: 1;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+      align-items: center;
+    }
+    button {
+      background: var(--panel-alt);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 13px;
+      font-size: 0.86rem;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    button:hover:not(:disabled) {
+      border-color: var(--accent);
+    }
+    button.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #ffffff;
+    }
+    button.primary:hover:not(:disabled) {
+      background: var(--accent-hover);
+    }
+    button.danger {
+      background: rgba(239, 68, 68, 0.16);
+      border-color: rgba(239, 68, 68, 0.5);
+      color: #fecaca;
+    }
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      font-size: 0.85rem;
+    }
+    label.inline {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+    select, input[type="file"] {
+      background: var(--panel-alt);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 8px;
+      font-size: 0.84rem;
+    }
+    .error-banner {
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: rgba(239, 68, 68, 0.14);
+      border: 1px solid rgba(239, 68, 68, 0.45);
+      color: #fecaca;
+      font-size: 0.85rem;
+      display: none;
+    }
+    .summary-box {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .stat {
+      background: var(--panel-alt);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+    .stat-label {
+      font-size: 0.74rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .stat-value {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-top: 3px;
+      font-family: var(--mono);
+    }
+    .prob-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .prob-item {
+      display: grid;
+      grid-template-columns: 84px 1fr 58px;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.84rem;
+    }
+    .prob-label {
+      font-family: var(--mono);
+      text-transform: lowercase;
+    }
+    .bar-track {
+      height: 10px;
+      background: #0a0f1a;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .bar-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      transition: width 120ms ease-out;
+    }
+    .bar-fill.top {
+      background: var(--ok);
+    }
+    .prob-pct {
+      font-family: var(--mono);
+      text-align: right;
+      color: var(--muted);
+    }
+    .top3 {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      font-size: 0.84rem;
+    }
+    .top3-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .chip {
+      background: var(--panel-alt);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 9px;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+    }
+    .footnote {
+      margin-top: 12px;
+      font-size: 0.76rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>InterviewOS — Facial Expression V5 Local Developer Tester</h1>
+        <div class="subtitle">Loopback-only technical verification UI · No frames saved or recorded · In-memory inference only</div>
+      </div>
+      <div class="badges">
+        <span id="readyBadge" class="badge">Checking readiness...</span>
+        <span id="versionBadge" class="badge">model: v5</span>
+        <span id="deviceBadge" class="badge">device: --</span>
+      </div>
+    </header>
+
+    <div class="notice">
+      <strong>Responsible-use notice:</strong> Predictions reflect visual facial-expression categories for a voluntary technical demo only.
+      They do not measure actual emotions, honesty, stress, mental health, or job suitability, and must never be used in hiring decisions.
+      Historical FER2013 development accuracy is not live webcam accuracy.
+    </div>
+
+    <div class="grid">
+      <section class="card">
+        <h2>Camera &amp; Photo Input</h2>
+        <div class="viewport-wrap">
+          <div id="placeholderText" class="placeholder">
+            Camera is off. Click <strong>Start Camera</strong> (explicit permission required) or upload a JPEG/PNG photo below.
+          </div>
+          <video id="videoEl" autoplay playsinline muted hidden></video>
+          <img id="previewImage" alt="Uploaded photo preview" hidden />
+          <canvas id="overlayCanvas"></canvas>
+        </div>
+
+        <div class="controls">
+          <button id="startCamBtn" class="primary" type="button">Start Camera</button>
+          <button id="stopCamBtn" class="danger" type="button" disabled>Stop Camera</button>
+          <button id="captureBtn" type="button" disabled>Capture &amp; Analyze</button>
+          <label class="inline" style="margin-left:auto;">
+            <input id="liveToggle" type="checkbox" disabled />
+            <span>Live Testing (opt-in)</span>
+          </label>
+        </div>
+
+        <div class="row">
+          <label class="inline">
+            <span>Frame interval:</span>
+            <select id="intervalSelect">
+              <option value="1000">1000 ms (~1.0 FPS)</option>
+              <option value="750" selected>750 ms (~1.3 FPS)</option>
+              <option value="500">500 ms (2.0 FPS)</option>
+              <option value="1500">1500 ms (~0.7 FPS)</option>
+            </select>
+          </label>
+          <label class="inline">
+            <input id="smoothingToggle" type="checkbox" />
+            <span>Display smoothing only (EMA)</span>
+          </label>
+        </div>
+
+        <div class="row">
+          <input id="fileInput" type="file" accept="image/jpeg,image/png" />
+          <button id="uploadBtn" type="button">Upload &amp; Analyze Photo</button>
+        </div>
+
+        <div id="errorBanner" class="error-banner" role="alert"></div>
+      </section>
+
+      <section class="card">
+        <h2>Inference Output</h2>
+        <div class="summary-box">
+          <div class="stat">
+            <div class="stat-label">Face Status</div>
+            <div id="faceStatusVal" class="stat-value">--</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Predicted Category</div>
+            <div id="expressionVal" class="stat-value">--</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Confidence (Raw)</div>
+            <div id="confidenceVal" class="stat-value">--</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Latency (Server / E2E)</div>
+            <div id="latencyVal" class="stat-value">--</div>
+          </div>
+        </div>
+
+        <div class="badges" style="margin-bottom: 10px;">
+          <span id="uncertainBadge" class="badge" hidden>uncertain</span>
+          <span id="qualityBadge" class="badge warn" hidden></span>
+        </div>
+
+        <div style="font-size:0.84rem; font-weight:600; margin-top:6px;">
+          Category Probabilities <span id="smoothingNote" style="color:var(--muted); font-weight:400;" hidden>(EMA smoothed display only; raw confidence above)</span>
+        </div>
+        <div id="probList" class="prob-list"></div>
+
+        <div class="top3">
+          <div style="font-weight:600;">Top-3 Predictions</div>
+          <div id="top3Chips" class="top3-chips">
+            <span class="chip">--</span>
+          </div>
+        </div>
+
+        <div class="footnote" id="benchmarkFootnote">
+          Loading model metadata...
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <canvas id="captureCanvas" hidden></canvas>
+
+  <script>
+    (function () {
+      const csrfMeta = document.querySelector('meta[name="v5-csrf-token"]');
+      const csrfToken = csrfMeta ? csrfMeta.getAttribute("content") : "";
+
+      const videoEl = document.getElementById("videoEl");
+      const previewImg = document.getElementById("previewImage");
+      const overlayCanvas = document.getElementById("overlayCanvas");
+      const captureCanvas = document.getElementById("captureCanvas");
+      const placeholderText = document.getElementById("placeholderText");
+
+      const readyBadge = document.getElementById("readyBadge");
+      const versionBadge = document.getElementById("versionBadge");
+      const deviceBadge = document.getElementById("deviceBadge");
+      const errorBanner = document.getElementById("errorBanner");
+
+      const startCamBtn = document.getElementById("startCamBtn");
+      const stopCamBtn = document.getElementById("stopCamBtn");
+      const captureBtn = document.getElementById("captureBtn");
+      const liveToggle = document.getElementById("liveToggle");
+      const intervalSelect = document.getElementById("intervalSelect");
+      const smoothingToggle = document.getElementById("smoothingToggle");
+      const fileInput = document.getElementById("fileInput");
+      const uploadBtn = document.getElementById("uploadBtn");
+
+      const faceStatusVal = document.getElementById("faceStatusVal");
+      const expressionVal = document.getElementById("expressionVal");
+      const confidenceVal = document.getElementById("confidenceVal");
+      const latencyVal = document.getElementById("latencyVal");
+      const uncertainBadge = document.getElementById("uncertainBadge");
+      const qualityBadge = document.getElementById("qualityBadge");
+      const smoothingNote = document.getElementById("smoothingNote");
+      const probList = document.getElementById("probList");
+      const top3Chips = document.getElementById("top3Chips");
+      const benchmarkFootnote = document.getElementById("benchmarkFootnote");
+
+      let mediaStream = null;
+      let liveTimer = null;
+      let inFlight = false;
+      let labels = [];
+      let emaProbs = null;
+      const EMA_ALPHA = 0.35;
+      const REQUEST_TIMEOUT_MS = 15000;
+
+      function showError(msg) {
+        errorBanner.textContent = msg;
+        errorBanner.style.display = "block";
+      }
+
+      function clearError() {
+        errorBanner.textContent = "";
+        errorBanner.style.display = "none";
+      }
+
+      function renderProbabilityRows(categoryLabels) {
+        probList.innerHTML = "";
+        for (const label of categoryLabels) {
+          const row = document.createElement("div");
+          row.className = "prob-item";
+          row.dataset.label = label;
+          row.innerHTML =
+            '<span class="prob-label"></span>' +
+            '<div class="bar-track"><div class="bar-fill"></div></div>' +
+            '<span class="prob-pct">0.0%</span>';
+          row.querySelector(".prob-label").textContent = label;
+          probList.appendChild(row);
+        }
+      }
+
+      function clearOverlay() {
+        const ctx = overlayCanvas.getContext("2d");
+        overlayCanvas.width = overlayCanvas.clientWidth || 640;
+        overlayCanvas.height = overlayCanvas.clientHeight || 480;
+        ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+      }
+
+      function drawFaceBox(bbox, label) {
+        const cw = overlayCanvas.clientWidth || 640;
+        const ch = overlayCanvas.clientHeight || 480;
+        overlayCanvas.width = cw;
+        overlayCanvas.height = ch;
+        const ctx = overlayCanvas.getContext("2d");
+        ctx.clearRect(0, 0, cw, ch);
+        if (!bbox) return;
+
+        const scale = Math.min(cw / bbox.image_width, ch / bbox.image_height);
+        const offsetX = (cw - bbox.image_width * scale) / 2;
+        const offsetY = (ch - bbox.image_height * scale) / 2;
+        const rx = offsetX + bbox.x * scale;
+        const ry = offsetY + bbox.y * scale;
+        const rw = bbox.width * scale;
+        const rh = bbox.height * scale;
+
+        ctx.strokeStyle = "#10b981";
+        ctx.lineWidth = 2.5;
+        ctx.strokeRect(rx, ry, rw, rh);
+        if (label) {
+          ctx.fillStyle = "rgba(16, 185, 129, 0.9)";
+          ctx.font = "600 13px ui-monospace, monospace";
+          const textWidth = ctx.measureText(label).width + 12;
+          const ty = Math.max(20, ry);
+          ctx.fillRect(rx, ty - 20, textWidth, 20);
+          ctx.fillStyle = "#062016";
+          ctx.fillText(label, rx + 6, ty - 6);
+        }
+      }
+
+      async function fetchStatus() {
+        try {
+          const res = await fetch("/tester/api/status", {
+            method: "GET",
+            credentials: "same-origin",
+            headers: { "X-V5-CSRF-Token": csrfToken },
+          });
+          if (!res.ok) {
+            throw new Error("Status HTTP " + res.status);
+          }
+          const data = await res.json();
+          versionBadge.textContent = "model: " + (data.model_version || "v5");
+          deviceBadge.textContent = "device: " + (data.device || "unknown");
+          if (data.ready) {
+            readyBadge.textContent = "ready";
+            readyBadge.className = "badge ok";
+          } else {
+            readyBadge.textContent = "not_ready";
+            readyBadge.className = "badge err";
+          }
+          if (Array.isArray(data.labels) && data.labels.length > 0) {
+            labels = data.labels;
+            renderProbabilityRows(labels);
+          }
+          if (data.historical_benchmark) {
+            const hb = data.historical_benchmark;
+            const acc = typeof hb.accuracy === "number" ? (hb.accuracy * 100).toFixed(2) + "%" : "n/a";
+            benchmarkFootnote.textContent =
+              "Historical reference (" + hb.dataset + ", n=" + (hb.sample_count || "?") +
+              "): " + acc + " accuracy. " + hb.note;
+          } else {
+            benchmarkFootnote.textContent = "Model metadata loaded.";
+          }
+        } catch (err) {
+          readyBadge.textContent = "unavailable";
+          readyBadge.className = "badge err";
+          showError("Service status check failed: " + err.message);
+        }
+      }
+
+      function updateResultUI(result, e2eMs) {
+        faceStatusVal.textContent = result.status + " (" + result.face_count + ")";
+        latencyVal.textContent = result.processing_ms.toFixed(1) + " / " + e2eMs.toFixed(1) + " ms";
+        deviceBadge.textContent = "device: " + result.device;
+
+        if (result.quality_warning) {
+          qualityBadge.textContent = "quality: " + result.quality_warning;
+          qualityBadge.hidden = false;
+        } else {
+          qualityBadge.hidden = true;
+        }
+
+        if (!result.face_detected || result.status !== "OK" || !result.probabilities) {
+          expressionVal.textContent = "--";
+          confidenceVal.textContent = "--";
+          uncertainBadge.hidden = true;
+          clearOverlay();
+          for (const row of probList.querySelectorAll(".prob-item")) {
+            row.querySelector(".bar-fill").style.width = "0%";
+            row.querySelector(".bar-fill").className = "bar-fill";
+            row.querySelector(".prob-pct").textContent = "0.0%";
+          }
+          top3Chips.innerHTML = '<span class="chip">No expression score (' + result.status + ')</span>';
+          return;
+        }
+
+        expressionVal.textContent = result.expression_label;
+        confidenceVal.textContent = (result.confidence * 100).toFixed(1) + "%";
+        uncertainBadge.hidden = !result.uncertain;
+        if (result.uncertain) {
+          uncertainBadge.textContent = "uncertain (< threshold)";
+          uncertainBadge.className = "badge warn";
+        }
+        drawFaceBox(result.face_bbox, result.expression_label);
+
+        let displayProbs = result.probabilities;
+        if (smoothingToggle.checked) {
+          smoothingNote.hidden = false;
+          if (!emaProbs) {
+            emaProbs = { ...result.probabilities };
+          } else {
+            const updated = {};
+            for (const key of Object.keys(result.probabilities)) {
+              const prev = typeof emaProbs[key] === "number" ? emaProbs[key] : result.probabilities[key];
+              updated[key] = EMA_ALPHA * result.probabilities[key] + (1 - EMA_ALPHA) * prev;
+            }
+            emaProbs = updated;
+          }
+          displayProbs = emaProbs;
+        } else {
+          smoothingNote.hidden = true;
+          emaProbs = null;
+        }
+
+        for (const row of probList.querySelectorAll(".prob-item")) {
+          const lbl = row.dataset.label;
+          const val = Number(displayProbs[lbl] || 0);
+          const pct = Math.max(0, Math.min(100, val * 100));
+          const fill = row.querySelector(".bar-fill");
+          fill.style.width = pct.toFixed(1) + "%";
+          fill.className = lbl === result.expression_label ? "bar-fill top" : "bar-fill";
+          row.querySelector(".prob-pct").textContent = pct.toFixed(1) + "%";
+        }
+
+        top3Chips.innerHTML = "";
+        for (const item of result.top_predictions || []) {
+          const chip = document.createElement("span");
+          chip.className = "chip";
+          chip.textContent = item.label + ": " + (item.confidence * 100).toFixed(1) + "%";
+          top3Chips.appendChild(chip);
+        }
+      }
+
+      async function sendBlobForInference(blob, filename) {
+        if (inFlight) return;
+        inFlight = true;
+        clearError();
+        const started = performance.now();
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+        try {
+          const form = new FormData();
+          form.append("file", blob, filename);
+          const res = await fetch("/tester/api/infer", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "X-V5-CSRF-Token": csrfToken },
+            body: form,
+            signal: controller.signal,
+          });
+          const body = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            const detail = body.detail && body.detail.message ? body.detail.message : ("HTTP " + res.status);
+            throw new Error(detail);
+          }
+          const e2eMs = performance.now() - started;
+          updateResultUI(body, e2eMs);
+        } catch (err) {
+          if (err.name === "AbortError") {
+            showError("Inference request timed out after " + (REQUEST_TIMEOUT_MS / 1000) + "s.");
+          } else {
+            showError("Inference error: " + err.message);
+          }
+        } finally {
+          clearTimeout(timeoutId);
+          inFlight = false;
+        }
+      }
+
+      function captureAndAnalyzeFrame() {
+        if (!mediaStream || videoEl.readyState < 2 || inFlight) return;
+        const w = videoEl.videoWidth || 640;
+        const h = videoEl.videoHeight || 480;
+        captureCanvas.width = w;
+        captureCanvas.height = h;
+        const ctx = captureCanvas.getContext("2d");
+        ctx.drawImage(videoEl, 0, 0, w, h);
+        captureCanvas.toBlob(
+          (blob) => {
+            if (blob) sendBlobForInference(blob, "webcam-frame.jpg");
+          },
+          "image/jpeg",
+          0.9
+        );
+      }
+
+      function stopLiveLoop() {
+        if (liveTimer) {
+          clearInterval(liveTimer);
+          liveTimer = null;
+        }
+        liveToggle.checked = false;
+      }
+
+      function startLiveLoop() {
+        stopLiveLoop();
+        liveToggle.checked = true;
+        const ms = Number(intervalSelect.value) || 750;
+        liveTimer = setInterval(() => {
+          if (!inFlight) captureAndAnalyzeFrame();
+        }, ms);
+      }
+
+      function stopCamera() {
+        stopLiveLoop();
+        if (mediaStream) {
+          for (const track of mediaStream.getTracks()) {
+            track.stop();
+          }
+          mediaStream = null;
+        }
+        videoEl.srcObject = null;
+        videoEl.hidden = true;
+        placeholderText.hidden = false;
+        startCamBtn.disabled = false;
+        stopCamBtn.disabled = true;
+        captureBtn.disabled = true;
+        liveToggle.disabled = true;
+        clearOverlay();
+      }
+
+      async function startCamera() {
+        clearError();
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          showError("Camera API is unavailable in this browser context.");
+          return;
+        }
+        try {
+          mediaStream = await navigator.mediaDevices.getUserMedia({
+            video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: "user" },
+            audio: false,
+          });
+          previewImg.hidden = true;
+          previewImg.src = "";
+          placeholderText.hidden = true;
+          videoEl.srcObject = mediaStream;
+          videoEl.hidden = false;
+          startCamBtn.disabled = true;
+          stopCamBtn.disabled = false;
+          captureBtn.disabled = false;
+          liveToggle.disabled = false;
+        } catch (err) {
+          showError("Could not access camera: " + err.message);
+        }
+      }
+
+      startCamBtn.addEventListener("click", startCamera);
+      stopCamBtn.addEventListener("click", stopCamera);
+      captureBtn.addEventListener("click", captureAndAnalyzeFrame);
+
+      liveToggle.addEventListener("change", () => {
+        if (liveToggle.checked) {
+          startLiveLoop();
+        } else {
+          stopLiveLoop();
+        }
+      });
+
+      intervalSelect.addEventListener("change", () => {
+        if (liveToggle.checked) {
+          startLiveLoop();
+        }
+      });
+
+      smoothingToggle.addEventListener("change", () => {
+        if (!smoothingToggle.checked) {
+          emaProbs = null;
+          smoothingNote.hidden = true;
+        }
+      });
+
+      uploadBtn.addEventListener("click", () => {
+        clearError();
+        const file = fileInput.files && fileInput.files[0];
+        if (!file) {
+          showError("Choose a JPEG or PNG image first.");
+          return;
+        }
+        stopCamera();
+        const objectUrl = URL.createObjectURL(file);
+        previewImg.onload = () => URL.revokeObjectURL(objectUrl);
+        previewImg.src = objectUrl;
+        previewImg.hidden = false;
+        placeholderText.hidden = true;
+        sendBlobForInference(file, file.name);
+      });
+
+      window.addEventListener("beforeunload", stopCamera);
+      window.addEventListener("pagehide", stopCamera);
+
+      fetchStatus();
+    })();
+  </script>
+</body>
+</html>

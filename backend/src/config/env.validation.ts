@@ -126,6 +126,24 @@ export class EnvironmentVariables {
 
   @IsInt() @Min(1) @Max(10000) @Transform(({ value }) => Number(value))
   RATE_LIMIT_PER_MINUTE = 300;
+
+  @IsBoolean() @Transform(toBool)
+  MODEL_LAB_ENABLED = false;
+
+  @IsString()
+  V5_SERVICE_URL = "http://127.0.0.1:8765";
+
+  @IsString()
+  V5_SERVICE_TOKEN = "";
+
+  @IsInt() @Min(500) @Max(60000) @Transform(({ value }) => Number(value))
+  V5_REQUEST_TIMEOUT_MS = 18000;
+
+  @IsInt() @Min(1024) @Max(20000000) @Transform(({ value }) => Number(value))
+  V5_MAX_UPLOAD_BYTES = 10000000;
+
+  @IsInt() @Min(1) @Max(16) @Transform(({ value }) => Number(value))
+  V5_MAX_CONCURRENT_REQUESTS = 2;
 }
 
 export function validateEnv(config: Record<string, unknown>) {
@@ -157,6 +175,20 @@ export function validateEnv(config: Record<string, unknown>) {
   const providers = env.AUTH_ALLOWED_PROVIDERS.split(",").map(p => p.trim());
   if (providers.some(p => !["google.com", "password"].includes(p))) {
     throw new Error("AUTH_ALLOWED_PROVIDERS must contain only google.com and/or password.");
+  }
+  if (env.V5_SERVICE_URL.trim()) {
+    let v5Url: URL;
+    try {
+      v5Url = new URL(env.V5_SERVICE_URL.trim());
+    } catch {
+      throw new Error("V5_SERVICE_URL must be a valid HTTP(S) base URL.");
+    }
+    if (v5Url.username || v5Url.password || v5Url.search || v5Url.hash || !["http:", "https:"].includes(v5Url.protocol)) {
+      throw new Error("V5_SERVICE_URL must be a clean HTTP(S) origin without credentials or query parameters.");
+    }
+    if (env.NODE_ENV === "production" && v5Url.protocol !== "https:" && !["localhost", "127.0.0.1", "[::1]"].includes(v5Url.hostname)) {
+      throw new Error("V5_SERVICE_URL requires HTTPS outside loopback in production.");
+    }
   }
   return env;
 }

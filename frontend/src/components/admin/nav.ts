@@ -6,6 +6,7 @@ import {
   HelpCircle,
   KanbanSquare,
   LayoutDashboard,
+  ScanFace,
   Settings,
   UserCog,
   Users,
@@ -19,6 +20,7 @@ export interface NavItem {
   icon: LucideIcon;
   match?: string[];
   permission?: string;
+  role?: string;
 }
 
 export const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
@@ -34,6 +36,7 @@ export const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
   {label:"Settings",href:"/admin/settings",icon:Settings}] },
  { label: "Administration", items: [
   {label:"API Usage",href:"/admin/api-usage",icon:Activity,permission:"users:manage"},
+  {label:"Model Lab",href:"/admin/model-lab",icon:ScanFace,permission:"users:manage",role:"SUPER_ADMIN"},
   {label:"Rubric Configuration",href:"/admin/assessments/rubrics",icon:ClipboardCheck,permission:"question_sets:manage"},
   {label:"HR Accounts",href:"/admin/settings/accounts",icon:UserCog,permission:"users:manage"},
   {label:"HR Team",href:"/admin/team",icon:Users,permission:"users:manage"},
@@ -44,8 +47,16 @@ export const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
 export const ALL_NAV = NAV_GROUPS.flatMap((g) => g.items);
 
 /** Navigation visibility only; protected APIs enforce the same permission server-side. */
-export function isNavVisible(item: NavItem, permissions: readonly string[] | undefined, apiMode: boolean) {
-  return !apiMode || !item.permission || !!permissions?.includes(item.permission);
+export function isNavVisible(
+  item: NavItem,
+  permissions: readonly string[] | undefined,
+  apiMode: boolean,
+  roles?: readonly string[] | undefined,
+) {
+  if (!apiMode) return true;
+  if (item.permission && !permissions?.includes(item.permission)) return false;
+  if (item.role && (!roles || !roles.includes(item.role))) return false;
+  return true;
 }
 
 export function isActive(pathname: string, href: string) {

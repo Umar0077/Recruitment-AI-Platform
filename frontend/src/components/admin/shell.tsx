@@ -36,12 +36,12 @@ function SidebarNav({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?
   const awaiting = isApiMode ? apiAwaiting : demoAwaiting;
   return (
     <nav aria-label="Admin" className="flex-1 overflow-y-auto px-3 py-2">
-      {NAV_GROUPS.filter(g => g.items.some(item => isNavVisible(item, profile?.permissions, isApiMode))).map((g) => (
+      {NAV_GROUPS.filter(g => g.items.some(item => isNavVisible(item, profile?.permissions, isApiMode, profile?.roles))).map((g) => (
         <div key={g.label} className="mb-5">
           {!collapsed && <p className="mb-1.5 px-3 text-[11px] font-medium uppercase tracking-[0.14em] text-fg-muted">{g.label}</p>}
           {collapsed && <div className="mx-auto mb-2 h-px w-6 bg-overlay/[0.06]" aria-hidden />}
           <ul className="space-y-0.5">
-            {g.items.filter(item => isNavVisible(item, profile?.permissions, isApiMode)).map((item) => {
+            {g.items.filter(item => isNavVisible(item, profile?.permissions, isApiMode, profile?.roles)).map((item) => {
               const active = isActive(pathname, item.href);
               const badge = item.href === "/admin/interviews" && awaiting > 0 ? awaiting : undefined;
               const link = (

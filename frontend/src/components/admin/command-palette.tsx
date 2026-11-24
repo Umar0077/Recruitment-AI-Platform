@@ -47,7 +47,7 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
     if (!open) return [];
     const term = q.trim().toLowerCase();
     const has = (...s: string[]) => !term || s.some((x) => x.toLowerCase().includes(term));
-    const pages: Result[] = ALL_NAV.filter((n) => isNavVisible(n, profile?.permissions, isApiMode) && has(n.label)).map((n) => ({ id: n.href, group: "Pages", label: n.label, href: n.href, icon: <n.icon className="size-4" /> }));
+    const pages: Result[] = ALL_NAV.filter((n) => isNavVisible(n, profile?.permissions, isApiMode, profile?.roles) && has(n.label)).map((n) => ({ id: n.href, group: "Pages", label: n.label, href: n.href, icon: <n.icon className="size-4" /> }));
     const cands: Result[] = candidates
       .filter((c) => term && has(c.name, c.id, c.email))
       .slice(0, 6)
@@ -59,7 +59,7 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
     const roles: Result[] = JOB_ROLES.filter((r) => has(r.title)).map((r) => ({ id: r.id, group: "Job Roles", label: r.title, sub: r.department, href: `/admin/interview-setup?track=${r.track}`, icon: <Briefcase className="size-4" /> }));
     const apiCands: Result[] = (searchTerm ? remote.data?.items ?? [] : []).map((a) => ({ id: a.id, group: "Candidates", label: a.candidate.fullName, sub: `${a.jobRole.title} · ${a.statusLabel}`, href: `/admin/candidates/${a.id}`, icon: <CandidateAvatar name={a.candidate.fullName} size="sm" /> }));
     return [...apiCands, ...cands, ...ivs, ...pages, ...roles];
-  }, [open, q, candidates, interviews, remote.data, profile?.permissions, searchTerm]);
+  }, [open, q, candidates, interviews, remote.data, profile?.permissions, profile?.roles, searchTerm]);
 
   useEffect(() => setActive(0), [q]);
   useEffect(() => {

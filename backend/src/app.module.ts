@@ -25,6 +25,7 @@ import { RecordingsModule } from "./modules/recordings/recordings.module";
 import { StorageModule } from "./integrations/storage/storage.module";
 import { MaintenanceModule } from "./jobs/maintenance.service";
 import { AssessmentModule } from "./modules/assessment/assessment.module";
+import { ModelLabModule } from "./modules/model-lab/model-lab.module";
 
 const SAFE_REQUEST_ID = /^[A-Za-z0-9-]{8,64}$/;
 
@@ -72,6 +73,7 @@ const SAFE_REQUEST_ID = /^[A-Za-z0-9-]{8,64}$/;
     UsersModule,
     CareersIntegrationModule,
     HealthModule,
+    ModelLabModule,
   ],
   providers: [
     // Order matters: rate-limit before doing any token verification work.
